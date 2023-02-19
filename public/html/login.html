@@ -1,26 +1,115 @@
 {{define "login"}}
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+  <head>
     <meta charset="UTF-8">
-    <title>Login page</title>
-</head>
-<body>
-<form id="loginForm" name="loginForm" action="/login" method="post" class="mt-4">
-    <label for="login">Логин</label><br>
-    <input type="login" id="login" name="login" autocomplete="on"><br>
-    <label for="password">Пароль</label><br>
-    <input type="password" id="password" name="password" autocomplete="on"><br>
-    <br>
-    <button type="submit" name="submitBtn">Войти</button>
-</form>
-{{if . }}
-<div>
-    {{.Message}}
-</div>
-{{end}}
-<br>
-<a href="/signup">Зарегистрироваться</a>
-</body>
+    <title>Login Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+      }
+      
+      .container {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0px 0px 5px #ccc;
+        width: 300px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      
+      h2 {
+        text-align: center;
+        color: #666;
+      }
+      
+      input[type=text], input[type=password] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+      }
+      
+      button:hover {
+        background-color: #45a049;
+      }
+      
+      .cancelbtn {
+        width: auto;
+        padding: 10px 18px;
+        background-color: #f44336;
+      }
+      
+      .imgcontainer {
+        text-align: center;
+        margin: 24px 0 12px 0;
+        position: relative;
+      }
+      
+      img.avatar {
+        width: 40%;
+        border-radius: 50%;
+      }
+      
+      .container > p {
+        text-align: center;
+      }
+      
+      .container > hr {
+        border: 1px solid #f1f1f1;
+        margin-bottom: 25px;
+      }
+      
+      span.psw {
+        float: right;
+        padding-top: 16px;
+      }
+      
+      /* Change styles for cancel button and signup button on extra small screens */
+      @media screen and (max-width: 300px) {
+        .cancelbtn, .signupbtn {
+           width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <form action="/login" method="post">
+      <div class="container">
+        <h2>Login</h2>
+        <div class="imgcontainer">
+          <img src="https://www.w3schools.com/howto/img_avatar2.png" alt="Avatar" class="avatar">
+        </div>
+        <label for="login"><b>Логин</b></label>
+        <input type="text" placeholder="Введите Логин" name="login" required>
+        <label for="password"><b>Пароль</b></label>
+        <input type="password" placeholder="Введите пароль" name="password" required>
+        <button type="submit" name="submitBtn">Войти</button>
+        {{if . }}
+        <div>
+            {{.Message}}
+        </div>
+        {{end}}
+        <br>
+        <a href="/foget" align="left" >Забыли пароль?</a>
+        <a href="/signup" align="right" >Зарегистрироваться</a>        
+      </div>
+    </form>
+  </body>
 </html>
 {{end}}
