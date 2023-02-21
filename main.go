@@ -21,9 +21,6 @@ func main() {
 	a := application.NewApp(ctx, dbpool)
 	r := httprouter.New()
 	a.Routes(r)
-	// srv := &http.Server{Addr: ":8080", Handler: r}
-	// fmt.Println("It is alive! Try http://localhost:8080")
-	// srv.ListenAndServe()
 	fmt.Println("It is alive! Try http://t-azs.ru:8080")
 	//http.ListenAndServe(":80", r)
 	http.ListenAndServe(":8080", r)

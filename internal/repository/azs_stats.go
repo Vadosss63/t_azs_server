@@ -7,7 +7,7 @@ import (
 
 // create table if not exists azses
 // (
-//     id      bigint primary key generated always as identity,
+//  id      bigint primary key generated always as identity,
 // 	id_azs  bigint,
 // 	is_authorized  int,
 //  time   varchar(100) not null,
@@ -29,8 +29,29 @@ type AzsStatsData struct {
 }
 
 func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized int, time, name, address, stats string) (err error) {
-	_, err = r.pool.Exec(ctx, `insert into azses (id_azs, is_authorized, time, name, address, stats) values ($1, $2, $3, $4, $5, $6)`,
+	_, err = r.pool.Exec(ctx,
+		`insert into azses (id_azs, is_authorized, time, name, address, stats) values ($1, $2, $3, $4, $5, $6)`,
 		id_azs, is_authorized, time, name, address, stats)
+	if err != nil {
+		err = fmt.Errorf("failed to exec data: %w", err)
+		return
+	}
+	return
+}
+
+func (r *Repository) UpdateAzsStats(ctx context.Context, azs AzsStatsData) (err error) {
+	_, err = r.pool.Exec(ctx,
+		`UPDATE azses SET is_authorized = '$2', time = '$3', name = '$4', address = '$5', stats = '$6' WHERE id_azs = $1`,
+		azs.IdAzs, azs.IsAuthorized, azs.Time, azs.Name, azs.Address, azs.Stats)
+	if err != nil {
+		err = fmt.Errorf("failed to exec data: %w", err)
+		return
+	}
+	return
+}
+
+func (r *Repository) DeleteAzsStats(ctx context.Context, id_azs int) (err error) {
+	_, err = r.pool.Exec(ctx, `DELETE FROM azses WHERE id_azs = $1`, id_azs)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -45,6 +66,7 @@ func (r *Repository) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, 
 		err = fmt.Errorf("failed to query data: %w", err)
 		return
 	}
+
 	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
 	if err != nil {
 		azs.Id = -1
@@ -54,7 +76,7 @@ func (r *Repository) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, 
 	return
 }
 
-func (r *Repository) GetAzsAll(ctx context.Context, id_azs int) (azses []AzsStatsData, err error) {
+func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM azses`)
 	if err != nil {
 		err = fmt.Errorf("failed to query data: %w", err)

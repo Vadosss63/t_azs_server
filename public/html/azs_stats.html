@@ -5,23 +5,35 @@
     <meta charset="UTF-8">
     <title>{{.IdAzs}} - {{.IsAuthorized}}</title>
     <style>
+        /* Стили для заголовка */
+        h1 {
+            font-size: 36px;
+            color: #1c7ed6;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 5px 5px 0 0;
+        }
+        /* Стили для таблицы */
         table {
-            border-collapse: collapse;
-            margin: 20px auto;
-            font-size: 18px;
-            font-family: Arial, Helvetica, sans-serif;
-            width: 80%;
-            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
             text-align: left;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
+            max-width: 800px;
+            border-collapse: collapse;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 5px 5px;
         }
         table td, table th {
-            padding: 12px 15px;
+            padding: 10px;
             border: 1px solid #ccc;
         }
         table th {
             background-color: #1c7ed6;
+            width: 30%;
             color: #fff;
             font-weight: bold;
             white-space: nowrap;
@@ -29,16 +41,19 @@
         table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        h1 {
-            margin-top: 50px;
-            font-size: 36px;
-            text-align: center;
-            color: #1c7ed6;
-            text-shadow: 1px 1px #fff;
+        /* Стили для ячеек с суммами */
+        .sum-cell {
+            text-align: left;
         }
-        .label {
-            font-weight: bold;
-            padding-right: 8px;
+        .sum-cell.daily {
+            text-align: left;
+        }
+        /* Стили для ячеек с литрами */
+        .liters-cell {
+            text-align: left;
+        }
+        .liters-cell.daily {
+            text-align: left;
         }
     </style>
 </head>
@@ -67,28 +82,28 @@
     <table>
         <tr>
             <th>Наличн.руб</th>
-            <td>{{.CommonSumCash}}</td>
-            <td>{{.DailySumCash}}</td>
+            <td class="sum-cell">{{.CommonSumCash}}</td>
+            <td class="sum-cell daily">{{.DailySumCash}}</td>
         </tr>
         <tr>
             <th>Безнал.руб</th>
-            <td>{{.CommonSumCashless}}</td>
-            <td>{{.DailySumCashless}}</td>
+            <td class="sum-cell">{{.CommonSumCashless}}</td>
+            <td class="sum-cell daily">{{.DailySumCashless}}</td>
         </tr>
         <tr>
             <th>Онлайн.руб</th>
-            <td>{{.CommonOnlineSum}}</td>
-            <td>{{.DailyOnlineSum}}</td>
+            <td class="sum-cell">{{.CommonOnlineSum}}</td>
+            <td class="sum-cell daily">{{.DailyOnlineSum}}</td>
         </tr>
         <tr>
             <th>Колонка 1-Литры</th>
-            <td>{{.LitersCommonColum1}}</td>
-            <td>{{.LitersDailyColum1}}</td>
+            <td class="liters-cell">{{.LitersCommonColum1}}</td>
+            <td class="liters-cell daily">{{.LitersDailyColum1}}</td>
         </tr>
         <tr>
             <th>Колонка 2-Литры</th>
-            <td>{{.LitersCommonColum2}}</td>
-            <td>{{.LitersDailyColum2}}</td>
+            <td class="liters-cell">{{.LitersCommonColum2}}</td>
+            <td class="liters-cell daily">{{.LitersDailyColum2}}</td>
         </tr>
     </table>
 </body>
