@@ -1,0 +1,45 @@
+{{define "AzsReceiptData"}}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>История операций</title>
+        <style>
+            /* Стили для заголовка */
+            h1 {
+                font-size: 36px;
+                color: #1c7ed6;
+                text-align: center;
+                margin: 0;
+                padding: 20px;
+                background-color: #fff;
+                box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+                border-radius: 5px 5px 0 0;
+            }
+            .container {
+                white-space: pre-line;
+                background-color: #fff;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: 0px 0px 5px #ccc;
+                width: 200px;
+                margin: 10px auto;
+                padding: 10px;                
+            }            
+
+        </style>
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <h1>История операций</h1>
+        <ul>
+            {{range .}}
+            <div class="container">
+                <span>#{{.Id}}</span>
+                <span>-------------------------------------</span><br>
+                <span>{{.Info}}</span><br>
+            </div>
+            {{end}}
+        </ul>
+    </body>
+</html>
+{{end}}

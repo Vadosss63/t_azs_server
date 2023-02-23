@@ -66,6 +66,8 @@ func (a app) Routes(r *httprouter.Router) {
 	r.POST("/azs_stats", a.AzsStats)
 
 	r.POST("/azs_receipt", a.AzsReceipt)
+
+	r.GET("/azs_receipt/history", a.HistoryReceiptsPage)
 }
 
 func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -105,20 +107,23 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 }
 
 func (a app) AzsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id := strings.TrimSpace(r.FormValue("id"))
-	name := strings.TrimSpace(r.FormValue("name"))
-	address := strings.TrimSpace(r.FormValue("address"))
+	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("id")))
+	time, ok_time := getIntVal(strings.TrimSpace(r.FormValue("time")))
 	receipt := strings.TrimSpace(r.FormValue("receipt"))
-	time64 := time.Now()
-	fmt.Println(time64)
-	rw.Header().Set("Content-Type", "application/json")
+
 	answerStat := answer{Msg: "Ok"}
-	if id == "" || name == "" || address == "" || receipt == "" {
+	if ok_time != true || ok_id != true || receipt == "" {
 		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
 	} else {
-		answerStat.Msg = id + name + address + receipt
+		err := a.repo.AddAzsReceipt(a.ctx, id, time, receipt)
+
+		if err != nil {
+			answerStat.Status = "error"
+			answerStat.Msg = err.Error()
+		}
 	}
 
+	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 	json.NewEncoder(rw).Encode(answerStat)
 }
@@ -325,6 +330,27 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	infoData.LitersDailyColum2 = ss[3]
 
 	err = tmpl.ExecuteTemplate(rw, "infoAzs", infoData)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	receipts, err := a.repo.GetAzsReceiptAll(a.ctx, 10111991)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	lp := filepath.Join("public", "html", "azs_receipt.html")
+	tmpl, err := template.ParseFiles(lp)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = tmpl.ExecuteTemplate(rw, "AzsReceiptData", receipts)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

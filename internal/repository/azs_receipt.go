@@ -5,17 +5,11 @@ import (
 	"fmt"
 )
 
-// create table if not exists azs_receipts
-// (
-// id      bigint primary key generated always as identity,
-// id_azs  bigint,
-// time   	bigint,
-// info 	varchar(500) not null
-// );
+//insert into azs_id_10111991_receipts (time, info) values (1677101899, 'Дата: 22.23.2023 23:38\nКолонка: 2\nБензин: АИ 95\nСумма: 1500.00₽ руб')
 
 type AzsReceiptData struct {
 	Id   int    `json:"id" db:"id"`
-	Time string `json:"time" db:"time"`
+	Time int    `json:"time" db:"time"`
 	Info string `json:"info" db:"info"`
 }
 
@@ -34,9 +28,9 @@ func (r *Repository) CreateAzsReceipt(ctx context.Context, id_azs int) (err erro
 }
 
 func (r *Repository) AddAzsReceipt(ctx context.Context, id_azs int, time int, info string) (err error) {
+	table := fmt.Sprintf("azs_id_%d_receipts", id_azs)
 	_, err = r.pool.Exec(ctx,
-		`insert into azs_id_$1_receipts (time, info) values ($2, $3)`,
-		id_azs, time, info)
+		"insert into "+table+" (time, info) values ($1, $2)", time, info)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -45,7 +39,8 @@ func (r *Repository) AddAzsReceipt(ctx context.Context, id_azs int, time int, in
 }
 
 func (r *Repository) DeleteAzsReceiptAll(ctx context.Context, id_azs int) (err error) {
-	_, err = r.pool.Exec(ctx, `DROP TABLE azs_id_$1_receipts`, id_azs)
+	table := fmt.Sprintf("azs_id_%d_receipts", id_azs)
+	_, err = r.pool.Exec(ctx, "DROP TABLE "+table, id_azs)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -54,7 +49,8 @@ func (r *Repository) DeleteAzsReceiptAll(ctx context.Context, id_azs int) (err e
 }
 
 func (r *Repository) DeleteLaterAzsReceipt(ctx context.Context, id_azs int, time int) (err error) {
-	_, err = r.pool.Exec(ctx, `DELETE FROM azs_id_$1_receipts WHERE time < $2`, id_azs, time)
+	table := fmt.Sprintf("azs_id_%d_receipts", id_azs)
+	_, err = r.pool.Exec(ctx, "DELETE FROM "+table+"WHERE time < $2", id_azs, time)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -63,7 +59,8 @@ func (r *Repository) DeleteLaterAzsReceipt(ctx context.Context, id_azs int, time
 }
 
 func (r *Repository) GetAzsReceiptInRange(ctx context.Context, id_azs int, time1, time2 int) (receipts []AzsReceiptData, err error) {
-	rows, err := r.pool.Query(ctx, `SELECT * FROM azs_id_$1_receipts WHERE time > $2 and time < $3`, id_azs, time1, time2)
+	table := fmt.Sprintf("azs_id_%d_receipts", id_azs)
+	rows, err := r.pool.Query(ctx, "SELECT * FROM "+table+" WHERE time > $2 and time < $3", id_azs, time1, time2)
 	if err != nil {
 		err = fmt.Errorf("failed to query data: %w", err)
 		return
@@ -88,7 +85,10 @@ func (r *Repository) GetAzsReceiptInRange(ctx context.Context, id_azs int, time1
 }
 
 func (r *Repository) GetAzsReceiptAll(ctx context.Context, id_azs int) (receipts []AzsReceiptData, err error) {
-	rows, err := r.pool.Query(ctx, `SELECT * FROM azs_id_$1_receipts`, id_azs)
+
+	table := fmt.Sprintf("azs_id_%d_receipts", id_azs)
+	rows, err := r.pool.Query(ctx, "SELECT * FROM "+table+" ORDER BY id DESC")
+
 	if err != nil {
 		err = fmt.Errorf("failed to query data: %w", err)
 		return
@@ -104,7 +104,6 @@ func (r *Repository) GetAzsReceiptAll(ctx context.Context, id_azs int) (receipts
 		}
 		receipts = append(receipts, receipt)
 	}
-
 	if err = rows.Err(); err != nil {
 		err = fmt.Errorf("failed to query data: %w", err)
 		return

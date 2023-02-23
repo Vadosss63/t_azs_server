@@ -1,9 +1,10 @@
 {{define "infoAzs"}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>{{.IdAzs}} - {{.IsAuthorized}}</title>
+    <title>АЗС ID:{{.IdAzs}}</title>
     <style>
         /* Стили для заголовка */
         h1 {
@@ -16,6 +17,7 @@
             box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
             border-radius: 5px 5px 0 0;
         }
+
         /* Стили для таблицы */
         table {
             margin: 0 auto;
@@ -27,85 +29,117 @@
             box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
             border-radius: 0 0 5px 5px;
         }
-        table td, table th {
+
+        table td,
+        table th {
             padding: 10px;
             border: 1px solid #ccc;
         }
+
         table th {
             background-color: #1c7ed6;
-            width: 30%;
+            width: 35%;
             color: #fff;
             font-weight: bold;
             white-space: nowrap;
         }
+
         table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
         /* Стили для ячеек с суммами */
         .sum-cell {
             text-align: left;
         }
+
         .sum-cell.daily {
             text-align: left;
         }
+
         /* Стили для ячеек с литрами */
         .liters-cell {
             text-align: left;
         }
+
         .liters-cell.daily {
             text-align: left;
         }
+
+        .container {
+            white-space: pre-line;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px #ccc;
+            width: 600px;
+            margin: 10px auto;
+            padding: 30px;
+        }
+
+        .ref {
+            text-align: right;
+        }
+
+
     </style>
 </head>
+
 <body>
     <h1>Статистика АЗС</h1>
-    <table>
-        <tr>
-            <th>Id АЗС:</th>
-            <td>{{.IdAzs}}</td>
-        </tr>
-        <tr>
-            <th>Время обновления:</th>
-            <td>{{.Time}}</td>
-        </tr>
-        <tr>
-            <th>Имя:</th>
-            <td>{{.Name}}</td>
-        </tr>
-        <tr>
-            <th>Адрес:</th>
-            <td>{{.Address}}</td>
-        </tr>
+    <div class="container">
+        <table>
+            <tr>
+                <th>Id АЗС:</th>
+                <td>{{.IdAzs}}</td>
+            </tr>
+            <tr>
+                <th>Время обновления:</th>
+                <td>{{.Time}}</td>
+            </tr>
+            <tr>
+                <th>Имя:</th>
+                <td>{{.Name}}</td>
+            </tr>
+            <tr>
+                <th>Адрес:</th>
+                <td>{{.Address}}</td>
+            </tr>
 
-        </tr>
-    </table>     
-    <table>
-        <tr>
-            <th>Наличн.руб</th>
-            <td class="sum-cell">{{.CommonSumCash}}</td>
-            <td class="sum-cell daily">{{.DailySumCash}}</td>
-        </tr>
-        <tr>
-            <th>Безнал.руб</th>
-            <td class="sum-cell">{{.CommonSumCashless}}</td>
-            <td class="sum-cell daily">{{.DailySumCashless}}</td>
-        </tr>
-        <tr>
-            <th>Онлайн.руб</th>
-            <td class="sum-cell">{{.CommonOnlineSum}}</td>
-            <td class="sum-cell daily">{{.DailyOnlineSum}}</td>
-        </tr>
-        <tr>
-            <th>Колонка 1-Литры</th>
-            <td class="liters-cell">{{.LitersCommonColum1}}</td>
-            <td class="liters-cell daily">{{.LitersDailyColum1}}</td>
-        </tr>
-        <tr>
-            <th>Колонка 2-Литры</th>
-            <td class="liters-cell">{{.LitersCommonColum2}}</td>
-            <td class="liters-cell daily">{{.LitersDailyColum2}}</td>
-        </tr>
-    </table>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th>Наличн.руб</th>
+                <td class="sum-cell">{{.CommonSumCash}}</td>
+                <td class="sum-cell daily">{{.DailySumCash}}</td>
+            </tr>
+            <tr>
+                <th>Безнал.руб</th>
+                <td class="sum-cell">{{.CommonSumCashless}}</td>
+                <td class="sum-cell daily">{{.DailySumCashless}}</td>
+            </tr>
+            <tr>
+                <th>Онлайн.руб</th>
+                <td class="sum-cell">{{.CommonOnlineSum}}</td>
+                <td class="sum-cell daily">{{.DailyOnlineSum}}</td>
+            </tr>
+            <tr>
+                <th>Колонка 1-Литры</th>
+                <td class="liters-cell">{{.LitersCommonColum1}}</td>
+                <td class="liters-cell daily">{{.LitersDailyColum1}}</td>
+            </tr>
+            <tr>
+                <th>Колонка 2-Литры</th>
+                <td class="liters-cell">{{.LitersCommonColum2}}</td>
+                <td class="liters-cell daily">{{.LitersDailyColum2}}</td>
+            </tr>
+        </table>
+        <div class="ref">
+            <a href="/azs_receipt/history">История операций</a>
+        </div>
+    </div>
 </body>
+
 </html>
 {{end}}
