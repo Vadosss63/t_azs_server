@@ -58,9 +58,9 @@ func (r *Repository) DeleteLaterAzsReceipt(ctx context.Context, id_azs int, time
 	return
 }
 
-func (r *Repository) GetAzsReceiptInRange(ctx context.Context, id_azs int, time1, time2 int) (receipts []AzsReceiptData, err error) {
+func (r *Repository) GetAzsReceiptInRange(ctx context.Context, id_azs int, time1, time2 int64) (receipts []AzsReceiptData, err error) {
 	table := fmt.Sprintf("azs_id_%d_receipts", id_azs)
-	rows, err := r.pool.Query(ctx, "SELECT * FROM "+table+" WHERE time > $2 and time < $3", id_azs, time1, time2)
+	rows, err := r.pool.Query(ctx, "SELECT * FROM "+table+" WHERE time > $1 and time < $2", time1, time2)
 	if err != nil {
 		err = fmt.Errorf("failed to query data: %w", err)
 		return
