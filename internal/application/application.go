@@ -61,15 +61,11 @@ func (a app) Routes(r *httprouter.Router) {
 		a.SignupPage(rw, "")
 	})
 
-	r.GET("/azs_receipt/history", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	r.GET("/azs_receipt/history", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
-		nowTS := now.Unix()
 		oneMonthAgo := now.AddDate(0, -1, 0)
-		fmt.Println(now)
-		fmt.Println(oneMonthAgo)
-		oneMonthAgoTS := oneMonthAgo.Unix()
-		a.HistoryReceiptsPage(rw, r, p, oneMonthAgoTS, nowTS)
-	})
+		a.HistoryReceiptsPage(rw, r, p, oneMonthAgo, now)
+	}))
 
 	r.POST("/azs_receipt/history", a.ShowHistoryReceiptsPage)
 
@@ -85,7 +81,6 @@ func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 	toSearchDate := r.FormValue("toSearch")
 
 	// TODO: add checking fo date from < to
-
 	// Parse the date string
 	fromSearchTime, err := time.Parse("2006-01-02", fromSearchDate)
 	if err != nil {
@@ -100,34 +95,18 @@ func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 		return
 	}
 
-	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, 10111991, fromSearchTime.Unix(), toSearchTime.Unix())
-
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-	lp := filepath.Join("public", "html", "azs_receipt.html")
-	tmpl, err := template.ParseFiles(lp)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err = tmpl.ExecuteTemplate(rw, "AzsReceiptData", receipts)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	a.HistoryReceiptsPage(rw, r, p, fromSearchTime, toSearchTime)
 
 }
 
-func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime int64) {
+func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
 
-	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, 10111991, fromSearchTime, toSearchTime)
+	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, 10111991, fromSearchTime.Unix(), toSearchTime.Unix())
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	lp := filepath.Join("public", "html", "azs_receipt.html")
 	tmpl, err := template.ParseFiles(lp)
 	if err != nil {
@@ -135,7 +114,19 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	err = tmpl.ExecuteTemplate(rw, "AzsReceiptData", receipts)
+	type AzsReceiptDatas struct {
+		FormSearchVal string
+		ToSearchVal   string
+		Receipts      []repository.AzsReceiptData
+	}
+
+	azsReceiptDatas := AzsReceiptDatas{
+		FormSearchVal: fromSearchTime.Format("2006-01-02"),
+		ToSearchVal:   toSearchTime.Format("2006-01-02"),
+		Receipts:      receipts,
+	}
+
+	err = tmpl.ExecuteTemplate(rw, "AzsReceiptDatas", azsReceiptDatas)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

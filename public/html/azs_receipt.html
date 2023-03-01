@@ -1,4 +1,4 @@
-{{define "AzsReceiptData"}}
+{{define "AzsReceiptDatas"}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -92,13 +92,13 @@
             <h1>История операций</h1>
             <ul>
                 <form action="/azs_receipt/history" method="post" id="historySearch" name="searchForm">
-                    <p>Выберите период с: <input type="date" name="formSearch">
-                        по: <input type="date" name="toSearch">
+                    <p>Выберите период с: <input type="date" name="formSearch" value="{{.FormSearchVal}}">
+                        по: <input type="date" name="toSearch" value="{{.ToSearchVal}}">
                         <button type="submit" name="showBtn">Показать</button>
                     </p>
                     <p>Результат</p>
                 </form>
-                {{range .}}
+                {{ range .Receipts }}
                 <div class="container">
                     <span>#{{.Id}}</span>
                     <span>-------------------------------------</span><br>
