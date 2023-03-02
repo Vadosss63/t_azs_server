@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 )
 
@@ -26,6 +27,31 @@ type AzsStatsData struct {
 	Name         string `json:"name" db:"name"`
 	Address      string `json:"address" db:"address"`
 	Stats        string `json:"stats" db:"stats"`
+}
+
+type Info struct {
+	CommonOnlineSum   int `json:"commonOnlineSum"`
+	CommonSumCash     int `json:"commonSumCash"`
+	CommonSumCashless int `json:"commonSumCashless"`
+	DailyOnlineSum    int `json:"dailyOnlineSum"`
+	DailySumCash      int `json:"dailySumCash"`
+	DailySumCashless  int `json:"dailySumCashless"`
+}
+
+type Columns struct {
+	CommonLiters string `json:"commonLiters"`
+	DailyLiters  string `json:"dailyLiters"`
+}
+
+type AzsStatsDataFull struct {
+	Id           int       `json:"id" db:"id"`
+	IdAzs        int       `json:"id_azs" db:"id_azs"`
+	IsAuthorized int       `json:"is_authorized" db:"is_authorized"`
+	Time         string    `json:"time" db:"time"`
+	Name         string    `json:"name" db:"name"`
+	Address      string    `json:"address" db:"address"`
+	Info         Info      `json:"info"`
+	Columns      []Columns `json:"columns"`
 }
 
 func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized int, time, name, address, stats string) (err error) {
@@ -96,6 +122,32 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 	if err = rows.Err(); err != nil {
 		err = fmt.Errorf("failed to query data: %w", err)
 		return
+	}
+	return
+}
+
+func ParseStats(azsStatsData AzsStatsData) (azsStatsDataFull AzsStatsDataFull, err error) {
+
+	type Values struct {
+		Info    Info      `json:"info"`
+		Columns []Columns `json:"columns"`
+	}
+	var stats Values
+	err = json.Unmarshal([]byte(azsStatsData.Stats), &stats)
+
+	if err != nil {
+		return
+	}
+
+	azsStatsDataFull = AzsStatsDataFull{
+		Id:           azsStatsData.Id,
+		IdAzs:        azsStatsData.IdAzs,
+		IsAuthorized: azsStatsData.IsAuthorized,
+		Time:         azsStatsData.Time,
+		Name:         azsStatsData.Name,
+		Address:      azsStatsData.Address,
+		Info:         stats.Info,
+		Columns:      stats.Columns,
 	}
 	return
 }

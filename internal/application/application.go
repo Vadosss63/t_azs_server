@@ -101,7 +101,14 @@ func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 
 func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
 
-	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, 10111991, fromSearchTime.Unix(), toSearchTime.Unix())
+	id_azs, ok := getIntVal(r.FormValue("id_azs"))
+
+	if ok != true {
+		http.Error(rw, "Ошибка id_azs"+r.FormValue("id_azs"), http.StatusBadRequest)
+		return
+	}
+
+	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, id_azs-1, fromSearchTime.Unix(), toSearchTime.Unix())
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -139,7 +146,7 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	name := strings.TrimSpace(r.FormValue("name"))
 	address := strings.TrimSpace(r.FormValue("address"))
 	stats := strings.TrimSpace(r.FormValue("stats"))
-
+	fmt.Println(stats)
 	rw.Header().Set("Content-Type", "application/json")
 	answerStat := answer{Msg: "Ok"}
 	if id == "" || name == "" || address == "" || stats == "" {
@@ -211,6 +218,7 @@ func (a app) Authorized(next httprouter.Handle) httprouter.Handle {
 			http.Redirect(rw, r, "/login", http.StatusSeeOther)
 			return
 		}
+		//Как прокинуть функцию Сделать свой хендлер?
 		if _, ok := a.cache[token]; !ok {
 			http.Redirect(rw, r, "/login", http.StatusSeeOther)
 			return
@@ -319,12 +327,13 @@ func (a app) Logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 }
 
 func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	azs_stats, err := a.repo.GetAzs(a.ctx, 10111991)
+	azs_stats, err := a.repo.GetAzs(a.ctx, 10111992)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	lp := filepath.Join("public", "html", "azs_stats.html")
 	tmpl, err := template.ParseFiles(lp)
 	if err != nil {
@@ -332,67 +341,24 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	// move to rep
-	type infoAzs struct {
-		Id                 int
-		IdAzs              int
-		IsAuthorized       int
-		Time               string
-		Name               string
-		Address            string
-		Stats              string
-		CommonSumCash      string
-		DailySumCash       string
-		CommonSumCashless  string
-		DailySumCashless   string
-		CommonOnlineSum    string
-		DailyOnlineSum     string
-		LitersCommonColum1 string
-		LitersDailyColum1  string
-		LitersCommonColum2 string
-		LitersDailyColum2  string
+	azsStatsDataFull, err := repository.ParseStats(azs_stats)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	infoData := infoAzs{
-		azs_stats.Id,
-		azs_stats.IdAzs,
-		azs_stats.IsAuthorized,
-		azs_stats.Time,
-		azs_stats.Name,
-		azs_stats.Address,
-		azs_stats.Stats,
-		"commonSumCash",
-		"dailySumCash",
-		"commonSumCashless",
-		"dailySumCashless",
-		"commonOnlineSum",
-		"dailyOnlineSum",
-		"litersCommonColum1",
-		"litersDailyColum1",
-		"litersCommonColum2",
-		"litersDailyColum2",
+	type AzsStatsTemplate struct {
+		Id    string
+		Azses []repository.AzsStatsDataFull
 	}
 
-	s := strings.Split(azs_stats.Stats, "\n")
-	ss := strings.Split(s[0], "\t")
-	infoData.CommonSumCash = ss[1]
-	infoData.DailySumCash = ss[3]
-	ss = strings.Split(s[1], "\t")
-	infoData.CommonSumCashless = ss[1]
-	infoData.DailySumCashless = ss[3]
-	ss = strings.Split(s[2], "\t")
-	infoData.CommonOnlineSum = ss[1]
-	infoData.DailyOnlineSum = ss[3]
+	azsStatsTemplate := AzsStatsTemplate{
+		Id:    "10111992",
+		Azses: []repository.AzsStatsDataFull{azsStatsDataFull, azsStatsDataFull},
+	}
 
-	ss = strings.Split(s[4], "\t")
-	infoData.LitersCommonColum1 = ss[2]
-	infoData.LitersDailyColum1 = ss[3]
-
-	ss = strings.Split(s[5], "\t")
-	infoData.LitersCommonColum2 = ss[2]
-	infoData.LitersDailyColum2 = ss[3]
-
-	err = tmpl.ExecuteTemplate(rw, "infoAzs", infoData)
+	err = tmpl.ExecuteTemplate(rw, "AzsStatsTemplate", azsStatsTemplate)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
