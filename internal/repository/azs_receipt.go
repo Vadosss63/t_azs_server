@@ -14,12 +14,13 @@ type AzsReceiptData struct {
 }
 
 func (r *Repository) CreateAzsReceipt(ctx context.Context, id_azs int) (err error) {
-	_, err = r.pool.Exec(ctx,
-		`create table if not exists azs_id_$1_receipts(
-		id      bigint primary key generated always as identity,
-		time   	bigint,
-		info 	varchar(500) not null);`,
-		id_azs)
+	query := fmt.Sprintf("create table if not exists azs_id_%d_receipts"+
+		"(id bigint primary key generated always as identity,"+
+		"time bigint,"+
+		"info varchar(500) not null);", id_azs)
+	
+	_, err = r.pool.Query(ctx, query)
+
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return

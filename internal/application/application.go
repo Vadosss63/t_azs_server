@@ -67,7 +67,7 @@ func (a app) Routes(r *httprouter.Router) {
 		a.HistoryReceiptsPage(rw, r, p, oneMonthAgo, now)
 	}))
 
-	r.POST("/azs_receipt/history", a.ShowHistoryReceiptsPage)
+	r.POST("/azs_receipt/history", a.Authorized(a.ShowHistoryReceiptsPage))
 
 	r.POST("/signup", a.Signup)
 
@@ -100,6 +100,7 @@ func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 }
 
 func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
+	// user := r.Context().Value("user").(*repository.User)
 
 	id_azs, ok := getIntVal(r.FormValue("id_azs"))
 
@@ -108,7 +109,7 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, id_azs-1, fromSearchTime.Unix(), toSearchTime.Unix())
+	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, id_azs, fromSearchTime.Unix(), toSearchTime.Unix())
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -122,12 +123,14 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 
 	type AzsReceiptDatas struct {
+		IdAzs         int
 		FormSearchVal string
 		ToSearchVal   string
 		Receipts      []repository.AzsReceiptData
 	}
 
 	azsReceiptDatas := AzsReceiptDatas{
+		IdAzs: id_azs,
 		FormSearchVal: fromSearchTime.Format("2006-01-02"),
 		ToSearchVal:   toSearchTime.Format("2006-01-02"),
 		Receipts:      receipts,
@@ -166,6 +169,12 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 				if err != nil {
 					answerStat.Status = "error"
 					answerStat.Msg = err.Error()
+				}else{
+					err := a.repo.CreateAzsReceipt(a.ctx, idInt)
+					if err != nil {
+						answerStat.Status = "error"
+						answerStat.Msg = err.Error()
+					}
 				}
 			}
 		}
@@ -218,12 +227,14 @@ func (a app) Authorized(next httprouter.Handle) httprouter.Handle {
 			http.Redirect(rw, r, "/login", http.StatusSeeOther)
 			return
 		}
-		//Как прокинуть функцию Сделать свой хендлер?
-		if _, ok := a.cache[token]; !ok {
+
+		user, ok := a.cache[token]
+		if !ok {
 			http.Redirect(rw, r, "/login", http.StatusSeeOther)
 			return
 		}
-		next(rw, r, ps)
+		// Call the next handler with the user information
+		next(rw, r.WithContext(context.WithValue(r.Context(), "userId", user.Id)), ps)
 	}
 }
 
@@ -327,7 +338,18 @@ func (a app) Logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 }
 
 func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	azs_stats, err := a.repo.GetAzs(a.ctx, 10111992)
+	
+	userId, ok := r.Context().Value("userId").(int)
+
+	if !ok {
+		http.Error(rw, "Error user", http.StatusBadRequest)
+		return	
+	}
+
+	// azs_stats, err := a.repo.GetAzs(a.ctx, 10111992)
+
+	// azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, userId)
+	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, -1)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -341,23 +363,31 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	azsStatsDataFull, err := repository.ParseStats(azs_stats)
+	azses := []repository.AzsStatsDataFull{}
 
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
+	for _, azs_stats := range azs_statses {
+		
+		azsStatsDataFull, err:= repository.ParseStats(azs_stats)
+		
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		azses = append(azses, azsStatsDataFull)
 	}
 
 	type AzsStatsTemplate struct {
-		Id    string
+		Id    int
 		Azses []repository.AzsStatsDataFull
 	}
 
 	azsStatsTemplate := AzsStatsTemplate{
-		Id:    "10111992",
-		Azses: []repository.AzsStatsDataFull{azsStatsDataFull, azsStatsDataFull},
+		Id:    userId,
+		Azses: azses,
 	}
-
+	
+	
 	err = tmpl.ExecuteTemplate(rw, "AzsStatsTemplate", azsStatsTemplate)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
