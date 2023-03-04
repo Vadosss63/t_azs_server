@@ -31,6 +31,21 @@ func (r *Repository) DeleteUser(ctx context.Context, id int) (err error) {
 	return
 }
 
+func (r *Repository) GetUser(ctx context.Context, id int) (u User, err error) {
+	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where id = $1`, id)
+
+	if err != nil {
+		err = fmt.Errorf("failed to query data: %w", err)
+		return
+	}
+	err = row.Scan(&u.Id, &u.Login, &u.Name, &u.Surname)
+	if err != nil {
+		err = fmt.Errorf("failed to query data: %w", err)
+		return
+	}
+	return
+}
+
 func (r *Repository) FindUser(ctx context.Context, login string) (u User, err error) {
 	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where login = $1`, login)
 	if err != nil {
@@ -78,10 +93,11 @@ func (r *Repository) GetUserAll(ctx context.Context) (users []User, err error) {
 
 	for rows.Next() {
 		var u User
-		if err = rows.Scan(&u.Id, &u.Login, &u.Name, &u.Surname); err != nil {
+		if err = rows.Scan(&u.Id, &u.Login, &u.HashedPassword, &u.Name, &u.Surname); err != nil {
 			err = fmt.Errorf("failed to query data: %w", err)
 			return
 		}
+		u.HashedPassword = ""
 		users = append(users, u)
 	}
 

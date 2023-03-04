@@ -1,0 +1,167 @@
+{{define "AdminPageTemplate"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Администратор</title>
+    <style>
+        h1 {
+            font-size: 36px;
+            color: #1c7ed6;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 5px 5px 0 0;
+        }
+
+        table {
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            text-align: left;
+            max-width: 800px;
+            border-collapse: collapse;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 5px 5px;
+        }
+
+        table td,
+        table th {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        table th {
+            background-color: #1c7ed6;
+            width: 35%;
+            color: #fff;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .sum-cell {
+            text-align: left;
+        }
+
+        .sum-cell.daily {
+            text-align: left;
+        }
+
+        .liters-cell {
+            text-align: left;
+        }
+
+        .liters-cell.daily {
+            text-align: left;
+        }
+
+        .container {
+            float: top;
+            white-space: pre-line;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px #ccc;
+            width: 600px;
+            margin: 1% 2% 0% 2%;
+            padding: 30px;
+        }
+
+        .ref {
+            text-align: right;
+        }
+
+        .overall {
+            max-width: 690px;
+            min-width: 690px;
+            margin: 0 auto;
+            background: darkgrey;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>
+        <a href="/signup" align="right">Добавить пользователя</a>
+        <a href="/users" align="right">Пользователи</a>
+        <a href="/logout" align="right">Выйти</a>
+    </h1>
+    <h1>Не зарегистрированые АЗС</h1>
+    <div class="overall">
+        <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
+        {{ range .Azses }}
+        <div class="container">
+            <table>
+                <tr>
+                    <th>Id АЗС:</th>
+                    <td>{{.IdAzs}}</td>
+                </tr>
+                <tr>
+                    <th>Время обновления:</th>
+                    <td>{{.Time}}</td>
+                </tr>
+                <tr>
+                    <th>Имя:</th>
+                    <td>{{.Name}}</td>
+                </tr>
+                <tr>
+                    <th>Адрес:</th>
+                    <td>{{.Address}}</td>
+                </tr>
+
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <th>Наличн.руб</th>
+                    <td class="sum-cell">{{.Info.CommonSumCash}}</td>
+                    <td class="sum-cell daily">{{.Info.DailySumCash}}</td>
+                </tr>
+                <tr>
+                    <th>Безнал.руб</th>
+                    <td class="sum-cell">{{.Info.CommonSumCashless}}</td>
+                    <td class="sum-cell daily">{{.Info.DailySumCashless}}</td>
+                </tr>
+                <tr>
+                    <th>Онлайн.руб</th>
+                    <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
+                    <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
+                </tr>
+                {{ range .Columns }}
+                <tr>
+                    <th>Колонка 1-Литры</th>
+                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <td class="liters-cell daily">{{.DailyLiters}}</td>
+                </tr>
+                {{end}}
+            </table>
+            <div class="ref" style="display: inline-block;">
+                <form action="/add_user_to_asz?id_azs={{.IdAzs}}" method="post" id="addUserToAzs" name="addUserToAzs">
+                    <p>
+                        <select name="user">
+                            <option value="-1">Не выбран</option>
+                            {{ range $.Users }}
+                            <option value="{{.Id}}">{{.Login}}</option>
+                            {{end}}
+                        </select>
+                        <input type="submit" value="Добавить">
+                    </p>
+                </form>
+                <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
+            </div>
+        </div>
+        {{end}}
+        <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
+    </div>
+</body>
+
+</html>
+{{end}}

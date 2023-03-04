@@ -74,6 +74,24 @@ func (a app) Routes(r *httprouter.Router) {
 	r.POST("/azs_stats", a.AzsStats)
 
 	r.POST("/azs_receipt", a.AzsReceipt)
+
+	//TODO: защита от других пользователей
+	r.POST("/add_user_to_asz", a.Authorized(a.AddUserToAsz))
+}
+
+func (a app) AddUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id_azs, _ := getIntVal(r.FormValue("id_azs"))
+
+	id_user, _ := getIntVal(r.FormValue("user"))
+	fmt.Println(id_azs)
+	fmt.Println(id_user)
+
+	err := a.repo.AddAzsToUser(a.ctx, id_user, id_azs)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
 func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -96,7 +114,6 @@ func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 	}
 
 	a.HistoryReceiptsPage(rw, r, p, fromSearchTime, toSearchTime)
-
 }
 
 func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
@@ -130,7 +147,7 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 
 	azsReceiptDatas := AzsReceiptDatas{
-		IdAzs: id_azs,
+		IdAzs:         id_azs,
 		FormSearchVal: fromSearchTime.Format("2006-01-02"),
 		ToSearchVal:   toSearchTime.Format("2006-01-02"),
 		Receipts:      receipts,
@@ -169,7 +186,7 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 				if err != nil {
 					answerStat.Status = "error"
 					answerStat.Msg = err.Error()
-				}else{
+				} else {
 					err := a.repo.CreateAzsReceipt(a.ctx, idInt)
 					if err != nil {
 						answerStat.Status = "error"
@@ -338,18 +355,31 @@ func (a app) Logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 }
 
 func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	
+
 	userId, ok := r.Context().Value("userId").(int)
 
 	if !ok {
 		http.Error(rw, "Error user", http.StatusBadRequest)
-		return	
+		return
+	}
+	u, err := a.repo.GetUser(a.ctx, userId)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	// azs_stats, err := a.repo.GetAzs(a.ctx, 10111992)
+	if u.Login == "admin" {
+		a.AdminPage(rw, r, p, u)
+		return
+	}
 
-	// azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, userId)
-	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, -1)
+	a.UserPage(rw, r, p, u)
+}
+
+func (a app) UserPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User) {
+
+	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, u.Id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -366,9 +396,9 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	azses := []repository.AzsStatsDataFull{}
 
 	for _, azs_stats := range azs_statses {
-		
-		azsStatsDataFull, err:= repository.ParseStats(azs_stats)
-		
+
+		azsStatsDataFull, err := repository.ParseStats(azs_stats)
+
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
@@ -378,17 +408,71 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 
 	type AzsStatsTemplate struct {
-		Id    int
+		User  repository.User
 		Azses []repository.AzsStatsDataFull
 	}
 
 	azsStatsTemplate := AzsStatsTemplate{
-		Id:    userId,
+		User:  u,
 		Azses: azses,
 	}
-	
-	
+
 	err = tmpl.ExecuteTemplate(rw, "AzsStatsTemplate", azsStatsTemplate)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User) {
+
+	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, -1)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	lp := filepath.Join("public", "html", "admin_page.html")
+	tmpl, err := template.ParseFiles(lp)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	azses := []repository.AzsStatsDataFull{}
+
+	for _, azs_stats := range azs_statses {
+
+		azsStatsDataFull, err := repository.ParseStats(azs_stats)
+
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		azses = append(azses, azsStatsDataFull)
+	}
+
+	users, err := a.repo.GetUserAll(a.ctx)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	type AdminPageTemplate struct {
+		User  repository.User
+		Users []repository.User
+		Azses []repository.AzsStatsDataFull
+	}
+
+	adminPageTemplate := AdminPageTemplate{
+		User:  u,
+		Users: users,
+		Azses: azses,
+	}
+
+	err = tmpl.ExecuteTemplate(rw, "AdminPageTemplate", adminPageTemplate)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

@@ -12,7 +12,7 @@ import (
 type AzsStatsData struct {
 	Id           int    `json:"id" db:"id"`
 	IdAzs        int    `json:"id_azs" db:"id_azs"`
-	IdUser        int   `json:"id_user" db:"id_user"`
+	IdUser       int    `json:"id_user" db:"id_user"`
 	IsAuthorized int    `json:"is_authorized" db:"is_authorized"`
 	Time         string `json:"time" db:"time"`
 	Name         string `json:"name" db:"name"`
@@ -103,7 +103,7 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 
 	for rows.Next() {
 		var azs AzsStatsData
-		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address, 
+		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
 			err = fmt.Errorf("failed to query data: %w", err)
 			return
@@ -119,7 +119,7 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 
 func (r *Repository) AddAzsToUser(ctx context.Context, id_user, id_azs int) (err error) {
 	_, err = r.pool.Exec(ctx,
-		`UPDATE azses SET id_user = '$2' WHERE id_azs = $1`, id_azs, id_user)
+		`UPDATE azses SET id_user = $2 WHERE id_azs = $1`, id_azs, id_user)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -137,7 +137,7 @@ func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses [
 
 	for rows.Next() {
 		var azs AzsStatsData
-		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address, 
+		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
 			err = fmt.Errorf("failed to query data: %w", err)
 			return
