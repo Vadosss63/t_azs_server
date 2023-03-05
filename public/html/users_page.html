@@ -1,0 +1,212 @@
+{{define "User"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Администратор</title>
+  <style>
+    h1 {
+      font-size: 36px;
+      color: #1c7ed6;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+      border-radius: 5px 5px 0 0;
+    }
+
+    table {
+      margin: 0 auto;
+      padding: 20px;
+      width: 100%;
+      text-align: left;
+      max-width: 800px;
+      border-collapse: collapse;
+      box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+      border-radius: 0 0 5px 5px;
+    }
+
+    table td,
+    table th {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #1c7ed6;
+      width: 35%;
+      color: #fff;
+      font-weight: bold;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      white-space: pre-line;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0px 0px 5px #ccc;
+      width: auto;
+      margin: 1% 2% 0% 2%;
+      padding: 30px;
+    }
+
+    input[type=password],
+    input[type=submit],
+    button {
+      width: 150px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .ref {
+      text-align: center;
+    }
+
+    nav {
+      background-color: #1c7ed6;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      text-align: right;
+    }
+
+    nav li {
+      display: inline-block;
+    }
+
+    nav a {
+      display: block;
+      padding: 10px;
+      color: #fff;
+    }
+
+    nav ul {
+      margin-right: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>
+  </h1>
+  <nav>
+    <ul>
+      <li><a href="/">Домой</a></li>
+      <li><a href="/users" align="right">Пользователи</a></li>
+      <li><a href="/logout" align="right">Выйти</a></li>
+    </ul>
+  </nav>
+  <h1>Пользователи</h1>
+  <div class="overall">
+    <div class="container">
+      <table .text-cell>
+        <tr>
+          <th>Логин</th>
+          <th>Имя</th>
+          <th>Фамилия</th>
+          <th>Пароль</th>
+          <th>Удалить</th>
+        </tr>
+        {{ range .}}
+        <tr>
+          <td>{{.Login}}</td>
+          <td>{{.Name}}</td>
+          <td>{{.Surname}}</td>
+          <td>
+            <form action="/reset_password?userId={{.Id}}" method="post" class="resetPassword"><input type="password"
+                id="password" name="password" required>
+              <input type="password" id="password2" name="password2" required>
+              <input type="submit" value="Задать новый">
+            </form>
+          </td>
+          <form action="/user?userId={{.Id}}" method="post" class="deleteUser">
+            <td><button type="submit">Удалить</button></td>
+          </form>
+        </tr>
+        {{end}}
+
+      </table>
+      <div class="ref">
+        <a .ref href="/signup">Добавить пользователя</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    const deleteForms = document.querySelectorAll(".deleteUser");
+    deleteForms.forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const confirmed = window.confirm("Удалить пользователя?");
+        if (confirmed) {
+          fetch(form.action, {
+            method: "DELETE"
+          }).then(() => {
+            // handle success
+            alert("Пользователь успешно удален!");
+            window.location.reload(); // reload the page after a successful delete
+          }).catch((error) => {
+            // handle error
+            if (error.response.status === 400) {
+              // handle bad request error
+              alert("Ошибка: неправильный запрос");
+            } else {
+              // handle other errors
+              alert("Ошибка: " + error);
+            }
+          });
+        }
+      });
+    });
+  </script>
+
+  <script>
+    const resetPwdForms = document.querySelectorAll(".resetPassword");
+    resetPwdForms.forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const confirmed = window.confirm("Изменить пароль пользователя?");
+        const password = form.querySelector("#password");
+        const password2 = form.querySelector("#password2");
+        if (password.value !== password2.value) {
+          alert("Пароли не совпадают");
+          return;
+        }
+        if (confirmed) {
+          fetch(form.action, {
+            method: "POST",
+            body: new FormData(form)
+          }).then(() => {
+            alert("Пароль изменен успешно!");
+            window.location.reload();
+          }).catch((error) => {
+            // handle error
+            if (error.response.status === 400) {
+              // handle bad request error
+              alert("Ошибка: неправильный запрос");
+            } else {
+              // handle other errors
+              alert("Ошибка: " + error);
+            }
+          });
+        }
+      });
+    });
+  </script>
+
+
+</body>
+
+</html>
+{{end}}

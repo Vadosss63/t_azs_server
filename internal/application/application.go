@@ -77,6 +77,81 @@ func (a app) Routes(r *httprouter.Router) {
 
 	//TODO: защита от других пользователей
 	r.POST("/add_user_to_asz", a.Authorized(a.AddUserToAsz))
+
+	r.GET("/users", a.Authorized(a.ShowUsersPage))
+
+	r.DELETE("/user", a.Authorized(a.DeleteUser))
+	r.POST("/reset_password", a.Authorized(a.ResetPasswordUser))
+}
+
+func (a app) ResetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
+	password := strings.TrimSpace(r.FormValue("password"))
+	password2 := strings.TrimSpace(r.FormValue("password2"))
+
+	if !ok_id || password == "" || password2 == "" {
+		http.Error(rw, "Ошибка обновления пароля пользователя", http.StatusBadRequest)
+		return
+	}
+
+	if password != password2 {
+		http.Error(rw, "Пароли не совпадают! Попробуйте еще", http.StatusBadRequest)
+		return
+	}
+
+	hash := md5.Sum([]byte(password))
+	hashedPass := hex.EncodeToString(hash[:])
+
+	err := a.repo.UpdateUserPassword(a.ctx, id, hashedPass)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
+}
+
+func (a app) DeleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
+
+	if !ok_id {
+		http.Error(rw, "Ошибка удаление пользователя", http.StatusBadRequest)
+		return
+	}
+
+	err := a.repo.DeleteUser(a.ctx, id)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// http.Redirect(rw, r, "/users", http.StatusSeeOther)
+}
+
+func (a app) ShowUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	lp := filepath.Join("public", "html", "users_page.html")
+	tmpl, err := template.ParseFiles(lp)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	users, err := a.repo.GetUserAll(a.ctx)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = tmpl.ExecuteTemplate(rw, "User", users)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 func (a app) AddUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -276,7 +351,7 @@ func (a app) Signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 		a.SignupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
 		return
 	}
-	a.LoginPage(rw, fmt.Sprintf("%s, вы успешно зарегистрированы! Теперь вам доступен вход через страницу авторизации", name))
+	http.Redirect(rw, r, "/users", http.StatusSeeOther)
 }
 
 func (a app) SignupPage(rw http.ResponseWriter, message string) {

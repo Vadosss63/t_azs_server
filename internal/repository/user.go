@@ -73,7 +73,7 @@ func (r *Repository) UpdateUser(ctx context.Context, user User) (err error) {
 
 func (r *Repository) UpdateUserPassword(ctx context.Context, id int, hashedPassword string) (err error) {
 	_, err = r.pool.Exec(ctx,
-		`UPDATE users SET hashed_password = '$2' WHERE id = $1`,
+		`UPDATE users SET hashed_password = $2 WHERE id = $1`,
 		id, hashedPassword)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
