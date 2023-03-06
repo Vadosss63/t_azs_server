@@ -53,60 +53,58 @@
             color: black;
         }
 
-
-        .screen {
-            width: 100%;
-            /* Ширина макета */
-            margin: 0 auto;
-            /* Выравнивание по центру */
+        nav {
+            background-color: #1c7ed6;
         }
 
-        .back {
-            width: 10%;
-            /* Ширина левой колонки */
-
-            float: left;
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            text-align: right;
         }
 
-        .aside {
-            width: 20%;
-            /* Ширина правой колонки */
-            float: right;
+        nav li {
+            display: inline-block;
         }
 
-        .content {
-            margin: 0 0 0 5%;
-            /* Отступ на ширину левой и правой колонки*/
+        nav a {
+            display: block;
+            padding: 10px;
+            color: #fff;
+        }
+
+        nav ul {
+            margin-right: 0;
         }
     </style>
     <meta charset="utf-8">
 </head>
 
 <body>
-    <div class="screen">
-        <div class="back">
-            <a href="/" class="previous">
-                <img src="/public/image/home.jpeg" width="80" height="80" alt="Home"></a>
+    <nav>
+        <ul>
+            <li><a href="/" align="right">Домой</a></li>
+            <li><a href="/logout" align="right">Выйти</a></li>
+        </ul>
+    </nav>
+    <h1>История операций</h1>
+    <ul>
+        <form action="/azs_receipt/history?id_azs={{.IdAzs}}" method="post" id="historySearch" name="searchForm">
+            <p>Выберите период с: <input type="date" name="formSearch" value="{{.FormSearchVal}}">
+                по: <input type="date" name="toSearch" value="{{.ToSearchVal}}">
+                <button type="submit" name="showBtn">Показать</button>
+            </p>
+            <p>Результат</p>
+        </form>
+        {{ range .Receipts }}
+        <div class="container">
+            <span>#{{.Id}}</span>
+            <span>-------------------------------------</span><br>
+            <span>{{.Info}}</span><br>
         </div>
-        <div class="content">
-            <h1>История операций</h1>
-            <ul>
-                <form action="/azs_receipt/history?id_azs={{.IdAzs}}" method="post" id="historySearch" name="searchForm">
-                    <p>Выберите период с: <input type="date" name="formSearch" value="{{.FormSearchVal}}">
-                        по: <input type="date" name="toSearch" value="{{.ToSearchVal}}">
-                        <button type="submit" name="showBtn">Показать</button>
-                    </p>
-                    <p>Результат</p>
-                </form>
-                {{ range .Receipts }}
-                <div class="container">
-                    <span>#{{.Id}}</span>
-                    <span>-------------------------------------</span><br>
-                    <span>{{.Info}}</span><br>
-                </div>
-                {{end}}
-            </ul>
-        </div>
+        {{end}}
+    </ul>
 </body>
 
 </html>

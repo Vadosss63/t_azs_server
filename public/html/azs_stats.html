@@ -17,12 +17,10 @@
             border-radius: 5px 5px 0 0;
         }
 
-
         table {
             margin: 0 auto;
             padding: 20px;
             width: 100%;
-            text-align: left;
             max-width: 800px;
             border-collapse: collapse;
             box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
@@ -31,6 +29,7 @@
 
         table td,
         table th {
+            text-align: center;
             padding: 10px;
             border: 1px solid #ccc;
         }
@@ -47,33 +46,15 @@
             background-color: #f9f9f9;
         }
 
-
-        .sum-cell {
-            text-align: left;
-        }
-
-        .sum-cell.daily {
-            text-align: left;
-        }
-
-
-        .liters-cell {
-            text-align: left;
-        }
-
-        .liters-cell.daily {
-            text-align: left;
-        }
-
         .container {
-            float: left;
+            float: top;
             white-space: pre-line;
             background-color: #fff;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 0px 0px 5px #ccc;
             width: 600px;
-            margin: 1% 0% 0% 1%;
+            margin: 1% 2% 0% 2%;
             padding: 30px;
         }
 
@@ -82,18 +63,48 @@
         }
 
         .overall {
-            width: min(70%);
-            max-width: 1360px;
-            min-width: 1360px;
+            max-width: 690px;
+            min-width: 690px;
             margin: 0 auto;
             background: darkgrey;
             height: 100%;
         }
 
+
+        nav {
+            background-color: #1c7ed6;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            text-align: right;
+        }
+
+        nav li {
+            display: inline-block;
+        }
+
+        nav a {
+            display: block;
+            padding: 10px;
+            color: #fff;
+        }
+
+        nav ul {
+            margin-right: 0;
+        }
     </style>
 </head>
 
 <body>
+    <nav>
+        <ul>
+            <li><a href="/" align="right">Домой</a></li>
+            <li><a href="/logout" align="right">Выйти</a></li>
+        </ul>
+    </nav>
     <h1>Статистика АЗС</h1>
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
@@ -102,6 +113,14 @@
         <div class="container">
             <table>
                 <tr>
+                    <th>Имя АЗС:</th>
+                    <td>{{.Name}}</td>
+                </tr>
+                <tr>
+                    <th>Адрес:</th>
+                    <td>{{.Address}}</td>
+                </tr>
+                <tr>
                     <th>Id АЗС:</th>
                     <td>{{.IdAzs}}</td>
                 </tr>
@@ -109,30 +128,26 @@
                     <th>Время обновления:</th>
                     <td>{{.Time}}</td>
                 </tr>
-                <tr>
-                    <th>Имя:</th>
-                    <td>{{.Name}}</td>
-                </tr>
-                <tr>
-                    <th>Адрес:</th>
-                    <td>{{.Address}}</td>
-                </tr>
-
                 </tr>
             </table>
             <table>
                 <tr>
-                    <th>Наличн.руб</th>
+                    <th></th>
+                    <th>Общий</th>
+                    <th>Инкасация</th>
+                </tr>
+                <tr>
+                    <th>Наличные, руб</th>
                     <td class="sum-cell">{{.Info.CommonSumCash}}</td>
                     <td class="sum-cell daily">{{.Info.DailySumCash}}</td>
                 </tr>
                 <tr>
-                    <th>Безнал.руб</th>
+                    <th>Безналичные, руб</th>
                     <td class="sum-cell">{{.Info.CommonSumCashless}}</td>
                     <td class="sum-cell daily">{{.Info.DailySumCashless}}</td>
                 </tr>
                 <tr>
-                    <th>Онлайн.руб</th>
+                    <th>Онлайн оплата,руб</th>
                     <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
                     <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
                 </tr>

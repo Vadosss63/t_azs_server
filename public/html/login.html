@@ -76,6 +76,11 @@
       padding-top: 16px;
     }
 
+    .ref {
+      text-align: right;
+    }
+
+
     /* Change styles for cancel button and signup button on extra small screens */
     @media screen and (max-width: 300px) {
       .signupbtn {
@@ -103,9 +108,12 @@
       </div>
       {{end}}
       <br>
-      <a href="/foget" align="left">Забыли пароль?</a>      
+      <div class="ref">
+        <a href="/foget">Забыли пароль?</a>
+      </div>
     </div>
   </form>
 </body>
+
 </html>
 {{end}}
