@@ -99,13 +99,7 @@
 </head>
 
 <body>
-  <nav>
-    <ul>
-      <li><a href="/">Домой</a></li>
-      <li><a href="/users" align="right">Пользователи</a></li>
-      <li><a href="/logout" align="right">Выйти</a></li>
-    </ul>
-  </nav>
+  {{template "admin_navi.html" .}}
   <h1>Пользователи</h1>
   <div class="overall">
     <div class="container">

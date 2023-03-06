@@ -127,21 +127,15 @@ func (a app) DeleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// http.Redirect(rw, r, "/users", http.StatusSeeOther)
 }
 
 func (a app) ShowUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	lp := filepath.Join("public", "html", "users_page.html")
-	tmpl, err := template.ParseFiles(lp)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	navi := filepath.Join("public", "html", "admin_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
 
 	users, err := a.repo.GetUserAll(a.ctx)
-
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -356,16 +350,14 @@ func (a app) Signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 
 func (a app) SignupPage(rw http.ResponseWriter, message string) {
 	sp := filepath.Join("public", "html", "signup.html")
-	tmpl, err := template.ParseFiles(sp)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	navi := filepath.Join("public", "html", "admin_navi.html")
+	tmpl := template.Must(template.ParseFiles(sp, navi))
+
 	type answer struct {
 		Message string
 	}
 	data := answer{message}
-	err = tmpl.ExecuteTemplate(rw, "signup", data)
+	err := tmpl.ExecuteTemplate(rw, "signup", data)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -509,11 +501,8 @@ func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 
 	lp := filepath.Join("public", "html", "admin_page.html")
-	tmpl, err := template.ParseFiles(lp)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	navi := filepath.Join("public", "html", "admin_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
 
 	azses := []repository.AzsStatsDataFull{}
 
