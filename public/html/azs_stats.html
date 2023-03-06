@@ -99,16 +99,10 @@
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="/" align="right">Домой</a></li>
-            <li><a href="/logout" align="right">Выйти</a></li>
-        </ul>
-    </nav>
+    {{template "user_navi.html" .}}
     <h1>Статистика АЗС</h1>
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
-
         {{ range .Azses }}
         <div class="container">
             <table>
@@ -164,7 +158,6 @@
             </div>
         </div>
         {{end}}
-
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
 </body>

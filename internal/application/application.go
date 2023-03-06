@@ -202,7 +202,9 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 
 	lp := filepath.Join("public", "html", "azs_receipt.html")
-	tmpl, err := template.ParseFiles(lp)
+	navi := filepath.Join("public", "html", "user_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
+
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -454,7 +456,9 @@ func (a app) UserPage(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	}
 
 	lp := filepath.Join("public", "html", "azs_stats.html")
-	tmpl, err := template.ParseFiles(lp)
+	navi := filepath.Join("public", "html", "user_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
+
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

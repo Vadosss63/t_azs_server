@@ -82,12 +82,7 @@
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="/" align="right">Домой</a></li>
-            <li><a href="/logout" align="right">Выйти</a></li>
-        </ul>
-    </nav>
+    {{template "user_navi.html" .}}
     <h1>История операций</h1>
     <ul>
         <form action="/azs_receipt/history?id_azs={{.IdAzs}}" method="post" id="historySearch" name="searchForm">
