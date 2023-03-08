@@ -1,0 +1,15 @@
+[Unit]
+Description=t_azs_server
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=forking
+ExecStart=/opt/t_azs_server/main
+ExecReload=/opt/t_azs_server/main
+WorkingDirectory=/opt/t_azs_server/
+TimeoutSec=300
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

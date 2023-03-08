@@ -83,14 +83,14 @@
 
 <body>
     {{template "user_navi.html" .}}
-    <h1>История операций</h1>
+    <h1>История операций - {{.Azs.Name}}</h1>
     <ul>
-        <form action="/azs_receipt/history?id_azs={{.IdAzs}}" method="post" id="historySearch" name="searchForm">
+        <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch" name="searchForm">
             <p>Выберите период с: <input type="date" name="formSearch" value="{{.FormSearchVal}}">
                 по: <input type="date" name="toSearch" value="{{.ToSearchVal}}">
                 <button type="submit" name="showBtn">Показать</button>
             </p>
-            <p>Результат</p>
+            <p>Результат: {{.Count}} шт.</p>
         </form>
         {{ range .Receipts }}
         <div class="container">

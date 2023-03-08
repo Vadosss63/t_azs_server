@@ -14,6 +14,7 @@ type AzsStatsData struct {
 	IdAzs        int    `json:"id_azs" db:"id_azs"`
 	IdUser       int    `json:"id_user" db:"id_user"`
 	IsAuthorized int    `json:"is_authorized" db:"is_authorized"`
+	CountColum   int    `json:"count_colum" db:"count_colum"`
 	Time         string `json:"time" db:"time"`
 	Name         string `json:"name" db:"name"`
 	Address      string `json:"address" db:"address"`
@@ -30,8 +31,9 @@ type Info struct {
 }
 
 type Columns struct {
-	CommonLiters string `json:"commonLiters"`
-	DailyLiters  string `json:"dailyLiters"`
+	CommonLiters        string `json:"commonLiters"`
+	DailyLiters         string `json:"dailyLiters"`
+	RemainingFuelLiters string `json:"remainingFuelLiters"`
 }
 
 type AzsStatsDataFull struct {
@@ -41,14 +43,15 @@ type AzsStatsDataFull struct {
 	Time         string    `json:"time" db:"time"`
 	Name         string    `json:"name" db:"name"`
 	Address      string    `json:"address" db:"address"`
+	CountColum   int       `json:"count_colum" db:"count_colum"`
 	Info         Info      `json:"info"`
 	Columns      []Columns `json:"columns"`
 }
 
-func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized int, time, name, address, stats string) (err error) {
+func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized, count_colum int, time, name, address, stats string) (err error) {
 	_, err = r.pool.Exec(ctx,
-		`insert into azses (id_azs, id_user, is_authorized, time, name, address, stats) values ($1, $2, $3, $4, $5, $6, $7)`,
-		id_azs, -1, is_authorized, time, name, address, stats)
+		`insert into azses (id_azs, id_user, is_authorized, time, name, address, count_colum, stats) values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		id_azs, -1, is_authorized, time, name, address, count_colum, stats)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -58,8 +61,8 @@ func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized int, 
 
 func (r *Repository) UpdateAzsStats(ctx context.Context, azs AzsStatsData) (err error) {
 	_, err = r.pool.Exec(ctx,
-		`UPDATE azses SET is_authorized = '$2', time = '$3', name = '$4', address = '$5', stats = '$6' WHERE id_azs = $1`,
-		azs.IdAzs, azs.IsAuthorized, azs.Time, azs.Name, azs.Address, azs.Stats)
+		`UPDATE azses SET is_authorized = $2, count_colum = $3, time = $4, name = $5, address = $6, stats = $7 WHERE id_azs = $1`,
+		azs.IdAzs, azs.IsAuthorized, azs.CountColum, azs.Time, azs.Name, azs.Address, azs.Stats)
 	if err != nil {
 		err = fmt.Errorf("failed to exec data: %w", err)
 		return
@@ -84,7 +87,7 @@ func (r *Repository) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, 
 		return
 	}
 
-	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
+	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
 	if err != nil {
 		azs.Id = -1
 		err = fmt.Errorf("failed to query data: %w", err)
@@ -103,7 +106,7 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 
 	for rows.Next() {
 		var azs AzsStatsData
-		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address,
+		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
 			err = fmt.Errorf("failed to query data: %w", err)
 			return
@@ -137,7 +140,7 @@ func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses [
 
 	for rows.Next() {
 		var azs AzsStatsData
-		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.Time, &azs.Name, &azs.Address,
+		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
 			err = fmt.Errorf("failed to query data: %w", err)
 			return
@@ -171,6 +174,7 @@ func ParseStats(azsStatsData AzsStatsData) (azsStatsDataFull AzsStatsDataFull, e
 		Time:         azsStatsData.Time,
 		Name:         azsStatsData.Name,
 		Address:      azsStatsData.Address,
+		CountColum:   azsStatsData.CountColum,
 		Info:         stats.Info,
 		Columns:      stats.Columns,
 	}

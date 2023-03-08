@@ -18,10 +18,9 @@
         }
 
         table {
-            margin: 0 auto;
+            margin-top: 10px;
             padding: 20px;
             width: 100%;
-            text-align: left;
             max-width: 800px;
             border-collapse: collapse;
             box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
@@ -30,6 +29,7 @@
 
         table td,
         table th {
+            text-align: center;
             padding: 10px;
             border: 1px solid #ccc;
         }
@@ -46,25 +46,8 @@
             background-color: #f9f9f9;
         }
 
-        .sum-cell {
-            text-align: left;
-        }
-
-        .sum-cell.daily {
-            text-align: left;
-        }
-
-        .liters-cell {
-            text-align: left;
-        }
-
-        .liters-cell.daily {
-            text-align: left;
-        }
-
         .container {
             float: top;
-            white-space: pre-line;
             background-color: #fff;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -74,8 +57,28 @@
             padding: 30px;
         }
 
+        .container2 {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px #ccc;
+            width: 600px;
+            margin: 4% 2% 2% 2%;
+            padding: 30px;
+        }
+
         .ref {
             text-align: right;
+        }
+
+        input[type=submit],
+        button,
+        select {
+            width: 150px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-left: 5px;
         }
 
         .overall {
@@ -85,6 +88,7 @@
             background: darkgrey;
             height: 100%;
         }
+
 
         nav {
             background-color: #1c7ed6;
@@ -118,9 +122,35 @@
     <h1>Не зарегистрированые АЗС</h1>
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
+
+        <div class="container2">
+            <form action="/show_azs_for" method="post">
+                <label>Показать для пользователя</label>
+                <select name="user">
+                    <option value="-1">Не выбран</option>
+                    {{ range $.Users }}
+                    {{ if eq .Id $.SelectedUserId }}
+                    <option value="{{.Id}}" selected>{{.Login}}</option>
+                    {{ else }}
+                    <option value="{{.Id}}">{{.Login}}</option>
+                    {{ end }}
+                    {{end}}
+                </select>
+                <input type="submit" value="Показать">
+            </form>
+        </div>
+
         {{ range .Azses }}
-        <div class="container">
+        <div class="container"><b> </b>
             <table>
+                <tr>
+                    <th>Имя АЗС:</th>
+                    <td>{{.Name}}</td>
+                </tr>
+                <tr>
+                    <th>Адрес:</th>
+                    <td>{{.Address}}</td>
+                </tr>
                 <tr>
                     <th>Id АЗС:</th>
                     <td>{{.IdAzs}}</td>
@@ -129,53 +159,85 @@
                     <th>Время обновления:</th>
                     <td>{{.Time}}</td>
                 </tr>
+                {{ with index .Columns 0 }}
                 <tr>
-                    <th>Имя:</th>
-                    <td>{{.Name}}</td>
+                    <th>Колонка 1 остаток - Литры:</th>
+                    <td>{{ .RemainingFuelLiters }}</td>
                 </tr>
+                {{ end }}
+
+                {{if eq .CountColum 2}}
+                {{ with index .Columns 1 }}
                 <tr>
-                    <th>Адрес:</th>
-                    <td>{{.Address}}</td>
+                    <th>Колонка 2 остаток - Литры:</th>
+                    <td>{{ .RemainingFuelLiters }}</td>
                 </tr>
+                {{ end }}
+                {{end}}
 
                 </tr>
             </table>
+            <b> </b>
             <table>
                 <tr>
-                    <th>Наличн.руб</th>
+                    <th></th>
+                    <th>Общий</th>
+                    <th>Инкасация</th>
+                </tr>
+                <tr>
+                    <th>Наличные, руб</th>
                     <td class="sum-cell">{{.Info.CommonSumCash}}</td>
                     <td class="sum-cell daily">{{.Info.DailySumCash}}</td>
                 </tr>
                 <tr>
-                    <th>Безнал.руб</th>
+                    <th>Безналичные, руб</th>
                     <td class="sum-cell">{{.Info.CommonSumCashless}}</td>
                     <td class="sum-cell daily">{{.Info.DailySumCashless}}</td>
                 </tr>
                 <tr>
-                    <th>Онлайн.руб</th>
+                    <th>Онлайн оплата,руб</th>
                     <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
                     <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
                 </tr>
-                {{ range .Columns }}
+                {{ with index .Columns 0 }}
                 <tr>
                     <th>Колонка 1-Литры</th>
                     <td class="liters-cell">{{.CommonLiters}}</td>
                     <td class="liters-cell daily">{{.DailyLiters}}</td>
                 </tr>
+                {{ end }}
+
+                {{if eq .CountColum 2}}
+                {{ with index .Columns 1 }}
+                <tr>
+                    <th>Колонка 2-Литры</th>
+                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <td class="liters-cell daily">{{.DailyLiters}}</td>
+                </tr>
+                {{ end }}
                 {{end}}
+
             </table>
-            <div class="ref" style="display: inline-block;">
-                <form action="/add_user_to_asz?id_azs={{.IdAzs}}" method="post" id="addUserToAzs" name="addUserToAzs">
-                    <p>
-                        <select name="user">
-                            <option value="-1">Не выбран</option>
-                            {{ range $.Users }}
-                            <option value="{{.Id}}">{{.Login}}</option>
-                            {{end}}
-                        </select>
-                        <input type="submit" value="Добавить">
-                    </p>
-                </form>
+            <div class="ref">
+                <table>
+                    <tr>
+                        <form action="/add_user_to_asz?id_azs={{.IdAzs}}" method="post" id="addUserToAzs"
+                            name="addUserToAzs">
+                            <label>Сменить пользователя: </label>
+                            <select name="user">
+                                <option value="-1">Не выбран</option>
+                                {{ range $.Users }}
+                                {{ if eq .Id $.SelectedUserId }}
+                                <option value="{{.Id}}" selected>{{.Login}}</option>
+                                {{ else }}
+                                <option value="{{.Id}}">{{.Login}}</option>
+                                {{ end }}
+                                {{end}}
+                            </select>
+                            <input type="submit" value="Добавить">
+                        </form>
+                    </tr>
+                </table>
                 <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
             </div>
         </div>

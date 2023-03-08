@@ -100,7 +100,7 @@
 
 <body>
     {{template "user_navi.html" .}}
-    <h1>Статистика АЗС</h1>
+    <h1>Статистика АЗС - {{.User.Login}}</h1>
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
         {{ range .Azses }}
@@ -122,6 +122,22 @@
                     <th>Время обновления:</th>
                     <td>{{.Time}}</td>
                 </tr>
+                {{ with index .Columns 0 }}
+                <tr>
+                    <th>Колонка 1 остаток - Литры:</th>
+                    <td>{{ .RemainingFuelLiters }}</td>
+                </tr>
+                {{ end }}
+
+                {{if eq .CountColum 2}}
+                {{ with index .Columns 1 }}
+                <tr>
+                    <th>Колонка 2 остаток - Литры:</th>
+                    <td>{{ .RemainingFuelLiters }}</td>
+                </tr>
+                {{ end }}
+                {{end}}
+
                 </tr>
             </table>
             <table>
@@ -145,13 +161,24 @@
                     <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
                     <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
                 </tr>
-                {{ range .Columns }}
+                {{ with index .Columns 0 }}
                 <tr>
                     <th>Колонка 1-Литры</th>
                     <td class="liters-cell">{{.CommonLiters}}</td>
                     <td class="liters-cell daily">{{.DailyLiters}}</td>
                 </tr>
+                {{ end }}
+
+                {{if eq .CountColum 2}}
+                {{ with index .Columns 1 }}
+                <tr>
+                    <th>Колонка 2-Литры</th>
+                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <td class="liters-cell daily">{{.DailyLiters}}</td>
+                </tr>
+                {{ end }}
                 {{end}}
+
             </table>
             <div class="ref">
                 <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
@@ -161,5 +188,6 @@
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
 </body>
+
 </html>
 {{end}}

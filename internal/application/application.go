@@ -82,6 +82,26 @@ func (a app) Routes(r *httprouter.Router) {
 
 	r.DELETE("/user", a.Authorized(a.DeleteUser))
 	r.POST("/reset_password", a.Authorized(a.ResetPasswordUser))
+
+	r.GET("/show_for_user", a.Authorized(a.ShowUsersAzsPage))
+
+	r.POST("/show_azs_for", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		id_user, ok_id := getIntVal(r.FormValue("user"))
+
+		userId, ok := r.Context().Value("userId").(int)
+
+		if !ok || !ok_id {
+			http.Error(rw, "Error user", http.StatusBadRequest)
+			return
+		}
+		u, err := a.repo.GetUser(a.ctx, userId)
+
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+		a.AdminPage(rw, r, p, u, id_user)
+	}))
 }
 
 func (a app) ResetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -210,18 +230,27 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
+	azs, err := a.repo.GetAzs(a.ctx, id_azs)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	type AzsReceiptDatas struct {
-		IdAzs         int
+		Azs           repository.AzsStatsData
 		FormSearchVal string
 		ToSearchVal   string
 		Receipts      []repository.AzsReceiptData
+		Count         int
 	}
 
 	azsReceiptDatas := AzsReceiptDatas{
-		IdAzs:         id_azs,
+		Azs:           azs,
 		FormSearchVal: fromSearchTime.Format("2006-01-02"),
 		ToSearchVal:   toSearchTime.Format("2006-01-02"),
 		Receipts:      receipts,
+		Count:         len(receipts),
 	}
 
 	err = tmpl.ExecuteTemplate(rw, "AzsReceiptDatas", azsReceiptDatas)
@@ -233,42 +262,44 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 
 func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id"))
+	idInt, ok := getIntVal(id)
 	t := time.Now()
 	name := strings.TrimSpace(r.FormValue("name"))
 	address := strings.TrimSpace(r.FormValue("address"))
+	count_colum, ok_count_colum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
 	stats := strings.TrimSpace(r.FormValue("stats"))
 	fmt.Println(stats)
 	rw.Header().Set("Content-Type", "application/json")
 	answerStat := answer{Msg: "Ok"}
-	if id == "" || name == "" || address == "" || stats == "" {
+	if !ok || !ok_count_colum || id == "" || name == "" || address == "" || stats == "" {
 		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
 	} else {
-		answerStat.Msg = id + name + address + stats
+		azs, err := a.repo.GetAzs(a.ctx, idInt)
 
-		idInt, ok := getIntVal(id)
-		if ok == true {
-			azs, err := a.repo.GetAzs(a.ctx, idInt)
-			if err != nil {
-				answerStat.Status = "error"
-				answerStat.Msg = err.Error()
+		if azs.Id == -1 {
+			err = a.repo.AddAzs(a.ctx, idInt, 0, count_colum, t.Format(time.RFC822), name, address, stats)
+
+			if err == nil {
+				err = a.repo.CreateAzsReceipt(a.ctx, idInt)
 			}
-			if azs.Id == -1 {
-				err := a.repo.AddAzs(a.ctx, idInt, 0, t.Format(time.RFC822), name, address, stats)
-				if err != nil {
-					answerStat.Status = "error"
-					answerStat.Msg = err.Error()
-				} else {
-					err := a.repo.CreateAzsReceipt(a.ctx, idInt)
-					if err != nil {
-						answerStat.Status = "error"
-						answerStat.Msg = err.Error()
-					}
-				}
-			}
+
+		} else if err == nil {
+			azs.Time = t.Format(time.RFC822)
+			azs.CountColum = count_colum
+			azs.Name = name
+			azs.Address = address
+			azs.Stats = stats
+			err = a.repo.UpdateAzsStats(a.ctx, azs)
+		}
+
+		if err != nil {
+			answerStat.Status = "error"
+			answerStat.Msg = err.Error()
+		} else {
+			answerStat = answer{"Ok", "Ok"}
 		}
 
 	}
-
 	rw.WriteHeader(http.StatusOK)
 	json.NewEncoder(rw).Encode(answerStat)
 }
@@ -439,10 +470,27 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 
 	if u.Login == "admin" {
-		a.AdminPage(rw, r, p, u)
+		a.AdminPage(rw, r, p, u, -1)
 		return
 	}
 
+	a.UserPage(rw, r, p, u)
+}
+
+func (a app) ShowUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	userId, ok := getIntVal(r.FormValue("user"))
+
+	if !ok {
+		http.Error(rw, "Error user", http.StatusBadRequest)
+		return
+	}
+	u, err := a.repo.GetUser(a.ctx, userId)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
 	a.UserPage(rw, r, p, u)
 }
 
@@ -495,9 +543,9 @@ func (a app) UserPage(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	}
 }
 
-func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User) {
+func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
 
-	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, -1)
+	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -529,15 +577,17 @@ func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 
 	type AdminPageTemplate struct {
-		User  repository.User
-		Users []repository.User
-		Azses []repository.AzsStatsDataFull
+		User           repository.User
+		Users          []repository.User
+		Azses          []repository.AzsStatsDataFull
+		SelectedUserId int
 	}
 
 	adminPageTemplate := AdminPageTemplate{
-		User:  u,
-		Users: users,
-		Azses: azses,
+		User:           u,
+		Users:          users,
+		Azses:          azses,
+		SelectedUserId: id,
 	}
 
 	err = tmpl.ExecuteTemplate(rw, "AdminPageTemplate", adminPageTemplate)

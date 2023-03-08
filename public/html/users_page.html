@@ -113,7 +113,7 @@
         </tr>
         {{ range .}}
         <tr>
-          <td>{{.Login}}</td>
+          <td><a href="/show_for_user?user={{.Id}}" align="right">{{.Login}}</a></td>
           <td>{{.Name}}</td>
           <td>{{.Surname}}</td>
           <td>
@@ -162,7 +162,6 @@
       });
     });
   </script>
-
   <script>
     const resetPwdForms = document.querySelectorAll(".resetPassword");
     resetPwdForms.forEach((form) => {
@@ -196,9 +195,6 @@
       });
     });
   </script>
-
-
 </body>
-
 </html>
 {{end}}
