@@ -16,6 +16,23 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+type Answer struct {
+	Message string
+}
+
+func readCookie(name string, r *http.Request) (value string, err error) {
+	if name == "" {
+		return value, errors.New("you are trying to read empty cookie")
+	}
+	cookie, err := r.Cookie(name)
+	if err != nil {
+		return value, err
+	}
+	str := cookie.Value
+	value, _ = url.QueryUnescape(str)
+	return value, err
+}
+
 func (a app) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
@@ -71,19 +88,6 @@ func (a app) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	http.Redirect(rw, r, "/login", http.StatusSeeOther)
 }
 
-func readCookie(name string, r *http.Request) (value string, err error) {
-	if name == "" {
-		return value, errors.New("you are trying to read empty cookie")
-	}
-	cookie, err := r.Cookie(name)
-	if err != nil {
-		return value, err
-	}
-	str := cookie.Value
-	value, _ = url.QueryUnescape(str)
-	return value, err
-}
-
 func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	surname := strings.TrimSpace(r.FormValue("surname"))
@@ -109,14 +113,11 @@ func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 }
 
 func (a app) signupPage(rw http.ResponseWriter, message string) {
+
+	data := Answer{message}
 	sp := filepath.Join("public", "html", "signup.html")
 	navi := filepath.Join("public", "html", "admin_navi.html")
 	tmpl := template.Must(template.ParseFiles(sp, navi))
-
-	type answer struct {
-		Message string
-	}
-	data := answer{message}
 	err := tmpl.ExecuteTemplate(rw, "signup", data)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -160,10 +161,8 @@ func (a app) loginPage(rw http.ResponseWriter, message string) {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	type answer struct {
-		Message string
-	}
-	data := answer{message}
+
+	data := Answer{message}
 	err = tmpl.ExecuteTemplate(rw, "login", data)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

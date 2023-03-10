@@ -19,7 +19,7 @@ type AzsReceiptTemplate struct {
 	Azs           repository.AzsStatsData
 	FormSearchVal string
 	ToSearchVal   string
-	Receipts      []repository.AzsReceiptData
+	Receipts      []repository.Receipt
 	Count         int
 }
 
@@ -48,7 +48,7 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	receipts, err := a.repo.GetAzsReceiptInRange(a.ctx, id_azs, fromSearchTime.Unix(), toSearchTime.Unix())
+	receipts, err := a.repo.GetReceiptInRange(a.ctx, id_azs, fromSearchTime.Unix(), toSearchTime.Unix())
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

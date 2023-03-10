@@ -44,7 +44,7 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 			err = a.repo.AddAzs(a.ctx, idInt, 0, count_colum, t.Format(time.RFC822), name, address, stats)
 
 			if err == nil {
-				err = a.repo.CreateAzsReceipt(a.ctx, idInt)
+				err = a.repo.CreateReceipt(a.ctx, idInt)
 			}
 
 		} else if err == nil {
@@ -53,7 +53,7 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 			azs.Name = name
 			azs.Address = address
 			azs.Stats = stats
-			err = a.repo.UpdateAzsStats(a.ctx, azs)
+			err = a.repo.UpdateAzs(a.ctx, azs)
 		}
 
 		if err != nil {
@@ -89,7 +89,7 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 
 	answerStat := answer{Msg: "Ok"}
-	err := a.repo.AddAzsReceipt(a.ctx, id, time, receipt)
+	err := a.repo.AddReceipt(a.ctx, id, time, receipt)
 	if err != nil {
 		answerStat.Status = "error"
 		answerStat.Msg = err.Error()

@@ -105,3 +105,14 @@ func (a app) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprou
 	}
 	a.userPage(rw, r, p, u)
 }
+
+// func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+// 	id_azs, _ := getIntVal(r.FormValue("id_azs"))
+
+// 	err := a.repo.AddAzsToUser(a.ctx, id_user, id_azs)
+// 	if err != nil {
+// 		http.Error(rw, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+// 	http.Redirect(rw, r, "/", http.StatusSeeOther)
+// }

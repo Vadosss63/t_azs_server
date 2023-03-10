@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 )
 
 // insert into users (login, hashed_password, name, surname)
@@ -52,30 +51,18 @@ func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized, coun
 	_, err = r.pool.Exec(ctx,
 		`insert into azses (id_azs, id_user, is_authorized, time, name, address, count_colum, stats) values ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		id_azs, -1, is_authorized, time, name, address, count_colum, stats)
-	if err != nil {
-		err = fmt.Errorf("failed to exec data: %w", err)
-		return
-	}
 	return
 }
 
-func (r *Repository) UpdateAzsStats(ctx context.Context, azs AzsStatsData) (err error) {
+func (r *Repository) UpdateAzs(ctx context.Context, azs AzsStatsData) (err error) {
 	_, err = r.pool.Exec(ctx,
 		`UPDATE azses SET is_authorized = $2, count_colum = $3, time = $4, name = $5, address = $6, stats = $7 WHERE id_azs = $1`,
 		azs.IdAzs, azs.IsAuthorized, azs.CountColum, azs.Time, azs.Name, azs.Address, azs.Stats)
-	if err != nil {
-		err = fmt.Errorf("failed to exec data: %w", err)
-		return
-	}
 	return
 }
 
-func (r *Repository) DeleteAzsStats(ctx context.Context, id_azs int) (err error) {
+func (r *Repository) DeleteAzs(ctx context.Context, id_azs int) (err error) {
 	_, err = r.pool.Exec(ctx, `DELETE FROM azses WHERE id_azs = $1`, id_azs)
-	if err != nil {
-		err = fmt.Errorf("failed to exec data: %w", err)
-		return
-	}
 	return
 }
 
@@ -83,15 +70,12 @@ func (r *Repository) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, 
 	row := r.pool.QueryRow(ctx, `SELECT * FROM azses where id_azs = $1`, id_azs)
 	if err != nil {
 		azs.Id = -1
-		err = fmt.Errorf("failed to query data: %w", err)
 		return
 	}
 
 	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
 	if err != nil {
 		azs.Id = -1
-		err = fmt.Errorf("failed to query data: %w", err)
-		return
 	}
 	return
 }
@@ -99,7 +83,6 @@ func (r *Repository) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, 
 func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM azses`)
 	if err != nil {
-		err = fmt.Errorf("failed to query data: %w", err)
 		return
 	}
 	defer rows.Close()
@@ -108,14 +91,9 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 		var azs AzsStatsData
 		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
-			err = fmt.Errorf("failed to query data: %w", err)
 			return
 		}
 		azses = append(azses, azs)
-	}
-	if err = rows.Err(); err != nil {
-		err = fmt.Errorf("failed to query data: %w", err)
-		return
 	}
 	return
 }
@@ -123,17 +101,12 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 func (r *Repository) AddAzsToUser(ctx context.Context, id_user, id_azs int) (err error) {
 	_, err = r.pool.Exec(ctx,
 		`UPDATE azses SET id_user = $2 WHERE id_azs = $1`, id_azs, id_user)
-	if err != nil {
-		err = fmt.Errorf("failed to exec data: %w", err)
-		return
-	}
 	return
 }
 
 func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses []AzsStatsData, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM azses where id_user = $1`, id_user)
 	if err != nil {
-		err = fmt.Errorf("failed to query data: %w", err)
 		return
 	}
 	defer rows.Close()
@@ -142,14 +115,9 @@ func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses [
 		var azs AzsStatsData
 		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
-			err = fmt.Errorf("failed to query data: %w", err)
 			return
 		}
 		azses = append(azses, azs)
-	}
-	if err = rows.Err(); err != nil {
-		err = fmt.Errorf("failed to query data: %w", err)
-		return
 	}
 	return
 }
