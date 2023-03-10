@@ -20,6 +20,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// trunk-ignore(gitleaks/generic-api-key)
 var token = "ef4cfcf144999ed560e9f9ad2be18101"
 
 type app struct {
@@ -212,7 +213,7 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 
 	id_azs, ok := getIntVal(r.FormValue("id_azs"))
 
-	if ok != true {
+	if !ok {
 		http.Error(rw, "Ошибка id_azs"+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
@@ -328,7 +329,7 @@ func (a app) AzsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	receipt := strings.TrimSpace(r.FormValue("receipt"))
 
 	answerStat := answer{Msg: "Ok"}
-	if ok_time != true || ok_id != true || receipt == "" {
+	if !ok_time || !ok_id || receipt == "" {
 		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
 	} else {
 		err := a.repo.AddAzsReceipt(a.ctx, id, time, receipt)
