@@ -24,5 +24,6 @@ func main() {
 	fmt.Println("It is alive! Try http://t-azs.ru:8080")
 	//http.ListenAndServe(":80", r)
 	http.ListenAndServe(":8080", r)
+	//http.ListenAndServeTLS(":8080", "cert.pem", "key.pem", r)
 
 }

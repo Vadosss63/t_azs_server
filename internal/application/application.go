@@ -20,6 +20,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+var token = "ef4cfcf144999ed560e9f9ad2be18101"
+
 type app struct {
 	ctx   context.Context
 	repo  *repository.Repository
@@ -261,6 +263,14 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 }
 
 func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	rw.Header().Set("Content-Type", "application/json")
+	tokenReq := strings.TrimSpace(r.FormValue("token"))
+	if token != tokenReq {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+		return
+	}
+
 	id := strings.TrimSpace(r.FormValue("id"))
 	idInt, ok := getIntVal(id)
 	t := time.Now()
@@ -269,7 +279,6 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	count_colum, ok_count_colum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
 	stats := strings.TrimSpace(r.FormValue("stats"))
 	fmt.Println(stats)
-	rw.Header().Set("Content-Type", "application/json")
 	answerStat := answer{Msg: "Ok"}
 	if !ok || !ok_count_colum || id == "" || name == "" || address == "" || stats == "" {
 		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
@@ -305,6 +314,15 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 }
 
 func (a app) AzsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	rw.Header().Set("Content-Type", "application/json")
+	tokenReq := strings.TrimSpace(r.FormValue("token"))
+	if token != tokenReq {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+		return
+	}
+
 	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("id")))
 	time, ok_time := getIntVal(strings.TrimSpace(r.FormValue("time")))
 	receipt := strings.TrimSpace(r.FormValue("receipt"))
@@ -321,7 +339,6 @@ func (a app) AzsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		}
 	}
 
-	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 	json.NewEncoder(rw).Encode(answerStat)
 }
