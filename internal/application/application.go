@@ -50,6 +50,7 @@ func (a app) Routes(r *httprouter.Router) {
 	r.POST("/signup", a.signup)
 
 	r.POST("/azs_stats", a.azsStats)
+	r.DELETE("/azs_stats", a.authorized(a.deleteAsz))
 
 	r.POST("/azs_receipt", a.azsReceipt)
 
@@ -58,6 +59,7 @@ func (a app) Routes(r *httprouter.Router) {
 	r.GET("/users", a.authorized(a.showUsersPage))
 
 	r.DELETE("/user", a.authorized(a.deleteUser))
+
 	r.POST("/reset_password", a.authorized(a.resetPasswordUser))
 
 	r.GET("/show_for_user", a.authorized(a.showUsersAzsPage))
