@@ -18,15 +18,6 @@ type app struct {
 	cache map[string]repository.User
 }
 
-func getIntVal(val string) (int, bool) {
-	sum, err := strconv.Atoi(val)
-	if err != nil {
-		fmt.Println(err)
-		return 0, false
-	}
-	return sum, true
-}
-
 func NewApp(ctx context.Context, dbpool *pgxpool.Pool) *app {
 	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User)}
 }
@@ -34,44 +25,44 @@ func NewApp(ctx context.Context, dbpool *pgxpool.Pool) *app {
 func (a app) Routes(r *httprouter.Router) {
 	r.ServeFiles("/public/*filepath", http.Dir("public"))
 
-	r.GET("/", a.Authorized(a.StartPage))
+	r.GET("/", a.authorized(a.startPage))
 
 	r.GET("/login", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		a.LoginPage(rw, "")
+		a.loginPage(rw, "")
 	})
 
-	r.POST("/login", a.Login)
+	r.POST("/login", a.login)
 
-	r.GET("/logout", a.Logout)
+	r.GET("/logout", a.logout)
 
 	r.GET("/signup", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		a.SignupPage(rw, "")
+		a.signupPage(rw, "")
 	})
 
-	r.GET("/azs_receipt/history", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	r.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
 		oneMonthAgo := now.AddDate(0, -1, 0)
-		a.HistoryReceiptsPage(rw, r, p, oneMonthAgo, now)
+		a.historyReceiptsPage(rw, r, p, oneMonthAgo, now)
 	}))
 
-	r.POST("/azs_receipt/history", a.Authorized(a.ShowHistoryReceiptsPage))
+	r.POST("/azs_receipt/history", a.authorized(a.showHistoryReceiptsPage))
 
-	r.POST("/signup", a.Signup)
+	r.POST("/signup", a.signup)
 
-	r.POST("/azs_stats", a.AzsStats)
+	r.POST("/azs_stats", a.azsStats)
 
-	r.POST("/azs_receipt", a.AzsReceipt)
+	r.POST("/azs_receipt", a.azsReceipt)
 
-	r.POST("/add_user_to_asz", a.Authorized(a.AddUserToAsz))
+	r.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
 
-	r.GET("/users", a.Authorized(a.ShowUsersPage))
+	r.GET("/users", a.authorized(a.showUsersPage))
 
-	r.DELETE("/user", a.Authorized(a.DeleteUser))
-	r.POST("/reset_password", a.Authorized(a.ResetPasswordUser))
+	r.DELETE("/user", a.authorized(a.deleteUser))
+	r.POST("/reset_password", a.authorized(a.resetPasswordUser))
 
-	r.GET("/show_for_user", a.Authorized(a.ShowUsersAzsPage))
+	r.GET("/show_for_user", a.authorized(a.showUsersAzsPage))
 
-	r.POST("/show_azs_for", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	r.POST("/show_azs_for", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		id_user, ok_id := getIntVal(r.FormValue("user"))
 
 		userId, ok := r.Context().Value("userId").(int)
@@ -86,11 +77,20 @@ func (a app) Routes(r *httprouter.Router) {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
-		a.AdminPage(rw, r, p, u, id_user)
+		a.adminPage(rw, r, p, u, id_user)
 	}))
 }
 
-func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func getIntVal(val string) (int, bool) {
+	sum, err := strconv.Atoi(val)
+	if err != nil {
+		fmt.Println(err)
+		return 0, false
+	}
+	return sum, true
+}
+
+func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	userId, ok := r.Context().Value("userId").(int)
 
@@ -106,9 +106,9 @@ func (a app) StartPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 
 	if u.Login == "admin" {
-		a.AdminPage(rw, r, p, u, -1)
+		a.adminPage(rw, r, p, u, -1)
 		return
 	}
 
-	a.UserPage(rw, r, p, u)
+	a.userPage(rw, r, p, u)
 }

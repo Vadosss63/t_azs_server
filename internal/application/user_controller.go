@@ -16,7 +16,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (a app) ResetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
 	password := strings.TrimSpace(r.FormValue("password"))
@@ -44,7 +44,7 @@ func (a app) ResetPasswordUser(rw http.ResponseWriter, r *http.Request, p httpro
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (a app) DeleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
 
@@ -61,7 +61,7 @@ func (a app) DeleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 }
 
-func (a app) Logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	for _, v := range r.Cookies() {
 		c := http.Cookie{
 			Name:   v.Name,
@@ -84,31 +84,31 @@ func readCookie(name string, r *http.Request) (value string, err error) {
 	return value, err
 }
 
-func (a app) Signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	surname := strings.TrimSpace(r.FormValue("surname"))
 	login := strings.TrimSpace(r.FormValue("login"))
 	password := strings.TrimSpace(r.FormValue("password"))
 	password2 := strings.TrimSpace(r.FormValue("password2"))
 	if name == "" || surname == "" || login == "" || password == "" {
-		a.SignupPage(rw, "Все поля должны быть заполнены!")
+		a.signupPage(rw, "Все поля должны быть заполнены!")
 		return
 	}
 	if password != password2 {
-		a.SignupPage(rw, "Пароли не совпадают! Попробуйте еще")
+		a.signupPage(rw, "Пароли не совпадают! Попробуйте еще")
 		return
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
 	err := a.repo.AddNewUser(a.ctx, name, surname, login, hashedPass)
 	if err != nil {
-		a.SignupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
+		a.signupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
 		return
 	}
 	http.Redirect(rw, r, "/users", http.StatusSeeOther)
 }
 
-func (a app) SignupPage(rw http.ResponseWriter, message string) {
+func (a app) signupPage(rw http.ResponseWriter, message string) {
 	sp := filepath.Join("public", "html", "signup.html")
 	navi := filepath.Join("public", "html", "admin_navi.html")
 	tmpl := template.Must(template.ParseFiles(sp, navi))
@@ -124,18 +124,18 @@ func (a app) SignupPage(rw http.ResponseWriter, message string) {
 	}
 }
 
-func (a app) Login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	login := r.FormValue("login")
 	password := r.FormValue("password")
 	if login == "" || password == "" {
-		a.LoginPage(rw, "Необходимо указать логин и пароль!")
+		a.loginPage(rw, "Необходимо указать логин и пароль!")
 		return
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
 	user, err := a.repo.Login(a.ctx, login, hashedPass)
 	if err != nil {
-		a.LoginPage(rw, "Вы ввели неверный логин или пароль!")
+		a.loginPage(rw, "Вы ввели неверный логин или пароль!")
 		return
 	}
 	//логин и пароль совпадают, поэтому генерируем токен, пишем его в кеш и в куки
@@ -153,7 +153,7 @@ func (a app) Login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
-func (a app) LoginPage(rw http.ResponseWriter, message string) {
+func (a app) loginPage(rw http.ResponseWriter, message string) {
 	lp := filepath.Join("public", "html", "login.html")
 	tmpl, err := template.ParseFiles(lp)
 	if err != nil {
@@ -171,7 +171,7 @@ func (a app) LoginPage(rw http.ResponseWriter, message string) {
 	}
 }
 
-func (a app) Authorized(next httprouter.Handle) httprouter.Handle {
+func (a app) authorized(next httprouter.Handle) httprouter.Handle {
 	return func(rw http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		token, err := readCookie("token", r)
 		if err != nil {

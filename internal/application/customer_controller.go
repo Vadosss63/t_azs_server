@@ -23,7 +23,7 @@ type AzsReceiptTemplate struct {
 	Count         int
 }
 
-func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fromSearchDate := r.FormValue("formSearch")
 	toSearchDate := r.FormValue("toSearch")
 
@@ -36,10 +36,10 @@ func (a app) ShowHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 		return
 	}
 
-	a.HistoryReceiptsPage(rw, r, p, fromSearchTime, toSearchTime)
+	a.historyReceiptsPage(rw, r, p, fromSearchTime, toSearchTime)
 }
 
-func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
+func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
 
 	id_azs, ok := getIntVal(r.FormValue("id_azs"))
 
@@ -78,7 +78,7 @@ func (a app) HistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 }
 
-func (a app) UserPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User) {
+func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User) {
 
 	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, u.Id)
 

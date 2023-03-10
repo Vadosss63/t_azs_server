@@ -17,7 +17,7 @@ type answer struct {
 	Msg    string `json:"Msg"`
 }
 
-func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	rw.Header().Set("Content-Type", "application/json")
 	tokenReq := strings.TrimSpace(r.FormValue("token"))
 	if token != tokenReq {
@@ -68,7 +68,7 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	json.NewEncoder(rw).Encode(answerStat)
 }
 
-func (a app) AzsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	rw.Header().Set("Content-Type", "application/json")
 	tokenReq := strings.TrimSpace(r.FormValue("token"))

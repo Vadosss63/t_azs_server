@@ -16,7 +16,7 @@ type AdminPageTemplate struct {
 	SelectedUserId int
 }
 
-func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
+func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
 
 	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, id)
 
@@ -58,7 +58,7 @@ func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 }
 
-func (a app) ShowUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) showUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	users, err := a.repo.GetUserAll(a.ctx)
 	if err != nil {
@@ -76,7 +76,7 @@ func (a app) ShowUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter
 	}
 }
 
-func (a app) AddUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) addUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id_azs, _ := getIntVal(r.FormValue("id_azs"))
 	id_user, _ := getIntVal(r.FormValue("user"))
 
@@ -88,7 +88,7 @@ func (a app) AddUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
-func (a app) ShowUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	userId, ok := getIntVal(r.FormValue("user"))
 
@@ -103,5 +103,5 @@ func (a app) ShowUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprou
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	a.UserPage(rw, r, p, u)
+	a.userPage(rw, r, p, u)
 }
