@@ -1,0 +1,97 @@
+package application
+
+import (
+	"fmt"
+	"html/template"
+	"net/http"
+	"path/filepath"
+
+	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/julienschmidt/httprouter"
+)
+
+func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
+
+	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, id)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	lp := filepath.Join("public", "html", "admin_page.html")
+	navi := filepath.Join("public", "html", "admin_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
+
+	azses := []repository.AzsStatsDataFull{}
+
+	for _, azs_stats := range azs_statses {
+
+		azsStatsDataFull, err := repository.ParseStats(azs_stats)
+
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		azses = append(azses, azsStatsDataFull)
+	}
+
+	users, err := a.repo.GetUserAll(a.ctx)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	type AdminPageTemplate struct {
+		User           repository.User
+		Users          []repository.User
+		Azses          []repository.AzsStatsDataFull
+		SelectedUserId int
+	}
+
+	adminPageTemplate := AdminPageTemplate{
+		User:           u,
+		Users:          users,
+		Azses:          azses,
+		SelectedUserId: id,
+	}
+
+	err = tmpl.ExecuteTemplate(rw, "AdminPageTemplate", adminPageTemplate)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func (a app) AddUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id_azs, _ := getIntVal(r.FormValue("id_azs"))
+
+	id_user, _ := getIntVal(r.FormValue("user"))
+	fmt.Println(id_azs)
+	fmt.Println(id_user)
+
+	err := a.repo.AddAzsToUser(a.ctx, id_user, id_azs)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(rw, r, "/", http.StatusSeeOther)
+}
+
+func (a app) ShowUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	userId, ok := getIntVal(r.FormValue("user"))
+
+	if !ok {
+		http.Error(rw, "Error user", http.StatusBadRequest)
+		return
+	}
+	u, err := a.repo.GetUser(a.ctx, userId)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	a.UserPage(rw, r, p, u)
+}
