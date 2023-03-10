@@ -22,49 +22,49 @@ func NewApp(ctx context.Context, dbpool *pgxpool.Pool) *app {
 	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User)}
 }
 
-func (a app) Routes(r *httprouter.Router) {
-	r.ServeFiles("/public/*filepath", http.Dir("public"))
+func (a app) Routes(router *httprouter.Router) {
+	router.ServeFiles("/public/*filepath", http.Dir("public"))
 
-	r.GET("/", a.authorized(a.startPage))
+	router.GET("/", a.authorized(a.startPage))
 
-	r.GET("/login", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	router.GET("/login", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		a.loginPage(rw, "")
 	})
 
-	r.POST("/login", a.login)
+	router.POST("/login", a.login)
 
-	r.GET("/logout", a.logout)
+	router.GET("/logout", a.logout)
 
-	r.GET("/signup", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	router.GET("/signup", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		a.signupPage(rw, "")
 	})
 
-	r.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	router.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
 		oneMonthAgo := now.AddDate(0, -1, 0)
 		a.historyReceiptsPage(rw, r, p, oneMonthAgo, now)
 	}))
 
-	r.POST("/azs_receipt/history", a.authorized(a.showHistoryReceiptsPage))
+	router.POST("/azs_receipt/history", a.authorized(a.showHistoryReceiptsPage))
 
-	r.POST("/signup", a.signup)
+	router.POST("/signup", a.signup)
 
-	r.POST("/azs_stats", a.azsStats)
-	r.DELETE("/azs_stats", a.authorized(a.deleteAsz))
+	router.POST("/azs_stats", a.azsStats)
+	router.DELETE("/azs_stats", a.authorized(a.deleteAsz))
 
-	r.POST("/azs_receipt", a.azsReceipt)
+	router.POST("/azs_receipt", a.azsReceipt)
 
-	r.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
+	router.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
 
-	r.GET("/users", a.authorized(a.showUsersPage))
+	router.GET("/users", a.authorized(a.showUsersPage))
 
-	r.DELETE("/user", a.authorized(a.deleteUser))
+	router.DELETE("/user", a.authorized(a.deleteUser))
 
-	r.POST("/reset_password", a.authorized(a.resetPasswordUser))
+	router.POST("/reset_password", a.authorized(a.resetPasswordUser))
 
-	r.GET("/show_for_user", a.authorized(a.showUsersAzsPage))
+	router.GET("/show_for_user", a.authorized(a.showUsersAzsPage))
 
-	r.POST("/show_azs_for", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	router.POST("/show_azs_for", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		id_user, ok_id := getIntVal(r.FormValue("user"))
 
 		userId, ok := r.Context().Value("userId").(int)
