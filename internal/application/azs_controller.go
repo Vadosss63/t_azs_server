@@ -2,7 +2,6 @@ package application
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -34,7 +33,7 @@ func (a app) AzsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	address := strings.TrimSpace(r.FormValue("address"))
 	count_colum, ok_count_colum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
 	stats := strings.TrimSpace(r.FormValue("stats"))
-	fmt.Println(stats)
+	// fmt.Println(stats)
 	answerStat := answer{Msg: "Ok"}
 	if !ok || !ok_count_colum || id == "" || name == "" || address == "" || stats == "" {
 		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
@@ -83,16 +82,17 @@ func (a app) AzsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	time, ok_time := getIntVal(strings.TrimSpace(r.FormValue("time")))
 	receipt := strings.TrimSpace(r.FormValue("receipt"))
 
-	answerStat := answer{Msg: "Ok"}
 	if !ok_time || !ok_id || receipt == "" {
-		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
-	} else {
-		err := a.repo.AddAzsReceipt(a.ctx, id, time, receipt)
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(answer{"error", "Все поля должны быть заполнены!"})
+		return
+	}
 
-		if err != nil {
-			answerStat.Status = "error"
-			answerStat.Msg = err.Error()
-		}
+	answerStat := answer{Msg: "Ok"}
+	err := a.repo.AddAzsReceipt(a.ctx, id, time, receipt)
+	if err != nil {
+		answerStat.Status = "error"
+		answerStat.Msg = err.Error()
 	}
 
 	rw.WriteHeader(http.StatusOK)

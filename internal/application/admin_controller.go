@@ -58,6 +58,24 @@ func (a app) AdminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 }
 
+func (a app) ShowUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	users, err := a.repo.GetUserAll(a.ctx)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	lp := filepath.Join("public", "html", "users_page.html")
+	navi := filepath.Join("public", "html", "admin_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
+	err = tmpl.ExecuteTemplate(rw, "User", users)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
 func (a app) AddUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id_azs, _ := getIntVal(r.FormValue("id_azs"))
 	id_user, _ := getIntVal(r.FormValue("user"))
