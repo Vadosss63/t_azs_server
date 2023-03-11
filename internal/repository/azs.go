@@ -104,6 +104,12 @@ func (r *Repository) AddAzsToUser(ctx context.Context, id_user, id_azs int) (err
 	return
 }
 
+func (r *Repository) RemoveUserFromAzsAll(ctx context.Context, id_user int) (err error) {
+	_, err = r.pool.Exec(ctx,
+		`UPDATE azses SET id_user = -1 WHERE id_user = $1`, id_user)
+	return
+}
+
 func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses []AzsStatsData, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM azses where id_user = $1`, id_user)
 	if err != nil {

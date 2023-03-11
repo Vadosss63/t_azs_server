@@ -16,6 +16,16 @@ type AdminPageTemplate struct {
 	SelectedUserId int
 }
 
+func deleteUser(users []repository.User, login string) []repository.User {
+	for i, user := range users {
+		if user.Login == login {
+			users = append(users[:i], users[i+1:]...)
+			break
+		}
+	}
+	return users
+}
+
 func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
 
 	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, id)
@@ -30,6 +40,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+	users = deleteUser(users, "admin")
 
 	adminPageTemplate := AdminPageTemplate{
 		User:           u,

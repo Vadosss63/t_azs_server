@@ -70,7 +70,24 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	err := a.repo.DeleteUser(a.ctx, id)
+	user, err := a.repo.GetUser(a.ctx, id)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if user.Login == "admin" {
+		http.Error(rw, "Ошибка удаления admin. Администратора нельзя удалить!", http.StatusBadRequest)
+		return
+	}
+	// Reset All azs for Current user
+	err = a.repo.RemoveUserFromAzsAll(a.ctx, id)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = a.repo.DeleteUser(a.ctx, id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

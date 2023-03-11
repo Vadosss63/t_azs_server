@@ -124,7 +124,11 @@
             </form>
           </td>
           <form action="/user?userId={{.Id}}" method="post" class="deleteUser">
+            {{if eq .Login "admin"}}
+            <td><button type="submit" disabled>Удалить</button></td>
+            {{else}}
             <td><button type="submit">Удалить</button></td>
+            {{end}}
           </form>
         </tr>
         {{end}}
@@ -196,5 +200,6 @@
     });
   </script>
 </body>
+
 </html>
 {{end}}
