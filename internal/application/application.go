@@ -16,10 +16,11 @@ type app struct {
 	ctx   context.Context
 	repo  *repository.Repository
 	cache map[string]repository.User
+	token string
 }
 
-func NewApp(ctx context.Context, dbpool *pgxpool.Pool) *app {
-	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User)}
+func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string) *app {
+	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User), token}
 }
 
 func (a app) Routes(router *httprouter.Router) {

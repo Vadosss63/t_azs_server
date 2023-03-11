@@ -9,9 +9,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// trunk-ignore(gitleaks/generic-api-key)
-var token = "ef4cfcf144999ed560e9f9ad2be18101"
-
 type answer struct {
 	Status string `json:"status"`
 	Msg    string `json:"Msg"`
@@ -20,7 +17,7 @@ type answer struct {
 func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	rw.Header().Set("Content-Type", "application/json")
 	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if token != tokenReq {
+	if a.token != tokenReq {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
 		return
@@ -72,7 +69,7 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 
 	rw.Header().Set("Content-Type", "application/json")
 	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if token != tokenReq {
+	if a.token != tokenReq {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
 		return
