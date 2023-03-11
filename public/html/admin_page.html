@@ -119,7 +119,7 @@
 
 <body>
     {{template "admin_navi.html" .}}
-    <h1>Не зарегистрированые АЗС</h1>
+    <h1>АЗС</h1>
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
 
@@ -238,6 +238,9 @@
                         </form>
                     </tr>
                 </table>
+                <form action="/azs_stats?id_azs={{.IdAzs}}" method="post" class="deleteAzs">
+                    <td><button type="submit">Удалить АЗС</button></td>
+                </form>
                 <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
             </div>
         </div>
@@ -245,6 +248,33 @@
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
 </body>
+<script>
+    const deleteForms = document.querySelectorAll(".deleteAzs");
+    deleteForms.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const confirmed = window.confirm("Удалить АЗС?");
+            if (confirmed) {
+                fetch(form.action, {
+                    method: "DELETE"
+                }).then(() => {
+                    // handle success
+                    alert("АЗС успешно удален!");
+                    window.location.reload(); // reload the page after a successful delete
+                }).catch((error) => {
+                    // handle error
+                    if (error.response.status === 400) {
+                        // handle bad request error
+                        alert("Ошибка: неправильный запрос");
+                    } else {
+                        // handle other errors
+                        alert("Ошибка: " + error);
+                    }
+                });
+            }
+        });
+    });
+</script>
 
 </html>
 {{end}}
