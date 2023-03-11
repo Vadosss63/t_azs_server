@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 )
 
-// insert into users (login, hashed_password, name, surname)
-// values ('admin', '827ccb0eea8a706c4c34a16891f84e7b', 'admin', 'admin');
-
 type AzsStatsData struct {
 	Id           int    `json:"id" db:"id"`
 	IdAzs        int    `json:"id_azs" db:"id_azs"`

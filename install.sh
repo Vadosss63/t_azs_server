@@ -38,5 +38,5 @@ sudo cp settings.json ${install_dir}/
 sudo ln -s -f ${install_dir}/t_azs_server.service /etc/systemd/system/t_azs_server.service
 
 sudo systemctl enable t_azs_server
-sudo systemctl restart t_azs_server.service
+sudo systemctl restart t_azs_server.service &
 #sudo reboot now
