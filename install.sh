@@ -33,6 +33,7 @@ sudo mkdir ${install_dir}
 sudo cp main ${install_dir}/main
 sudo cp -r public/ ${install_dir}/public/
 sudo cp t_azs_server.service ${install_dir}/t_azs_server.service
+sudo cp settings.json ${install_dir}/
 
 sudo ln -s -f ${install_dir}/t_azs_server.service /etc/systemd/system/t_azs_server.service
 

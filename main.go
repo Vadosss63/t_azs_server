@@ -40,6 +40,10 @@ func main() {
 		panic(err)
 	}
 
+	if len(settings.Token) != 32 {
+		panic(fmt.Sprintf("Error Token = %s", settings.Token))
+	}
+
 	fmt.Println("Port:", settings.Port)
 	fmt.Println("Token:", settings.Token)
 
