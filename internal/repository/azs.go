@@ -6,7 +6,7 @@ import (
 )
 
 // insert into users (login, hashed_password, name, surname)
-// values ('alextonkonogov', '827ccb0eea8a706c4c34a16891f84e7b', 'Alex', 'Tonkonogov');
+// values ('admin', '827ccb0eea8a706c4c34a16891f84e7b', 'admin', 'admin');
 
 type AzsStatsData struct {
 	Id           int    `json:"id" db:"id"`

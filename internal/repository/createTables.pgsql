@@ -1,3 +1,4 @@
+DROP TABLE users;
 
 create table if not exists users
 (
@@ -7,6 +8,9 @@ create table if not exists users
     name    varchar(200) not null,
     surname varchar(200) not null
 );
+-- password=12345
+insert into users (login, hashed_password, name, surname)
+values ('admin', '827ccb0eea8a706c4c34a16891f84e7b', 'admin', 'admin');
 
 DROP TABLE azses;
 create table if not exists azses
