@@ -21,9 +21,10 @@ func main() {
 	a := application.NewApp(ctx, dbpool)
 	r := httprouter.New()
 	a.Routes(r)
-	fmt.Println("It is alive! Try http://t-azs.ru:8080")
-	//http.ListenAndServe(":80", r)
-	http.ListenAndServe(":8080", r)
+	fmt.Println("It's alive! Try http://t-azs.ru")
+	http.ListenAndServe(":80", r)
+	//fmt.Println("It is alive! Try http://t-azs.ru:8080")
+	//http.ListenAndServe(":8080", r)
 	//http.ListenAndServeTLS(":8080", "cert.pem", "key.pem", r)
 
 }

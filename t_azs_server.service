@@ -1,4 +1,5 @@
 [Unit]
+
 Description=t_azs_server
 After=network.target postgresql.service
 Requires=postgresql.service
@@ -7,7 +8,7 @@ Requires=postgresql.service
 Type=forking
 ExecStart=/opt/t_azs_server/main
 ExecReload=/opt/t_azs_server/main
-WorkingDirectory=/opt/t_azs_server/
+WorkingDirectory=/opt/t_azs_server
 TimeoutSec=300
 Restart=always
 
