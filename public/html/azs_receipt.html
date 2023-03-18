@@ -94,9 +94,12 @@
         </form>
         {{ range .Receipts }}
         <div class="container">
-            <span>#{{.Id}}</span>
-            <span>-------------------------------------</span><br>
-            <span>{{.Info}}</span><br>
+            <span>{{.Data}}</span>
+            <span>-------------------------------------</span>
+            <span>Колонка: {{.NumOfAzsNode}}</span>
+            <span>Топливо: {{.GasType}}</span>
+            <span>Литры: {{.CountLitres}}</span>
+            <span>Сумма: {{.Sum}} руб</span>
         </div>
         {{end}}
     </ul>

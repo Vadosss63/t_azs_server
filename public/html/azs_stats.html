@@ -122,18 +122,42 @@
                     <th>Время обновления:</th>
                     <td>{{.Time}}</td>
                 </tr>
-                {{ with index .Columns 0 }}
+                {{ with index .AzsNodes 0 }}
                 <tr>
-                    <th>Колонка 1 остаток - Литры:</th>
-                    <td>{{ .RemainingFuelLiters }}</td>
+                    <th>Колонка 1 объем топлива, м3:</th>
+                    <td>{{ .FuelVolume }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1 объем топлива, %:</th>
+                    <td>{{ .FuelVolumePerc }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1 плотность, т/м3:</th>
+                    <td>{{ .Density }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1 средняя температура, °C:</th>
+                    <td>{{ .AverageTemperature }}</td>
                 </tr>
                 {{ end }}
 
                 {{if eq .CountColum 2}}
-                {{ with index .Columns 1 }}
+                {{ with index .AzsNodes 1 }}
                 <tr>
-                    <th>Колонка 2 остаток - Литры:</th>
-                    <td>{{ .RemainingFuelLiters }}</td>
+                    <th>Колонка 2 объем топлива, м3:</th>
+                    <td>{{ .FuelVolume }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2 объем топлива, %:</th>
+                    <td>{{ .FuelVolumePerc }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2 плотность, т/м3:</th>
+                    <td>{{ .Density }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2 средняя температура, °C:</th>
+                    <td>{{ .AverageTemperature }}</td>
                 </tr>
                 {{ end }}
                 {{end}}
@@ -161,7 +185,7 @@
                     <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
                     <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
                 </tr>
-                {{ with index .Columns 0 }}
+                {{ with index .AzsNodes 0 }}
                 <tr>
                     <th>Колонка 1-Литры</th>
                     <td class="liters-cell">{{.CommonLiters}}</td>
@@ -170,7 +194,7 @@
                 {{ end }}
 
                 {{if eq .CountColum 2}}
-                {{ with index .Columns 1 }}
+                {{ with index .AzsNodes 1 }}
                 <tr>
                     <th>Колонка 2-Литры</th>
                     <td class="liters-cell">{{.CommonLiters}}</td>

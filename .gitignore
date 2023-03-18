@@ -8,7 +8,7 @@ main
 
 # Config file
 settings.json
-
+t_azs_server.service
 # Test binary, built with `go test -c`
 *.test
 __debug_bin

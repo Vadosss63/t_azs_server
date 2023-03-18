@@ -26,10 +26,13 @@ type Info struct {
 	DailySumCashless  int `json:"dailySumCashless"`
 }
 
-type Columns struct {
-	CommonLiters        string `json:"commonLiters"`
-	DailyLiters         string `json:"dailyLiters"`
-	RemainingFuelLiters string `json:"remainingFuelLiters"`
+type AzsNode struct {
+	CommonLiters       string `json:"commonLiters"`
+	DailyLiters        string `json:"dailyLiters"`
+	FuelVolume         string `json:"fuelVolume"`
+	FuelVolumePerc     string `json:"fuelVolumePerc"`
+	Density            string `json:"density"`
+	AverageTemperature string `json:"averageTemperature"`
 }
 
 type AzsStatsDataFull struct {
@@ -41,7 +44,7 @@ type AzsStatsDataFull struct {
 	Address      string    `json:"address" db:"address"`
 	CountColum   int       `json:"count_colum" db:"count_colum"`
 	Info         Info      `json:"info"`
-	Columns      []Columns `json:"columns"`
+	AzsNodes     []AzsNode `json:"azs_nodes"`
 }
 
 func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized, count_colum int, time, name, address, stats string) (err error) {
@@ -128,8 +131,8 @@ func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses [
 func ParseStats(azsStatsData AzsStatsData) (azsStatsDataFull AzsStatsDataFull, err error) {
 
 	type Values struct {
-		Info    Info      `json:"info"`
-		Columns []Columns `json:"columns"`
+		Info     Info      `json:"main_info"`
+		AzsNodes []AzsNode `json:"azs_nodes"`
 	}
 	var stats Values
 	err = json.Unmarshal([]byte(azsStatsData.Stats), &stats)
@@ -147,7 +150,7 @@ func ParseStats(azsStatsData AzsStatsData) (azsStatsDataFull AzsStatsDataFull, e
 		Address:      azsStatsData.Address,
 		CountColum:   azsStatsData.CountColum,
 		Info:         stats.Info,
-		Columns:      stats.Columns,
+		AzsNodes:     stats.AzsNodes,
 	}
 	return
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Vadosss63/t-azs/internal/repository"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -76,20 +77,27 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 
 	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("id")))
-	time, ok_time := getIntVal(strings.TrimSpace(r.FormValue("time")))
-	receipt := strings.TrimSpace(r.FormValue("receipt"))
+	receiptJson := strings.TrimSpace(r.FormValue("receipt"))
 
-	if !ok_time || !ok_id || receipt == "" {
+	if !ok_id || receiptJson == "" {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(answer{"error", "Все поля должны быть заполнены!"})
 		return
 	}
 
 	answerStat := answer{Msg: "Ok"}
-	err := a.repo.AddReceipt(a.ctx, id, time, receipt)
+
+	receipt, err := repository.ParseReceiptFromJson(receiptJson)
+
 	if err != nil {
 		answerStat.Status = "error"
 		answerStat.Msg = err.Error()
+	} else {
+		err := a.repo.AddReceipt(a.ctx, id, receipt)
+		if err != nil {
+			answerStat.Status = "error"
+			answerStat.Msg = err.Error()
+		}
 	}
 
 	rw.WriteHeader(http.StatusOK)
