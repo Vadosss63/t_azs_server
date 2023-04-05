@@ -55,6 +55,14 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/azs_receipt", a.azsReceipt)
 
+	router.POST("/get_azs_button", a.getAzsButton)
+
+	router.POST("/reset_azs_button", a.resetAzsButton)
+
+	router.POST("/push_azs_button", a.authorized(a.pushAzsButton))
+
+	router.GET("/azs_button_ready", a.azsButtonReady)
+
 	router.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
 
 	router.GET("/users", a.authorized(a.showUsersPage))

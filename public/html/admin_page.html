@@ -161,19 +161,23 @@
                 </tr>
                 {{ with index .AzsNodes 0 }}
                 <tr>
-                    <th>Колонка 1 объем топлива, м3:</th>
+                    <th>Колонка 1-топливо</th>
+                    <td>{{ .TypeFuel }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1-объем топлива, м3:</th>
                     <td>{{ .FuelVolume }}</td>
                 </tr>
                 <tr>
-                    <th>Колонка 1 объем топлива, %:</th>
+                    <th>Колонка 1-объем топлива, %:</th>
                     <td>{{ .FuelVolumePerc }}</td>
                 </tr>
                 <tr>
-                    <th>Колонка 1 плотность, т/м3:</th>
+                    <th>Колонка 1-плотность, т/м3:</th>
                     <td>{{ .Density }}</td>
                 </tr>
                 <tr>
-                    <th>Колонка 1 средняя температура, °C:</th>
+                    <th>Колонка 1-средняя температура, °C:</th>
                     <td>{{ .AverageTemperature }}</td>
                 </tr>
                 {{ end }}
@@ -181,19 +185,23 @@
                 {{if eq .CountColum 2}}
                 {{ with index .AzsNodes 1 }}
                 <tr>
-                    <th>Колонка 2 объем топлива, м3:</th>
+                    <th>Колонка 2-топливо</th>
+                    <td>{{ .TypeFuel }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2-объем топлива, м3:</th>
                     <td>{{ .FuelVolume }}</td>
                 </tr>
                 <tr>
-                    <th>Колонка 2 объем топлива, %:</th>
+                    <th>Колонка 2-объем топлива, %:</th>
                     <td>{{ .FuelVolumePerc }}</td>
                 </tr>
                 <tr>
-                    <th>Колонка 2 плотность, т/м3:</th>
+                    <th>Колонка 2-плотность, т/м3:</th>
                     <td>{{ .Density }}</td>
                 </tr>
                 <tr>
-                    <th>Колонка 2 средняя температура, °C:</th>
+                    <th>Колонка 2-средняя температура, °C:</th>
                     <td>{{ .AverageTemperature }}</td>
                 </tr>
                 {{ end }}
@@ -262,6 +270,34 @@
                         </form>
                     </tr>
                 </table>
+                <table>
+                    <tr>
+                        <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс колонки 1">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс колонки 2">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс сут. счетчиков">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=34" method="post" class="serviceBtn1">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сервисная кнопка 1">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=35" method="post" class="serviceBtn2">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сервисная кнопка 2">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=255" method="post" class="serviceBtn3">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сервисная кнопка 2">
+                        </form>
+                    </tr>
+                </table>
                 <form action="/azs_stats?id_azs={{.IdAzs}}" method="post" class="deleteAzs">
                     <td><button type="submit">Удалить АЗС</button></td>
                 </form>
@@ -272,7 +308,113 @@
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
 </body>
+
 <script>
+    const retryTime = 15000;
+    let retryCount = 0;
+
+    function resetAzs(form, msg) {
+        const confirmed = window.confirm(msg);
+        if (confirmed) {
+            const formData = new FormData(form);
+            const idAzs = formData.get("id_azs");
+            fetch(form.action, {
+                method: "POST",
+                body: new FormData(form)
+            }).then(() => {
+                let retryTimer;
+                const xhr = new XMLHttpRequest();
+                const url = '/azs_button_ready?id_azs=' + idAzs; // append the "id_azs" parameter to the URL
+                xhr.open('GET', url);
+                xhr.onload = handleXhrLoad.bind(null, xhr, retryTime, retryTimer, idAzs);
+                xhr.send();
+            }).catch((error) => {
+                // handle error
+                if (error.response.status === 400) {
+                    // handle bad request error
+                    alert("Ошибка: неправильный запрос");
+                } else {
+                    // handle other errors
+                    alert("Ошибка: " + error);
+                }
+            });
+        }
+    }
+
+    function handleXhrLoad(xhr, retryTime, retryTimer, idAzs) {
+
+        if (xhr.status === 200) {
+            console.log(xhr.responseText);
+            alert("Успешно!");
+            window.location.reload();
+        } else {
+            //alert("АЗС не отвечает!"+ retryCount);
+            if (retryCount < retryTime / 1000) {
+                retryTimer = setTimeout(function() {
+                    xhr.open('GET', '/azs_button_ready?id_azs=' + idAzs);
+                    xhr.send();
+                    retryCount++;
+                }, 1000); // wait for 1 second before retrying
+            } else {
+                alert("АЗС не отвечает!");
+            }
+        }
+    }
+
+    const resetAzs1 = document.querySelectorAll(".resetAzs1");
+    resetAzs1.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            resetAzs(form, "Сбросить колонку 1?");
+        });
+    });
+
+    const resetAzs2 = document.querySelectorAll(".resetAzs2");
+    resetAzs2.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            resetAzs(form, "Сбросить колонку 2?");
+        });
+    });
+    
+    const resetDallyCounter = document.querySelectorAll(".resetDallyCounter");
+    resetDallyCounter.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            resetAzs(form, "Сбросить суточные счетчики?");
+        });
+    });
+
+    const serviceBtn1 = document.querySelectorAll(".serviceBtn1");
+    serviceBtn1.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            resetAzs(form, "Выполнить Сервисная кнопка 1?");
+        });
+    });
+
+    const serviceBtn2 = document.querySelectorAll(".serviceBtn2");
+    serviceBtn2.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            resetAzs(form, "Выполнить Сервисная кнопка 2?");
+        });
+    });
+
+    const serviceBtn3 = document.querySelectorAll(".serviceBtn3");
+    serviceBtn3.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            resetAzs(form, "Выполнить Сервисная кнопка 3?");
+        });
+    });
+
     const deleteForms = document.querySelectorAll(".deleteAzs");
     deleteForms.forEach((form) => {
         form.addEventListener("submit", (event) => {
@@ -298,7 +440,7 @@
             }
         });
     });
-</script>
 
+</script>
 </html>
 {{end}}

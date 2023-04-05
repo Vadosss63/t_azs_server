@@ -27,7 +27,6 @@ func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 	fromSearchDate := r.FormValue("formSearch")
 	toSearchDate := r.FormValue("toSearch")
 
-	// TODO: add checking fo date from < to
 	fromSearchTime, fromErr := time.Parse("2006-01-02", fromSearchDate)
 	toSearchTime, toErr := time.Parse("2006-01-02", toSearchDate)
 

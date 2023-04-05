@@ -18,18 +18,19 @@ type AzsStatsData struct {
 }
 
 type Info struct {
-	CommonOnlineSum   int `json:"commonOnlineSum"`
-	CommonSumCash     int `json:"commonSumCash"`
-	CommonSumCashless int `json:"commonSumCashless"`
-	DailyOnlineSum    int `json:"dailyOnlineSum"`
-	DailySumCash      int `json:"dailySumCash"`
-	DailySumCashless  int `json:"dailySumCashless"`
+	CommonOnlineSum   int `json:"commonOnline"`
+	CommonSumCash     int `json:"commonCash"`
+	CommonSumCashless int `json:"commonCashless"`
+	DailyOnlineSum    int `json:"dailyOnline"`
+	DailySumCash      int `json:"dailyCash"`
+	DailySumCashless  int `json:"dailyCashless"`
 }
 
 type AzsNode struct {
 	CommonLiters       string `json:"commonLiters"`
 	DailyLiters        string `json:"dailyLiters"`
 	FuelVolume         string `json:"fuelVolume"`
+	TypeFuel           string `json:"typeFuel"`
 	FuelVolumePerc     string `json:"fuelVolumePerc"`
 	Density            string `json:"density"`
 	AverageTemperature string `json:"averageTemperature"`

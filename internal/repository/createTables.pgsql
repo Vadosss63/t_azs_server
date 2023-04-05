@@ -26,3 +26,14 @@ create table if not exists azses
 	stats varchar(1000) not null
     -- FOREIGN KEY (id_user) REFERENCES users(id)
 );
+
+DROP TABLE azs_button;
+create table if not exists azs_button
+(
+	id_azs  bigint,
+    price1   int,
+    price2   int,
+    button  int
+);
+-- insert into azs_button (id_azs, price1, price2, button)
+-- values (10111999, 4300, 5300, 33);

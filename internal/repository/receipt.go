@@ -58,7 +58,7 @@ func (r *Repository) DeleteLaterReceipt(ctx context.Context, id_azs int, time in
 
 func (r *Repository) GetReceiptInRange(ctx context.Context, id_azs int, time1, time2 int64) (receipts []Receipt, err error) {
 	table := getTableName(id_azs)
-	rows, err := r.pool.Query(ctx, "SELECT * FROM "+table+" WHERE time > $1 and time < $2", time1, time2)
+	rows, err := r.pool.Query(ctx, "SELECT * FROM "+table+" WHERE time > $1 and time < $2  ORDER BY id DESC", time1, time2)
 
 	if err != nil {
 		return
