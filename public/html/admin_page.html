@@ -313,14 +313,14 @@
     const retryTime = 15000;
     let retryCount = 0;
 
-    function resetAzs(form, msg) {
+    function sendToAzs(form, msg) {
         const confirmed = window.confirm(msg);
         if (confirmed) {
             const formData = new FormData(form);
             const idAzs = formData.get("id_azs");
             fetch(form.action, {
                 method: "POST",
-                body: new FormData(form)
+                body: formData
             }).then(() => {
                 let retryTimer;
                 const xhr = new XMLHttpRequest();
@@ -342,7 +342,6 @@
     }
 
     function handleXhrLoad(xhr, retryTime, retryTimer, idAzs) {
-
         if (xhr.status === 200) {
             console.log(xhr.responseText);
             alert("Успешно!");
@@ -366,7 +365,7 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             retryCount = 0;
-            resetAzs(form, "Сбросить колонку 1?");
+            sendToAzs(form, "Сбросить колонку 1?");
         });
     });
 
@@ -375,7 +374,7 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             retryCount = 0;
-            resetAzs(form, "Сбросить колонку 2?");
+            sendToAzs(form, "Сбросить колонку 2?");
         });
     });
     
@@ -384,7 +383,7 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             retryCount = 0;
-            resetAzs(form, "Сбросить суточные счетчики?");
+            sendToAzs(form, "Сбросить суточные счетчики?");
         });
     });
 
@@ -393,7 +392,7 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             retryCount = 0;
-            resetAzs(form, "Выполнить Сервисная кнопка 1?");
+            sendToAzs(form, "Выполнить Сервисная кнопка 1?");
         });
     });
 
@@ -402,7 +401,7 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             retryCount = 0;
-            resetAzs(form, "Выполнить Сервисная кнопка 2?");
+            sendToAzs(form, "Выполнить Сервисная кнопка 2?");
         });
     });
 
@@ -411,7 +410,7 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             retryCount = 0;
-            resetAzs(form, "Выполнить Сервисная кнопка 3?");
+            sendToAzs(form, "Выполнить Сервисная кнопка 3?");
         });
     });
 
