@@ -2,7 +2,9 @@ package application
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -137,6 +139,10 @@ func (a app) resetAzsButton(rw http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 
+	a.resetAzs(rw, r, p)
+}
+
+func (a app) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id"))
 	idInt, ok := getIntVal(id)
 
@@ -217,4 +223,34 @@ func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 	rw.WriteHeader(http.StatusBadRequest)
+}
+
+func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	id := strings.TrimSpace(r.FormValue("id_azs"))
+	idInt, ok := getIntVal(id)
+
+	if !ok {
+		http.Error(rw, "Ошибка id_azs:"+id, http.StatusBadRequest)
+		return
+	}
+
+	azs_stats, err := a.repo.GetAzs(a.ctx, idInt)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	azsStatsDataFull, err := repository.ParseStats(azs_stats)
+
+	lp := filepath.Join("public", "html", "azs_page.html")
+	navi := filepath.Join("public", "html", "user_navi.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi))
+
+	err = tmpl.ExecuteTemplate(rw, "azsStatsDataFull", azsStatsDataFull)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
 }

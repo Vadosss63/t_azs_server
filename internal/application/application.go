@@ -34,6 +34,8 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/login", a.login)
 
+	router.GET("/azs/control", a.authorized(a.azsPage))
+
 	router.GET("/logout", a.logout)
 
 	router.GET("/signup", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -58,6 +60,8 @@ func (a app) Routes(router *httprouter.Router) {
 	router.POST("/get_azs_button", a.getAzsButton)
 
 	router.POST("/reset_azs_button", a.resetAzsButton)
+
+	router.GET("/reset_azs_button", a.authorized(a.resetAzs))
 
 	router.POST("/push_azs_button", a.authorized(a.pushAzsButton))
 

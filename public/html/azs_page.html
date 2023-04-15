@@ -1,0 +1,454 @@
+{{define "azsStatsDataFull"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика АЗС</title>
+    <style>
+        h1 {
+            font-size: 36px;
+            color: #1c7ed6;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 5px 5px 0 0;
+        }
+
+        table {
+            margin-top: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+            border-collapse: collapse;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 5px 5px;
+        }
+
+        table td,
+        table th {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        table th {
+            background-color: #1c7ed6;
+            width: 35%;
+            color: #fff;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            float: top;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px #ccc;
+            width: 600px;
+            margin: 1% 2% 0% 2%;
+            padding: 30px;
+        }
+
+        .container2 {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px #ccc;
+            width: 600px;
+            margin: 4% 2% 2% 2%;
+            padding: 30px;
+        }
+
+        .ref {
+            text-align: right;
+        }
+
+        input[type=submit],
+        button,
+        select {
+            width: 150px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-left: 5px;
+        }
+
+        .overall {
+            max-width: 690px;
+            min-width: 690px;
+            margin: 0 auto;
+            background: darkgrey;
+            height: 100%;
+        }
+
+
+        nav {
+            background-color: #1c7ed6;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            text-align: right;
+        }
+
+        nav li {
+            display: inline-block;
+        }
+
+        nav a {
+            display: block;
+            padding: 10px;
+            color: #fff;
+        }
+
+        nav ul {
+            margin-right: 0;
+        }
+
+        #message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            display: none;
+        }
+
+        #message.loading {
+            opacity: 1;
+            display: block;
+        }
+
+        #message.loading:before,
+        #message.loading:after {
+            content: "";
+            display: block;
+            width: 20px;
+            height: 20px;
+            margin: 10px auto;
+            border-radius: 50%;
+            border: 2px solid #333;
+            border-top-color: #fff;
+            position: relative;
+            top: -10px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        #message.loading:before {
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            top: -40px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {{template "user_navi.html" .}}
+    <h1>АЗС</h1>
+    <div id="message"></div>
+
+    <div class="overall">
+        <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
+        <div class="container"><b> </b>
+            <table>
+                <tr>
+                    <th>Имя АЗС:</th>
+                    <td>{{.Name}}</td>
+                </tr>
+                <tr>
+                    <th>Адрес:</th>
+                    <td>{{.Address}}</td>
+                </tr>
+                <tr>
+                    <th>Id АЗС:</th>
+                    <td>{{.IdAzs}}</td>
+                </tr>
+                <tr>
+                    <th>Время обновления:</th>
+                    <td>{{.Time}}</td>
+                </tr>
+                {{ with index .AzsNodes 0 }}
+                <tr>
+                    <th>Колонка 1-топливо</th>
+                    <td>{{ .TypeFuel }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1-объем топлива, м3:</th>
+                    <td>{{ .FuelVolume }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1-объем топлива, %:</th>
+                    <td>{{ .FuelVolumePerc }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1-плотность, т/м3:</th>
+                    <td>{{ .Density }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 1-средняя температура, °C:</th>
+                    <td>{{ .AverageTemperature }}</td>
+                </tr>
+                {{ end }}
+
+                {{if eq .CountColum 2}}
+                {{ with index .AzsNodes 1 }}
+                <tr>
+                    <th>Колонка 2-топливо</th>
+                    <td>{{ .TypeFuel }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2-объем топлива, м3:</th>
+                    <td>{{ .FuelVolume }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2-объем топлива, %:</th>
+                    <td>{{ .FuelVolumePerc }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2-плотность, т/м3:</th>
+                    <td>{{ .Density }}</td>
+                </tr>
+                <tr>
+                    <th>Колонка 2-средняя температура, °C:</th>
+                    <td>{{ .AverageTemperature }}</td>
+                </tr>
+                {{ end }}
+                {{end}}
+
+                </tr>
+            </table>
+            <b> </b>
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Общий</th>
+                    <th>Инкасация</th>
+                </tr>
+                <tr>
+                    <th>Наличные, руб</th>
+                    <td class="sum-cell">{{.Info.CommonSumCash}}</td>
+                    <td class="sum-cell daily">{{.Info.DailySumCash}}</td>
+                </tr>
+                <tr>
+                    <th>Безналичные, руб</th>
+                    <td class="sum-cell">{{.Info.CommonSumCashless}}</td>
+                    <td class="sum-cell daily">{{.Info.DailySumCashless}}</td>
+                </tr>
+                <tr>
+                    <th>Онлайн оплата,руб</th>
+                    <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
+                    <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
+                </tr>
+                {{ with index .AzsNodes 0 }}
+                <tr>
+                    <th>Колонка 1-Литры</th>
+                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <td class="liters-cell daily">{{.DailyLiters}}</td>
+                </tr>
+                {{ end }}
+
+                {{if eq .CountColum 2}}
+                {{ with index .AzsNodes 1 }}
+                <tr>
+                    <th>Колонка 2-Литры</th>
+                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <td class="liters-cell daily">{{.DailyLiters}}</td>
+                </tr>
+                {{ end }}
+                {{end}}
+
+            </table>
+            <div class="ref">
+                <table>
+                    <tr>
+                        <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс колонки 1">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс колонки 2">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс сут. счетчиков">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=34" method="post" class="serviceBtn1">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сервисная кнопка 1">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=35" method="post" class="serviceBtn2">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сервисная кнопка 2">
+                        </form>
+                        <form action="/push_azs_button?price=0&pushedBtn=255" method="post" class="serviceBtn3">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сервисная кнопка 2">
+                        </form>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
+    </div>
+</body>
+<script>
+    const retryTime = 15000;
+    let retryCount = 0;
+
+    const message = document.getElementById('message');
+    let noAnswer = false;
+
+    function showMessage(text) {
+        message.innerHTML = text;
+        message.classList.add('loading');
+    }
+
+    function hideMessage() {
+        message.classList.remove('loading');
+    }
+
+    function sendToAzs(form, msg) {
+        noAnswer = false;
+        const confirmed = window.confirm(msg);
+        if (confirmed) {
+            const formData = new FormData(form);
+            const idAzs = formData.get("id_azs");
+            showMessage('Отправка запроса на сервер...');
+            fetch(form.action, {
+                method: "POST",
+                body: formData
+            }).then(() => {
+                let retryTimer;
+                const xhr = new XMLHttpRequest();
+                const url = '/azs_button_ready?id_azs=' + idAzs; // append the "id_azs" parameter to the URL
+                xhr.open('GET', url);
+                xhr.onload = handleXhrLoad.bind(null, xhr, retryTime, retryTimer, idAzs);
+                xhr.send();
+            }).catch((error) => {
+                // handle error
+                if (error.response.status === 400) {
+                    // handle bad request error
+                    alert("Ошибка: неправильный запрос");
+                } else {
+                    // handle other errors
+                    alert("Ошибка: " + error);
+                }
+                hideMessage();
+            });
+        }
+    }
+
+    function handleXhrLoad(xhr, retryTime, retryTimer, idAzs) {
+        if (xhr.status === 200) {
+            console.log(xhr.responseText);
+            if (!noAnswer) {
+                alert("Успешно!");
+            } 
+            hideMessage();
+            window.location.reload();
+        } else {
+            //alert("АЗС не отвечает!"+ retryCount);
+            if (retryCount < retryTime / 1000) {
+                retryTimer = setTimeout(function () {
+                    xhr.open('GET', '/azs_button_ready?id_azs=' + idAzs);
+                    xhr.send();
+                    retryCount++;
+                }, 1000); // wait for 1 second before retrying
+            } else {
+                noAnswer = true;
+                alert("АЗС не отвечает!");
+                hideMessage();
+                xhr.open('GET', '/reset_azs_button?id=' + idAzs);
+                xhr.send();
+            }
+        }
+    }
+
+    const resetAzs1 = document.querySelectorAll(".resetAzs1");
+    resetAzs1.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            sendToAzs(form, "Сбросить колонку 1?");
+        });
+    });
+
+    const resetAzs2 = document.querySelectorAll(".resetAzs2");
+    resetAzs2.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            sendToAzs(form, "Сбросить колонку 2?");
+        });
+    });
+
+    const resetDallyCounter = document.querySelectorAll(".resetDallyCounter");
+    resetDallyCounter.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            sendToAzs(form, "Сбросить суточные счетчики?");
+        });
+    });
+
+    const serviceBtn1 = document.querySelectorAll(".serviceBtn1");
+    serviceBtn1.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            sendToAzs(form, "Выполнить Сервисная кнопка 1?");
+        });
+    });
+
+    const serviceBtn2 = document.querySelectorAll(".serviceBtn2");
+    serviceBtn2.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            sendToAzs(form, "Выполнить Сервисная кнопка 2?");
+        });
+    });
+
+    const serviceBtn3 = document.querySelectorAll(".serviceBtn3");
+    serviceBtn3.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            sendToAzs(form, "Выполнить Сервисная кнопка 3?");
+        });
+    });
+
+</script>
+
+</html>
+{{end}}

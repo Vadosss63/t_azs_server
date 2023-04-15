@@ -120,6 +120,7 @@
 <body>
     {{template "admin_navi.html" .}}
     <h1>АЗС</h1>
+    <div id="message"></div>
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
 
@@ -144,97 +145,52 @@
         <div class="container"><b> </b>
             <table>
                 <tr>
-                    <th>Имя АЗС:</th>
+                    <th>Название</th>
                     <td>{{.Name}}</td>
                 </tr>
                 <tr>
-                    <th>Адрес:</th>
+                    <th>Адрес</th>
                     <td>{{.Address}}</td>
                 </tr>
                 <tr>
-                    <th>Id АЗС:</th>
+                    <th>АЗС id</th>
                     <td>{{.IdAzs}}</td>
                 </tr>
                 <tr>
-                    <th>Время обновления:</th>
+                    <th>Время обновления</th>
                     <td>{{.Time}}</td>
                 </tr>
                 {{ with index .AzsNodes 0 }}
                 <tr>
-                    <th>Колонка 1-топливо</th>
-                    <td>{{ .TypeFuel }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-объем топлива, м3:</th>
+                    <th>Объем топлива-1, м3</th>
                     <td>{{ .FuelVolume }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-объем топлива, %:</th>
-                    <td>{{ .FuelVolumePerc }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-плотность, т/м3:</th>
-                    <td>{{ .Density }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-средняя температура, °C:</th>
-                    <td>{{ .AverageTemperature }}</td>
                 </tr>
                 {{ end }}
 
                 {{if eq .CountColum 2}}
                 {{ with index .AzsNodes 1 }}
                 <tr>
-                    <th>Колонка 2-топливо</th>
-                    <td>{{ .TypeFuel }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 2-объем топлива, м3:</th>
+                    <th>Объем топлива-2, м3</th>
                     <td>{{ .FuelVolume }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 2-объем топлива, %:</th>
-                    <td>{{ .FuelVolumePerc }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 2-плотность, т/м3:</th>
-                    <td>{{ .Density }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 2-средняя температура, °C:</th>
-                    <td>{{ .AverageTemperature }}</td>
                 </tr>
                 {{ end }}
                 {{end}}
-
-                </tr>
-            </table>
-            <b> </b>
-            <table>
-                <tr>
-                    <th></th>
-                    <th>Общий</th>
-                    <th>Инкасация</th>
                 </tr>
                 <tr>
                     <th>Наличные, руб</th>
-                    <td class="sum-cell">{{.Info.CommonSumCash}}</td>
                     <td class="sum-cell daily">{{.Info.DailySumCash}}</td>
                 </tr>
                 <tr>
                     <th>Безналичные, руб</th>
-                    <td class="sum-cell">{{.Info.CommonSumCashless}}</td>
                     <td class="sum-cell daily">{{.Info.DailySumCashless}}</td>
                 </tr>
                 <tr>
-                    <th>Онлайн оплата,руб</th>
-                    <td class="sum-cell">{{.Info.CommonOnlineSum}}</td>
+                    <th>Онлайн оплата, руб</th>
                     <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
                 </tr>
                 {{ with index .AzsNodes 0 }}
                 <tr>
-                    <th>Колонка 1-Литры</th>
-                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <th>Колонка-1, л</th>
                     <td class="liters-cell daily">{{.DailyLiters}}</td>
                 </tr>
                 {{ end }}
@@ -242,8 +198,7 @@
                 {{if eq .CountColum 2}}
                 {{ with index .AzsNodes 1 }}
                 <tr>
-                    <th>Колонка 2-Литры</th>
-                    <td class="liters-cell">{{.CommonLiters}}</td>
+                    <th>Колонка-2, л</th>
                     <td class="liters-cell daily">{{.DailyLiters}}</td>
                 </tr>
                 {{ end }}
@@ -253,55 +208,42 @@
             <div class="ref">
                 <table>
                     <tr>
+                        <td>
+                            <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
+                        </td>
+                        <td>
+                            <a href="/azs/control?id_azs={{.IdAzs}}">Управление</a>
+                        </td>
+                        <td>
+                            <form action="/azs_stats?id_azs={{.IdAzs}}" method="post" class="deleteAzs">
+                                <button type="submit">Удалить АЗС</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
                         <form action="/add_user_to_asz?id_azs={{.IdAzs}}" method="post" id="addUserToAzs"
                             name="addUserToAzs">
-                            <label>Сменить пользователя: </label>
-                            <select name="user">
-                                <option value="-1">Не выбран</option>
-                                {{ range $.Users }}
-                                {{ if eq .Id $.SelectedUserId }}
-                                <option value="{{.Id}}" selected>{{.Login}}</option>
-                                {{ else }}
-                                <option value="{{.Id}}">{{.Login}}</option>
-                                {{ end }}
-                                {{end}}
-                            </select>
-                            <input type="submit" value="Добавить">
+                            <td>
+                                <label>Сменить пользователя: </label>
+                            </td>
+                            <td>
+                                <select name="user">
+                                    <option value="-1">Не выбран</option>
+                                    {{ range $.Users }}
+                                    {{ if eq .Id $.SelectedUserId }}
+                                    <option value="{{.Id}}" selected>{{.Login}}</option>
+                                    {{ else }}
+                                    <option value="{{.Id}}">{{.Login}}</option>
+                                    {{ end }}
+                                    {{end}}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="submit" value="Добавить">
+                            </td>
                         </form>
                     </tr>
                 </table>
-                <table>
-                    <tr>
-                        <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс колонки 1">
-                        </form>
-                        <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс колонки 2">
-                        </form>
-                        <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс сут. счетчиков">
-                        </form>
-                        <form action="/push_azs_button?price=0&pushedBtn=34" method="post" class="serviceBtn1">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сервисная кнопка 1">
-                        </form>
-                        <form action="/push_azs_button?price=0&pushedBtn=35" method="post" class="serviceBtn2">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сервисная кнопка 2">
-                        </form>
-                        <form action="/push_azs_button?price=0&pushedBtn=255" method="post" class="serviceBtn3">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сервисная кнопка 2">
-                        </form>
-                    </tr>
-                </table>
-                <form action="/azs_stats?id_azs={{.IdAzs}}" method="post" class="deleteAzs">
-                    <td><button type="submit">Удалить АЗС</button></td>
-                </form>
-                <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
             </div>
         </div>
         {{end}}
@@ -310,110 +252,6 @@
 </body>
 
 <script>
-    const retryTime = 15000;
-    let retryCount = 0;
-
-    function sendToAzs(form, msg) {
-        const confirmed = window.confirm(msg);
-        if (confirmed) {
-            const formData = new FormData(form);
-            const idAzs = formData.get("id_azs");
-            fetch(form.action, {
-                method: "POST",
-                body: formData
-            }).then(() => {
-                let retryTimer;
-                const xhr = new XMLHttpRequest();
-                const url = '/azs_button_ready?id_azs=' + idAzs; // append the "id_azs" parameter to the URL
-                xhr.open('GET', url);
-                xhr.onload = handleXhrLoad.bind(null, xhr, retryTime, retryTimer, idAzs);
-                xhr.send();
-            }).catch((error) => {
-                // handle error
-                if (error.response.status === 400) {
-                    // handle bad request error
-                    alert("Ошибка: неправильный запрос");
-                } else {
-                    // handle other errors
-                    alert("Ошибка: " + error);
-                }
-            });
-        }
-    }
-
-    function handleXhrLoad(xhr, retryTime, retryTimer, idAzs) {
-        if (xhr.status === 200) {
-            console.log(xhr.responseText);
-            alert("Успешно!");
-            window.location.reload();
-        } else {
-            //alert("АЗС не отвечает!"+ retryCount);
-            if (retryCount < retryTime / 1000) {
-                retryTimer = setTimeout(function() {
-                    xhr.open('GET', '/azs_button_ready?id_azs=' + idAzs);
-                    xhr.send();
-                    retryCount++;
-                }, 1000); // wait for 1 second before retrying
-            } else {
-                alert("АЗС не отвечает!");
-            }
-        }
-    }
-
-    const resetAzs1 = document.querySelectorAll(".resetAzs1");
-    resetAzs1.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            sendToAzs(form, "Сбросить колонку 1?");
-        });
-    });
-
-    const resetAzs2 = document.querySelectorAll(".resetAzs2");
-    resetAzs2.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            sendToAzs(form, "Сбросить колонку 2?");
-        });
-    });
-    
-    const resetDallyCounter = document.querySelectorAll(".resetDallyCounter");
-    resetDallyCounter.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            sendToAzs(form, "Сбросить суточные счетчики?");
-        });
-    });
-
-    const serviceBtn1 = document.querySelectorAll(".serviceBtn1");
-    serviceBtn1.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            sendToAzs(form, "Выполнить Сервисная кнопка 1?");
-        });
-    });
-
-    const serviceBtn2 = document.querySelectorAll(".serviceBtn2");
-    serviceBtn2.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            sendToAzs(form, "Выполнить Сервисная кнопка 2?");
-        });
-    });
-
-    const serviceBtn3 = document.querySelectorAll(".serviceBtn3");
-    serviceBtn3.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            sendToAzs(form, "Выполнить Сервисная кнопка 3?");
-        });
-    });
-
     const deleteForms = document.querySelectorAll(".deleteAzs");
     deleteForms.forEach((form) => {
         form.addEventListener("submit", (event) => {
@@ -423,16 +261,13 @@
                 fetch(form.action, {
                     method: "DELETE"
                 }).then(() => {
-                    // handle success
                     alert("АЗС успешно удален!");
-                    window.location.reload(); // reload the page after a successful delete
+                    window.location.reload();
                 }).catch((error) => {
                     // handle error
                     if (error.response.status === 400) {
-                        // handle bad request error
                         alert("Ошибка: неправильный запрос");
                     } else {
-                        // handle other errors
                         alert("Ошибка: " + error);
                     }
                 });
@@ -441,5 +276,6 @@
     });
 
 </script>
+
 </html>
 {{end}}
