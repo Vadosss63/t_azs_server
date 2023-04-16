@@ -75,10 +75,10 @@
         button,
         select {
             width: 150px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 10px;
-            margin-left: 5px;
+            height: 50px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin: 5px;
         }
 
         .overall {
@@ -122,23 +122,22 @@
             right: 0;
             bottom: 0;
             background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             font-size: 24px;
-            text-align: center;
             z-index: 9999;
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
             display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
         #message.loading {
             opacity: 1;
-            display: block;
+            display: flex;
         }
 
-        #message.loading:before,
         #message.loading:after {
             content: "";
             display: block;
@@ -151,12 +150,6 @@
             position: relative;
             top: -10px;
             animation: spin 0.8s linear infinite;
-        }
-
-        #message.loading:before {
-            border-top-color: transparent;
-            border-bottom-color: transparent;
-            top: -40px;
         }
 
         @keyframes spin {
@@ -287,36 +280,48 @@
                 {{end}}
 
             </table>
-            <div class="ref">
-                <table>
-                    <tr>
+            <table>
+                <tr>
+                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сброс колонки 1">
                         </form>
+                    </td>
+                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сброс колонки 2">
                         </form>
+                    </td>
+                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сброс сут. счетчиков">
                         </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=34" method="post" class="serviceBtn1">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 1">
                         </form>
+                    </td>
+                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=35" method="post" class="serviceBtn2">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 2">
                         </form>
+                    </td>
+                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=255" method="post" class="serviceBtn3">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 2">
                         </form>
-                    </tr>
-                </table>
-            </div>
+                    </td>
+                </tr>
+            </table>
         </div>
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
@@ -343,7 +348,7 @@
         if (confirmed) {
             const formData = new FormData(form);
             const idAzs = formData.get("id_azs");
-            showMessage('Отправка запроса на сервер...');
+            showMessage('Отправка запроса на АЗС...');
             fetch(form.action, {
                 method: "POST",
                 body: formData
@@ -373,7 +378,7 @@
             console.log(xhr.responseText);
             if (!noAnswer) {
                 alert("Успешно!");
-            } 
+            }
             hideMessage();
             window.location.reload();
         } else {
