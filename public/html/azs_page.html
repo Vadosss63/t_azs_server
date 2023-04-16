@@ -75,10 +75,10 @@
         button,
         select {
             width: 150px;
-            height: 50px;
+            height: 30px;
             border: 2px solid #ccc;
             border-radius: 8px;
-            margin: 5px;
+            margin: 0px;
         }
 
         .overall {
@@ -321,6 +321,33 @@
                         </form>
                     </td>
                 </tr>
+                <tr>
+                    <td>Цена колонка-1, руб</td>
+                    <td>
+                        <input id="price1Input" type="number" step="0.01" min="0" max="180" placeholder="Цена" value="0.00" required>
+                    </td>
+                    <td>
+                        <form action="/push_azs_button?pushedBtn=1" method="post" class="priceBtn1">
+                            <input id="price1" type="hidden" name="price" value=0>
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Установить">
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Цена колонка-2, руб</td>
+                    <td>
+                        <input id="price2Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
+                            value="0.00" required>
+                    </td>
+                    <td>
+                        <form action="/push_azs_button?pushedBtn=2" method="post" class="priceBtn2">
+                            <input id="price1" type="hidden" name="price" value=0>
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Установить">
+                        </form>
+                    </td>
+                </tr>
             </table>
         </div>
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
@@ -342,12 +369,13 @@
         message.classList.remove('loading');
     }
 
-    function sendToAzs(form, msg) {
+    function sendToAzs(form, msg, price) {
         noAnswer = false;
         const confirmed = window.confirm(msg);
         if (confirmed) {
             const formData = new FormData(form);
             const idAzs = formData.get("id_azs");
+            formData.set("price", price);
             showMessage('Отправка запроса на АЗС...');
             fetch(form.action, {
                 method: "POST",
@@ -376,7 +404,9 @@
     function handleXhrLoad(xhr, retryTime, retryTimer, idAzs) {
         if (xhr.status === 200) {
             console.log(xhr.responseText);
-            if (!noAnswer) {
+            if (noAnswer) {
+                alert("АЗС не отвечает!");
+            } else {
                 alert("Успешно!");
             }
             hideMessage();
@@ -389,12 +419,13 @@
                     xhr.send();
                     retryCount++;
                 }, 1000); // wait for 1 second before retrying
-            } else {
+            } else if (!noAnswer) {
                 noAnswer = true;
-                alert("АЗС не отвечает!");
-                hideMessage();
                 xhr.open('GET', '/reset_azs_button?id=' + idAzs);
                 xhr.send();
+            } else {
+                hideMessage();
+                window.location.reload();
             }
         }
     }
@@ -452,6 +483,58 @@
             sendToAzs(form, "Выполнить Сервисная кнопка 3?");
         });
     });
+
+    const price1Input = document.getElementById("price1Input"); 
+    const price2Input = document.getElementById("price2Input");
+    
+    const priceBtn1 = document.querySelectorAll(".priceBtn1");
+    const priceBtn2 = document.querySelectorAll(".priceBtn2");
+
+    const price1 = document.querySelectorAll(".price1");
+    const price2 = document.querySelectorAll(".price2");
+
+    priceBtn1.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            let price = price1Input.value;
+            let priceInt = Math.round(price * 100);
+            sendToAzs(form, "Установить цену для 1-й колонки?", priceInt);
+        });
+    });
+
+    priceBtn2.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            let price = price2Input.value;
+            let priceInt = Math.round(price * 100);
+            price2.value = priceInt;
+            sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+        });
+    });
+
+    let priceVal1 = price1Input.value;
+    price1Input.addEventListener("input", function () {
+        let priceValue = price1Input.value;
+        if(!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/))
+        {
+            price1Input.value = priceVal1;
+            return;
+        };
+        priceVal1 = price1Input.value;
+    }); 
+
+    let priceVal2 = price2Input.value;
+    price2Input.addEventListener("input", function () {
+        let priceValue = price2Input.value;
+        if(!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/))
+        {
+            price2Input.value = priceVal2;
+            return;
+        };
+        priceVal2 = price2Input.value;
+    }); 
 
 </script>
 

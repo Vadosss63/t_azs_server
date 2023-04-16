@@ -44,6 +44,7 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 			err = a.repo.AddAzs(a.ctx, idInt, 0, count_colum, t.Format(time.RFC822), name, address, stats)
 
 			if err == nil {
+				err = a.repo.AddAzsButton(a.ctx, idInt)
 				err = a.repo.CreateReceipt(a.ctx, idInt)
 			}
 
@@ -253,4 +254,36 @@ func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Param
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+}
+
+func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id_azs, ok := getIntVal(r.FormValue("id_azs"))
+
+	if !ok {
+		http.Error(rw, "Error id_azs", http.StatusBadRequest)
+		return
+	}
+
+	err := a.repo.DeleteAzs(a.ctx, id_azs)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = a.repo.DeleteReceiptAll(a.ctx, id_azs)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = a.repo.DeleteAzsButton(a.ctx, id_azs)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }

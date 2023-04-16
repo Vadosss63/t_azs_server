@@ -116,28 +116,3 @@ func (a app) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprou
 	}
 	a.userPage(rw, r, p, u)
 }
-
-func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id_azs, ok := getIntVal(r.FormValue("id_azs"))
-
-	if !ok {
-		http.Error(rw, "Error id_azs", http.StatusBadRequest)
-		return
-	}
-
-	err := a.repo.DeleteAzs(a.ctx, id_azs)
-
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err = a.repo.DeleteReceiptAll(a.ctx, id_azs)
-
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	http.Redirect(rw, r, "/", http.StatusSeeOther)
-}
