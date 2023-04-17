@@ -19,11 +19,12 @@ create table if not exists azses
 	id_azs  bigint,
 	id_user int,
     is_authorized  int,
-    count_colum int,	
+    count_colum int,
+    is_second_price int,	
  	time   varchar(100) not null,
  	name    varchar(100) not null,
  	address varchar(100) not null,
-	stats varchar(1000) not null
+	stats varchar(1500) not null
     -- FOREIGN KEY (id_user) REFERENCES users(id)
 );
 
@@ -31,9 +32,8 @@ DROP TABLE azs_button;
 create table if not exists azs_button
 (
 	id_azs  bigint,
-    price1   int,
-    price2   int,
+    price   int,
     button  int
 );
--- insert into azs_button (id_azs, price1, price2, button)
--- values (10111999, 4300, 5300, 33);
+-- insert into azs_button (id_azs, price, button)
+-- values (10111999, 4300, 33);

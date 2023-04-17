@@ -6,15 +6,16 @@ import (
 )
 
 type AzsStatsData struct {
-	Id           int    `json:"id" db:"id"`
-	IdAzs        int    `json:"id_azs" db:"id_azs"`
-	IdUser       int    `json:"id_user" db:"id_user"`
-	IsAuthorized int    `json:"is_authorized" db:"is_authorized"`
-	CountColum   int    `json:"count_colum" db:"count_colum"`
-	Time         string `json:"time" db:"time"`
-	Name         string `json:"name" db:"name"`
-	Address      string `json:"address" db:"address"`
-	Stats        string `json:"stats" db:"stats"`
+	Id                  int    `json:"id" db:"id"`
+	IdAzs               int    `json:"id_azs" db:"id_azs"`
+	IdUser              int    `json:"id_user" db:"id_user"`
+	IsAuthorized        int    `json:"is_authorized" db:"is_authorized"`
+	CountColum          int    `json:"count_colum" db:"count_colum"`
+	IsSecondPriceEnable int    `json:"is_second_price" db:"is_second_price"`
+	Time                string `json:"time" db:"time"`
+	Name                string `json:"name" db:"name"`
+	Address             string `json:"address" db:"address"`
+	Stats               string `json:"stats" db:"stats"`
 }
 
 type Info struct {
@@ -31,34 +32,37 @@ type AzsNode struct {
 	DailyLiters        string `json:"dailyLiters"`
 	FuelVolume         string `json:"fuelVolume"`
 	TypeFuel           string `json:"typeFuel"`
+	Price              string `json:"price"`
+	PriceCashless      string `json:"priceCashless"`
 	FuelVolumePerc     string `json:"fuelVolumePerc"`
 	Density            string `json:"density"`
 	AverageTemperature string `json:"averageTemperature"`
 }
 
 type AzsStatsDataFull struct {
-	Id           int       `json:"id" db:"id"`
-	IdAzs        int       `json:"id_azs" db:"id_azs"`
-	IsAuthorized int       `json:"is_authorized" db:"is_authorized"`
-	Time         string    `json:"time" db:"time"`
-	Name         string    `json:"name" db:"name"`
-	Address      string    `json:"address" db:"address"`
-	CountColum   int       `json:"count_colum" db:"count_colum"`
-	Info         Info      `json:"info"`
-	AzsNodes     []AzsNode `json:"azs_nodes"`
+	Id                  int       `json:"id"`
+	IdAzs               int       `json:"id_azs"`
+	IsAuthorized        int       `json:"is_authorized"`
+	Time                string    `json:"time"`
+	Name                string    `json:"name" `
+	Address             string    `json:"address" `
+	CountColum          int       `json:"count_colum"`
+	IsSecondPriceEnable int       `json:"is_second_price"`
+	Info                Info      `json:"info"`
+	AzsNodes            []AzsNode `json:"azs_nodes"`
 }
 
-func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized, count_colum int, time, name, address, stats string) (err error) {
+func (r *Repository) AddAzs(ctx context.Context, id_azs int, is_authorized, count_colum, is_second_price int, time, name, address, stats string) (err error) {
 	_, err = r.pool.Exec(ctx,
-		`insert into azses (id_azs, id_user, is_authorized, time, name, address, count_colum, stats) values ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		id_azs, -1, is_authorized, time, name, address, count_colum, stats)
+		`insert into azses (id_azs, id_user, is_authorized, time, name, address, count_colum, stats, is_second_price) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		id_azs, -1, is_authorized, time, name, address, count_colum, stats, is_second_price)
 	return
 }
 
 func (r *Repository) UpdateAzs(ctx context.Context, azs AzsStatsData) (err error) {
 	_, err = r.pool.Exec(ctx,
-		`UPDATE azses SET is_authorized = $2, count_colum = $3, time = $4, name = $5, address = $6, stats = $7 WHERE id_azs = $1`,
-		azs.IdAzs, azs.IsAuthorized, azs.CountColum, azs.Time, azs.Name, azs.Address, azs.Stats)
+		`UPDATE azses SET is_authorized = $2, count_colum = $3, time = $4, name = $5, address = $6, stats = $7, is_second_price = $8 WHERE id_azs = $1`,
+		azs.IdAzs, azs.IsAuthorized, azs.CountColum, azs.Time, azs.Name, azs.Address, azs.Stats, azs.IsSecondPriceEnable)
 	return
 }
 
@@ -74,7 +78,7 @@ func (r *Repository) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, 
 		return
 	}
 
-	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
+	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.IsSecondPriceEnable, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
 	if err != nil {
 		azs.Id = -1
 	}
@@ -90,7 +94,7 @@ func (r *Repository) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err e
 
 	for rows.Next() {
 		var azs AzsStatsData
-		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address,
+		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.IsSecondPriceEnable, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
 			return
 		}
@@ -120,7 +124,7 @@ func (r *Repository) GetAzsAllForUser(ctx context.Context, id_user int) (azses [
 
 	for rows.Next() {
 		var azs AzsStatsData
-		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.Time, &azs.Name, &azs.Address,
+		if err = rows.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.IsSecondPriceEnable, &azs.Time, &azs.Name, &azs.Address,
 			&azs.Stats); err != nil {
 			return
 		}
@@ -143,15 +147,16 @@ func ParseStats(azsStatsData AzsStatsData) (azsStatsDataFull AzsStatsDataFull, e
 	}
 
 	azsStatsDataFull = AzsStatsDataFull{
-		Id:           azsStatsData.Id,
-		IdAzs:        azsStatsData.IdAzs,
-		IsAuthorized: azsStatsData.IsAuthorized,
-		Time:         azsStatsData.Time,
-		Name:         azsStatsData.Name,
-		Address:      azsStatsData.Address,
-		CountColum:   azsStatsData.CountColum,
-		Info:         stats.Info,
-		AzsNodes:     stats.AzsNodes,
+		Id:                  azsStatsData.Id,
+		IdAzs:               azsStatsData.IdAzs,
+		IsAuthorized:        azsStatsData.IsAuthorized,
+		Time:                azsStatsData.Time,
+		Name:                azsStatsData.Name,
+		Address:             azsStatsData.Address,
+		CountColum:          azsStatsData.CountColum,
+		IsSecondPriceEnable: azsStatsData.IsSecondPriceEnable,
+		Info:                stats.Info,
+		AzsNodes:            stats.AzsNodes,
 	}
 	return
 }

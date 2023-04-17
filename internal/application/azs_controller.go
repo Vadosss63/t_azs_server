@@ -32,16 +32,17 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	name := strings.TrimSpace(r.FormValue("name"))
 	address := strings.TrimSpace(r.FormValue("address"))
 	count_colum, ok_count_colum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
+	is_second_price, ok_is_second_price := getIntVal(strings.TrimSpace(r.FormValue("is_second_price")))
 	stats := strings.TrimSpace(r.FormValue("stats"))
 	// fmt.Println(stats)
 	answerStat := answer{Msg: "Ok"}
-	if !ok || !ok_count_colum || id == "" || name == "" || address == "" || stats == "" {
+	if !ok || !ok_count_colum || !ok_is_second_price || id == "" || name == "" || address == "" || stats == "" {
 		answerStat = answer{Msg: "error", Status: "Все поля должны быть заполнены!"}
 	} else {
 		azs, err := a.repo.GetAzs(a.ctx, idInt)
 
 		if azs.Id == -1 {
-			err = a.repo.AddAzs(a.ctx, idInt, 0, count_colum, t.Format(time.RFC822), name, address, stats)
+			err = a.repo.AddAzs(a.ctx, idInt, 0, count_colum, is_second_price, t.Format(time.RFC822), name, address, stats)
 
 			if err == nil {
 				err = a.repo.AddAzsButton(a.ctx, idInt)
@@ -148,7 +149,7 @@ func (a app) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	idInt, ok := getIntVal(id)
 
 	if ok {
-		err := a.repo.UpdateAzsButton(a.ctx, idInt, 0, 0, 0)
+		err := a.repo.UpdateAzsButton(a.ctx, idInt, 0, 0)
 		if err == nil {
 			rw.WriteHeader(http.StatusOK)
 			json.NewEncoder(rw).Encode(answer{Msg: "Ok", Status: "Ok"})
@@ -182,6 +183,8 @@ func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 	}
 	// pushedBtn = 1 - set price1
 	// pushedBtn = 2 - set price2
+	// pushedBtn = 3 - set price1Cashless
+	// pushedBtn = 4 - set price2Cashless
 	//0x11 – сброс колонки 1,
 	//0x12 – сброс колонки 2,
 	//0x21 – сервисная кнопка 1 (зарезервировано на будущее)
@@ -191,12 +194,8 @@ func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 	err := error(nil)
 
 	switch pushedBtn {
-	case 0x01:
-		err = a.repo.UpdateAzsButton(a.ctx, id_azs, price, 0, 0)
-	case 0x02:
-		err = a.repo.UpdateAzsButton(a.ctx, id_azs, 0, price, 0)
-	case 0x11, 0x12, 0x21, 0x22, 0x23, 0xFF:
-		err = a.repo.UpdateAzsButton(a.ctx, id_azs, 0, 0, pushedBtn)
+	case 0x01, 0x02, 0x03, 0x04, 0x11, 0x12, 0x21, 0x22, 0x23, 0xFF:
+		err = a.repo.UpdateAzsButton(a.ctx, id_azs, price, pushedBtn)
 	default:
 		rw.WriteHeader(http.StatusBadRequest)
 		http.Error(rw, "Ошибка pushedBtn"+r.FormValue("pushedBtn"), http.StatusBadRequest)
@@ -219,7 +218,7 @@ func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 	azsButton, err := a.repo.GetAzsButton(a.ctx, id_azs)
-	if err == nil && azsButton.Button == 0 && azsButton.Price1 == 0 && azsButton.Price2 == 0 {
+	if err == nil && azsButton.Button == 0 && azsButton.Price == 0 {
 		rw.WriteHeader(http.StatusOK)
 		return
 	}

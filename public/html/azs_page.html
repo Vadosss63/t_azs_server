@@ -324,11 +324,26 @@
                 <tr>
                     <td>Цена колонка-1, руб</td>
                     <td>
-                        <input id="price1Input" type="number" step="0.01" min="0" max="180" placeholder="Цена" value="0.00" required>
+                        <input id="price1Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
+                            value="0.00" required>
                     </td>
                     <td>
                         <form action="/push_azs_button?pushedBtn=1" method="post" class="priceBtn1">
                             <input id="price1" type="hidden" name="price" value=0>
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Установить">
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Цена колонка-1 безналич., руб</td>
+                    <td>
+                        <input id="price1cashlessInput" type="number" step="0.01" min="0" max="180" placeholder="Цена"
+                            value="0.00" required>
+                    </td>
+                    <td>
+                        <form action="/push_azs_button?pushedBtn=3" method="post" class="priceBtn3">
+                            <input id="price1Cashless" type="hidden" name="price" value=0>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Установить">
                         </form>
@@ -342,7 +357,21 @@
                     </td>
                     <td>
                         <form action="/push_azs_button?pushedBtn=2" method="post" class="priceBtn2">
-                            <input id="price1" type="hidden" name="price" value=0>
+                            <input id="price2" type="hidden" name="price" value=0>
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Установить">
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Цена колонка-2 безналич., руб</td>
+                    <td>
+                        <input id="price2cashlessInput" type="number" step="0.01" min="0" max="180" placeholder="Цена"
+                            value="0.00" required>
+                    </td>
+                    <td>
+                        <form action="/push_azs_button?pushedBtn=4" method="post" class="priceBtn4">
+                            <input id="price2Cashless" type="hidden" name="price" value=0>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Установить">
                         </form>
@@ -484,14 +513,20 @@
         });
     });
 
-    const price1Input = document.getElementById("price1Input"); 
+    const price1Input = document.getElementById("price1Input");
     const price2Input = document.getElementById("price2Input");
-    
+    const price1cashlessInput = document.getElementById("price1cashlessInput");
+    const price2cashlessInput = document.getElementById("price2cashlessInput");
+
     const priceBtn1 = document.querySelectorAll(".priceBtn1");
     const priceBtn2 = document.querySelectorAll(".priceBtn2");
+    const priceBtn3 = document.querySelectorAll(".priceBtn3");
+    const priceBtn4 = document.querySelectorAll(".priceBtn4");
 
-    const price1 = document.querySelectorAll(".price1");
-    const price2 = document.querySelectorAll(".price2");
+    let priceVal1 = price1Input.value;
+    let priceVal2 = price2Input.value;
+    let priceCashlessVal1 = price1cashlessInput.value;
+    let priceCashlessVal2 = price2cashlessInput.value;
 
     priceBtn1.forEach((form) => {
         form.addEventListener("submit", (event) => {
@@ -509,32 +544,65 @@
             retryCount = 0;
             let price = price2Input.value;
             let priceInt = Math.round(price * 100);
-            price2.value = priceInt;
             sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
         });
     });
 
-    let priceVal1 = price1Input.value;
+    priceBtn3.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            let price = price1cashlessInput.value;
+            let priceInt = Math.round(price * 100);
+            sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+        });
+    });
+
+    priceBtn4.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            retryCount = 0;
+            let price = price2cashlessInput.value;
+            let priceInt = Math.round(price * 100);
+            sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+        });
+    });
+
     price1Input.addEventListener("input", function () {
         let priceValue = price1Input.value;
-        if(!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/))
-        {
+        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
             price1Input.value = priceVal1;
             return;
         };
         priceVal1 = price1Input.value;
-    }); 
+    });
 
-    let priceVal2 = price2Input.value;
     price2Input.addEventListener("input", function () {
         let priceValue = price2Input.value;
-        if(!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/))
-        {
+        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
             price2Input.value = priceVal2;
             return;
         };
         priceVal2 = price2Input.value;
-    }); 
+    });
+
+    price1cashlessInput.addEventListener("input", function () {
+        let priceValue = price1cashlessInput.value;
+        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+            price1cashlessInput.value = priceCashlessVal1;
+            return;
+        };
+        priceCashlessVal1 = price1cashlessInput.value;
+    });
+
+    price2cashlessInput.addEventListener("input", function () {
+        let priceValue = price2cashlessInput.value;
+        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+            price2cashlessInput.value = priceCashlessVal2;
+            return;
+        };
+        priceCashlessVal2 = price2cashlessInput.value;
+    });
 
 </script>
 
