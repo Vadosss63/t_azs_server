@@ -32,8 +32,8 @@ type AzsNode struct {
 	DailyLiters        string `json:"dailyLiters"`
 	FuelVolume         string `json:"fuelVolume"`
 	TypeFuel           string `json:"typeFuel"`
-	Price              string `json:"price"`
-	PriceCashless      string `json:"priceCashless"`
+	Price              int    `json:"price"`
+	PriceCashless      int    `json:"priceCashless"`
 	FuelVolumePerc     string `json:"fuelVolumePerc"`
 	Density            string `json:"density"`
 	AverageTemperature string `json:"averageTemperature"`
