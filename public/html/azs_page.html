@@ -174,69 +174,109 @@
         <div class="container"><b> </b>
             <table>
                 <tr>
-                    <th>Имя АЗС:</th>
+                    <th>Имя АЗС</th>
                     <td>{{.Name}}</td>
                 </tr>
                 <tr>
-                    <th>Адрес:</th>
+                    <th>Адрес</th>
                     <td>{{.Address}}</td>
                 </tr>
                 <tr>
-                    <th>Id АЗС:</th>
+                    <th>Id АЗС</th>
                     <td>{{.IdAzs}}</td>
                 </tr>
                 <tr>
-                    <th>Время обновления:</th>
+                    <th>Время обновления</th>
                     <td>{{.Time}}</td>
                 </tr>
-                {{ with index .AzsNodes 0 }}
+            </table>
+            <b> </b>
+            <table>
                 <tr>
-                    <th>Колонка 1-топливо</th>
+                    <th></th>
+                    <th>Колонка-1</th>
+                    {{if eq .CountColum 2}}
+                    <th>Колонка-2</th>
+                    {{end}}
+                </tr>
+                <tr>
+                    <th>Топливо</th>
+                    {{ with index .AzsNodes 0 }}
                     <td>{{ .TypeFuel }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-объем топлива, м3:</th>
-                    <td>{{ .FuelVolume }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-объем топлива, %:</th>
-                    <td>{{ .FuelVolumePerc }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-плотность, т/м3:</th>
-                    <td>{{ .Density }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 1-средняя температура, °C:</th>
-                    <td>{{ .AverageTemperature }}</td>
-                </tr>
-                {{ end }}
-
-                {{if eq .CountColum 2}}
-                {{ with index .AzsNodes 1 }}
-                <tr>
-                    <th>Колонка 2-топливо</th>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
                     <td>{{ .TypeFuel }}</td>
+                    {{ end }}
+                    {{end}}
                 </tr>
                 <tr>
-                    <th>Колонка 2-объем топлива, м3:</th>
-                    <td>{{ .FuelVolume }}</td>
+                    <th>Цена, руб</th>
+                    {{ with index .AzsNodes 0 }}
+                    <td>{{ printf "%.2f" .Price }}</td>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
+                    <td>{{printf "%.2f" .Price }}</td>
+                    {{ end }}
+                    {{end}}
                 </tr>
+                {{if eq .IsSecondPriceEnable 1}}
                 <tr>
-                    <th>Колонка 2-объем топлива, %:</th>
-                    <td>{{ .FuelVolumePerc }}</td>
+                    <th>Цена безналич, руб</th>
+                    {{ with index .AzsNodes 0 }}
+                    <td>{{ printf "%.2f" .PriceCashless }}</td>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
+                    <td>{{ printf "%.2f"  .PriceCashless }}</td>
+                    {{ end }}
+                    {{end}}
                 </tr>
-                <tr>
-                    <th>Колонка 2-плотность, т/м3:</th>
-                    <td>{{ .Density }}</td>
-                </tr>
-                <tr>
-                    <th>Колонка 2-средняя температура, °C:</th>
-                    <td>{{ .AverageTemperature }}</td>
-                </tr>
-                {{ end }}
                 {{end}}
-
+                <tr>
+                    <th>Объем топлива, м3</th>
+                    {{ with index .AzsNodes 0 }}
+                    <td>{{ .FuelVolume }}</td>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
+                    <td>{{ .FuelVolume }}</td>
+                    {{ end }}
+                    {{end}}
+                </tr>
+                <tr>
+                    <th>Объем топлива, %</th>
+                    {{ with index .AzsNodes 0 }}
+                    <td>{{ .FuelVolumePerc }}</td>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
+                    <td>{{ .FuelVolumePerc }}</td>
+                    {{ end }}
+                    {{end}}
+                </tr>
+                <tr>
+                    <th>Плотность, т/м3</th>
+                    {{ with index .AzsNodes 0 }}
+                    <td>{{ .Density }}</td>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
+                    <td>{{ .Density }}</td>
+                    {{ end }}
+                    {{end}}
+                </tr>
+                <tr>
+                    <th>Сред. темп, °C</th>
+                    {{ with index .AzsNodes 0 }}
+                    <td>{{ .AverageTemperature }}</td>
+                    {{ end }}
+                    {{if eq .CountColum 2}}
+                    {{ with index .AzsNodes 1 }}
+                    <td>{{ .AverageTemperature }}</td>
+                    {{ end }}
+                    {{end}}
                 </tr>
             </table>
             <b> </b>
@@ -283,26 +323,6 @@
             <table>
                 <tr>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс колонки 1">
-                        </form>
-                    </td>
-                    <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс колонки 2">
-                        </form>
-                    </td>
-                    <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
-                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс сут. счетчиков">
-                        </form>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
                         <form action="/push_azs_button?price=0&pushedBtn=34" method="post" class="serviceBtn1">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 1">
@@ -317,7 +337,28 @@
                     <td>
                         <form action="/push_azs_button?price=0&pushedBtn=255" method="post" class="serviceBtn3">
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сервисная кнопка 2">
+                            <input type="submit" value="Сервисная кнопка 3">
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс сут. счетчиков">
+                        </form>
+                    </td>
+                    <td>
+                        <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type="submit" value="Сброс колонки 1">
+                        </form>
+                    </td>
+                    <td>
+                        <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
+                            <input type="hidden" name="id_azs" value={{.IdAzs}}>
+                            <input type={{if eq .CountColum 2}} "submit" {{ else }} "hidden" {{ end }}
+                                value="Сброс колонки 2">
                         </form>
                     </td>
                 </tr>
@@ -335,6 +376,7 @@
                         </form>
                     </td>
                 </tr>
+                {{if eq .IsSecondPriceEnable 1}}
                 <tr>
                     <td>Цена колонка-1 безналич., руб</td>
                     <td>
@@ -349,6 +391,8 @@
                         </form>
                     </td>
                 </tr>
+                {{end}}
+                {{if eq .CountColum 2}}
                 <tr>
                     <td>Цена колонка-2, руб</td>
                     <td>
@@ -363,6 +407,7 @@
                         </form>
                     </td>
                 </tr>
+                {{if eq .IsSecondPriceEnable 1}}
                 <tr>
                     <td>Цена колонка-2 безналич., руб</td>
                     <td>
@@ -377,6 +422,8 @@
                         </form>
                     </td>
                 </tr>
+                {{end}}
+                {{end}}
             </table>
         </div>
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
@@ -514,20 +561,8 @@
     });
 
     const price1Input = document.getElementById("price1Input");
-    const price2Input = document.getElementById("price2Input");
-    const price1cashlessInput = document.getElementById("price1cashlessInput");
-    const price2cashlessInput = document.getElementById("price2cashlessInput");
-
     const priceBtn1 = document.querySelectorAll(".priceBtn1");
-    const priceBtn2 = document.querySelectorAll(".priceBtn2");
-    const priceBtn3 = document.querySelectorAll(".priceBtn3");
-    const priceBtn4 = document.querySelectorAll(".priceBtn4");
-
     let priceVal1 = price1Input.value;
-    let priceVal2 = price2Input.value;
-    let priceCashlessVal1 = price1cashlessInput.value;
-    let priceCashlessVal2 = price2cashlessInput.value;
-
     priceBtn1.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -535,36 +570,6 @@
             let price = price1Input.value;
             let priceInt = Math.round(price * 100);
             sendToAzs(form, "Установить цену для 1-й колонки?", priceInt);
-        });
-    });
-
-    priceBtn2.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            let price = price2Input.value;
-            let priceInt = Math.round(price * 100);
-            sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
-        });
-    });
-
-    priceBtn3.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            let price = price1cashlessInput.value;
-            let priceInt = Math.round(price * 100);
-            sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
-        });
-    });
-
-    priceBtn4.forEach((form) => {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            retryCount = 0;
-            let price = price2cashlessInput.value;
-            let priceInt = Math.round(price * 100);
-            sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
         });
     });
 
@@ -577,32 +582,92 @@
         priceVal1 = price1Input.value;
     });
 
-    price2Input.addEventListener("input", function () {
-        let priceValue = price2Input.value;
-        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-            price2Input.value = priceVal2;
-            return;
-        };
-        priceVal2 = price2Input.value;
-    });
-
-    price1cashlessInput.addEventListener("input", function () {
-        let priceValue = price1cashlessInput.value;
-        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-            price1cashlessInput.value = priceCashlessVal1;
-            return;
-        };
+    const priceBtn3 = document.querySelectorAll(".priceBtn3");
+    const price1cashlessInput = document.getElementById("price1cashlessInput");
+    let priceCashlessVal1 = 0
+    if (price1cashlessInput !== null && price1cashlessInput !== undefined) {
         priceCashlessVal1 = price1cashlessInput.value;
-    });
+    }
+    if (priceBtn3 !== null && priceBtn3 !== undefined) {
+        priceBtn3.forEach((form) => {
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                retryCount = 0;
+                let price = price1cashlessInput.value;
+                let priceInt = Math.round(price * 100);
+                sendToAzs(form, "Установить цену для 1-й колонки?", priceInt);
+            });
+        });
+    }
 
-    price2cashlessInput.addEventListener("input", function () {
-        let priceValue = price2cashlessInput.value;
-        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-            price2cashlessInput.value = priceCashlessVal2;
-            return;
-        };
-        priceCashlessVal2 = price2cashlessInput.value;
-    });
+    if (price1cashlessInput !== null && price1cashlessInput !== undefined) {
+        price1cashlessInput.addEventListener("input", function () {
+            let priceValue = price1cashlessInput.value;
+            if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+                price1cashlessInput.value = priceCashlessVal1;
+                return;
+            };
+            priceCashlessVal1 = price1cashlessInput.value;
+        });
+    }
+
+
+
+    const priceBtn2 = document.querySelectorAll(".priceBtn2");
+    const price2Input = document.getElementById("price2Input");
+    if (price2Input !== null && price2Input !== undefined) {
+        let priceVal2 = price2Input.value;
+    }
+    if (priceBtn2 !== null && priceBtn2 !== undefined) {
+        priceBtn2.forEach((form) => {
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                retryCount = 0;
+                let price = price2Input.value;
+                let priceInt = Math.round(price * 100);
+                sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+            });
+        });
+    }
+    if (price2Input !== null && price2Input !== undefined) {
+        price2Input.addEventListener("input", function () {
+            let priceValue = price2Input.value;
+            if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+                price2Input.value = priceVal2;
+                return;
+            };
+            priceVal2 = price2Input.value;
+        });
+    }
+    
+    
+    
+    const priceBtn4 = document.querySelectorAll(".priceBtn4");
+    const price2cashlessInput = document.getElementById("price2cashlessInput");
+    if (price2cashlessInput !== null && price2cashlessInput !== undefined) {
+        let priceCashlessVal2 = price2cashlessInput.value;
+    }
+    if (priceBtn4 !== null && priceBtn4 !== undefined) {
+        priceBtn4.forEach((form) => {
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                retryCount = 0;
+                let price = price2cashlessInput.value;
+                let priceInt = Math.round(price * 100);
+                sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+            });
+        });
+    }
+    if (price2cashlessInput !== null && price2cashlessInput !== undefined) {
+        price2cashlessInput.addEventListener("input", function () {
+            let priceValue = price2cashlessInput.value;
+            if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+                price2cashlessInput.value = priceCashlessVal2;
+                return;
+            };
+            priceCashlessVal2 = price2cashlessInput.value;
+        });
+    }
 
 </script>
 

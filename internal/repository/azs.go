@@ -28,15 +28,15 @@ type Info struct {
 }
 
 type AzsNode struct {
-	CommonLiters       string `json:"commonLiters"`
-	DailyLiters        string `json:"dailyLiters"`
-	FuelVolume         string `json:"fuelVolume"`
-	TypeFuel           string `json:"typeFuel"`
-	Price              int    `json:"price"`
-	PriceCashless      int    `json:"priceCashless"`
-	FuelVolumePerc     string `json:"fuelVolumePerc"`
-	Density            string `json:"density"`
-	AverageTemperature string `json:"averageTemperature"`
+	CommonLiters       string  `json:"commonLiters"`
+	DailyLiters        string  `json:"dailyLiters"`
+	FuelVolume         string  `json:"fuelVolume"`
+	TypeFuel           string  `json:"typeFuel"`
+	Price              float32 `json:"price"`
+	PriceCashless      float32 `json:"priceCashless"`
+	FuelVolumePerc     string  `json:"fuelVolumePerc"`
+	Density            string  `json:"density"`
+	AverageTemperature string  `json:"averageTemperature"`
 }
 
 type AzsStatsDataFull struct {
@@ -158,5 +158,11 @@ func ParseStats(azsStatsData AzsStatsData) (azsStatsDataFull AzsStatsDataFull, e
 		Info:                stats.Info,
 		AzsNodes:            stats.AzsNodes,
 	}
+
+	for i := 0; i < azsStatsDataFull.CountColum; i++ {
+		azsStatsDataFull.AzsNodes[i].Price = azsStatsDataFull.AzsNodes[i].Price / 100
+		azsStatsDataFull.AzsNodes[i].PriceCashless = azsStatsDataFull.AzsNodes[i].PriceCashless / 100
+	}
+
 	return
 }

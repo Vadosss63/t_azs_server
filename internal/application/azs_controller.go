@@ -55,6 +55,7 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 			azs.Name = name
 			azs.Address = address
 			azs.Stats = stats
+			azs.IsSecondPriceEnable = is_second_price
 			err = a.repo.UpdateAzs(a.ctx, azs)
 		}
 
