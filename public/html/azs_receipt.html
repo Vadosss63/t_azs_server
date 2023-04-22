@@ -82,8 +82,8 @@
 </head>
 
 <body>
-    {{template "user_navi.html" .}}
     <h1>История операций - {{.Azs.Name}}</h1>
+    {{template "user_navi.html" .}}
     <ul>
         <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch" name="searchForm">
             <p>Выберите период с: <input type="date" name="formSearch" value="{{.FormSearchVal}}">

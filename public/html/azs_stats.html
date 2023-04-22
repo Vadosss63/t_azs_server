@@ -98,8 +98,8 @@
 </head>
 
 <body>
-    {{template "user_navi.html" .}}
     <h1>Статистика АЗС - {{.User.Login}}</h1>
+    {{template "user_navi.html" .}}
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
         {{ range .Azses }}
