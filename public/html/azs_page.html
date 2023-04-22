@@ -229,7 +229,7 @@
                     {{ end }}
                     {{if eq .CountColum 2}}
                     {{ with index .AzsNodes 1 }}
-                    <td>{{ printf "%.2f"  .PriceCashless }}</td>
+                    <td>{{ printf "%.2f" .PriceCashless }}</td>
                     {{ end }}
                     {{end}}
                 </tr>
@@ -323,19 +323,25 @@
             <table>
                 <tr>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=34" method="post" class="serviceBtn1">
+                        <form action="/push_azs_button" method="post" class="serviceBtn1">
+                            <input type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=33>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 1">
                         </form>
                     </td>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=35" method="post" class="serviceBtn2">
+                        <form action="/push_azs_button" method="post" class="serviceBtn2">
+                            <input type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=34>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 2">
                         </form>
                     </td>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=255" method="post" class="serviceBtn3">
+                        <form action="/push_azs_button" method="post" class="serviceBtn3">
+                            <input type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=35>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сервисная кнопка 3">
                         </form>
@@ -343,19 +349,25 @@
                 </tr>
                 <tr>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=33" method="post" class="resetDallyCounter">
+                        <form action="/push_azs_button" method="post" class="resetDallyCounter">
+                            <input type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=255>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сброс сут. счетчиков">
                         </form>
                     </td>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=17" method="post" class="resetAzs1">
+                        <form action="/push_azs_button" method="post" class="resetAzs1">
+                            <input type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=17>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Сброс колонки 1">
                         </form>
                     </td>
                     <td>
-                        <form action="/push_azs_button?price=0&pushedBtn=18" method="post" class="resetAzs2">
+                        <form action="/push_azs_button" method="post" class="resetAzs2">
+                            <input type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=18>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type={{if eq .CountColum 2}} "submit" {{ else }} "hidden" {{ end }}
                                 value="Сброс колонки 2">
@@ -369,8 +381,9 @@
                             value="0.00" required>
                     </td>
                     <td>
-                        <form action="/push_azs_button?pushedBtn=1" method="post" class="priceBtn1">
+                        <form action="/push_azs_button" method="post" class="priceBtn1">
                             <input id="price1" type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=1>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Установить">
                         </form>
@@ -384,8 +397,9 @@
                             value="0.00" required>
                     </td>
                     <td>
-                        <form action="/push_azs_button?pushedBtn=3" method="post" class="priceBtn3">
+                        <form action="/push_azs_button" method="post" class="priceBtn3">
                             <input id="price1Cashless" type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=3>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Установить">
                         </form>
@@ -400,8 +414,9 @@
                             value="0.00" required>
                     </td>
                     <td>
-                        <form action="/push_azs_button?pushedBtn=2" method="post" class="priceBtn2">
+                        <form action="/push_azs_button" method="post" class="priceBtn2">
                             <input id="price2" type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=2>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Установить">
                         </form>
@@ -415,8 +430,9 @@
                             value="0.00" required>
                     </td>
                     <td>
-                        <form action="/push_azs_button?pushedBtn=4" method="post" class="priceBtn4">
+                        <form action="/push_azs_button" method="post" class="priceBtn4">
                             <input id="price2Cashless" type="hidden" name="price" value=0>
+                            <input type="hidden" name="pushedBtn" value=4>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
                             <input type="submit" value="Установить">
                         </form>
@@ -445,7 +461,7 @@
         message.classList.remove('loading');
     }
 
-    function sendToAzs(form, msg, price) {
+    function sendToAzs(form, msg, price = 0) {
         noAnswer = false;
         const confirmed = window.confirm(msg);
         if (confirmed) {
@@ -611,8 +627,6 @@
         });
     }
 
-
-
     const priceBtn2 = document.querySelectorAll(".priceBtn2");
     const price2Input = document.getElementById("price2Input");
     if (price2Input !== null && price2Input !== undefined) {
@@ -639,9 +653,7 @@
             priceVal2 = price2Input.value;
         });
     }
-    
-    
-    
+
     const priceBtn4 = document.querySelectorAll(".priceBtn4");
     const price2cashlessInput = document.getElementById("price2cashlessInput");
     if (price2cashlessInput !== null && price2cashlessInput !== undefined) {
