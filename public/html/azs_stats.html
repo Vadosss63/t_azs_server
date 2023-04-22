@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Статистика АЗС</title>
     <style>
-        h1 {
+        header {
             font-size: 36px;
             color: #1c7ed6;
             text-align: center;
@@ -98,7 +98,7 @@
 </head>
 
 <body>
-    <h1>Статистика АЗС - {{.User.Login}}</h1>
+    <header>Статистика АЗС - {{.User.Login}}</header>
     {{template "user_navi.html" .}}
     <div class="overall">
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
@@ -176,6 +176,10 @@
         {{end}}
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
+    <!-- <footer>
+        <p>Copyright © 2023 T-azs</p>
+        <p>Тел: +7 911 911 4651 </p>        
+    </footer>    -->
 </body>
 
 </html>

@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Администратор</title>
     <style>
-        h1 {
+        header {
             font-size: 36px;
             color: #1c7ed6;
             text-align: center;
@@ -118,7 +118,7 @@
 </head>
 
 <body>
-    <h1>АЗС</h1> 
+    <header>АЗС</header> 
     {{template "admin_navi.html" .}}
     <div id="message"></div>
     <div class="overall">
@@ -249,6 +249,10 @@
         {{end}}
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
     </div>
+    <!-- <footer>
+        <p>Copyright © 2023 T-azs</p>
+        <p>Тел: +7 911 911 4651 </p>        
+    </footer>       -->
 </body>
 
 <script>

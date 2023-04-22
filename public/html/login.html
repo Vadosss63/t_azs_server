@@ -109,11 +109,18 @@
       {{end}}
       <br>
       <div class="ref">
-        <a href="/foget">Забыли пароль?</a>
+        <a href="/forget" id="forgot-password-link">Забыли пароль?</a>
       </div>
     </div>
   </form>
 </body>
+<script>
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  forgotPasswordLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    alert("Для сброса пароля, свяжитесь с администратором\nТел. +7(911)-911-46-51");
+  });  
+</script>
 
 </html>
 {{end}}

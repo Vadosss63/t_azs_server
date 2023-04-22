@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <title>Администратор</title>
   <style>
-    h1 {
+    header {
       font-size: 36px;
       color: #1c7ed6;
       text-align: center;
@@ -99,7 +99,7 @@
 </head>
 
 <body>
-  <h1>Пользователи</h1>
+  <header>Пользователи</header>
   {{template "admin_navi.html" .}}
   <div class="overall">
     <div class="container">
@@ -139,67 +139,71 @@
       </div>
     </div>
   </div>
-  <script>
-    const deleteForms = document.querySelectorAll(".deleteUser");
-    deleteForms.forEach((form) => {
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const confirmed = window.confirm("Удалить пользователя?");
-        if (confirmed) {
-          fetch(form.action, {
-            method: "DELETE"
-          }).then(() => {
-            // handle success
-            alert("Пользователь успешно удален!");
-            window.location.reload(); // reload the page after a successful delete
-          }).catch((error) => {
-            // handle error
-            if (error.response.status === 400) {
-              // handle bad request error
-              alert("Ошибка: неправильный запрос");
-            } else {
-              // handle other errors
-              alert("Ошибка: " + error);
-            }
-          });
-        }
-      });
-    });
-  </script>
-  <script>
-    const resetPwdForms = document.querySelectorAll(".resetPassword");
-    resetPwdForms.forEach((form) => {
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const confirmed = window.confirm("Изменить пароль пользователя?");
-        const password = form.querySelector("#password");
-        const password2 = form.querySelector("#password2");
-        if (password.value !== password2.value) {
-          alert("Пароли не совпадают");
-          return;
-        }
-        if (confirmed) {
-          fetch(form.action, {
-            method: "POST",
-            body: new FormData(form)
-          }).then(() => {
-            alert("Пароль изменен успешно!");
-            window.location.reload();
-          }).catch((error) => {
-            // handle error
-            if (error.response.status === 400) {
-              // handle bad request error
-              alert("Ошибка: неправильный запрос");
-            } else {
-              // handle other errors
-              alert("Ошибка: " + error);
-            }
-          });
-        }
-      });
-    });
-  </script>
+  <!-- <footer>
+    <p>Copyright © 2023 T-azs</p>
+    <p>Тел: +7 911 911 4651 </p>
+  </footer> -->
 </body>
+<script>
+  const deleteForms = document.querySelectorAll(".deleteUser");
+  deleteForms.forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const confirmed = window.confirm("Удалить пользователя?");
+      if (confirmed) {
+        fetch(form.action, {
+          method: "DELETE"
+        }).then(() => {
+          // handle success
+          alert("Пользователь успешно удален!");
+          window.location.reload(); // reload the page after a successful delete
+        }).catch((error) => {
+          // handle error
+          if (error.response.status === 400) {
+            // handle bad request error
+            alert("Ошибка: неправильный запрос");
+          } else {
+            // handle other errors
+            alert("Ошибка: " + error);
+          }
+        });
+      }
+    });
+  });
+</script>
+<script>
+  const resetPwdForms = document.querySelectorAll(".resetPassword");
+  resetPwdForms.forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const confirmed = window.confirm("Изменить пароль пользователя?");
+      const password = form.querySelector("#password");
+      const password2 = form.querySelector("#password2");
+      if (password.value !== password2.value) {
+        alert("Пароли не совпадают");
+        return;
+      }
+      if (confirmed) {
+        fetch(form.action, {
+          method: "POST",
+          body: new FormData(form)
+        }).then(() => {
+          alert("Пароль изменен успешно!");
+          window.location.reload();
+        }).catch((error) => {
+          // handle error
+          if (error.response.status === 400) {
+            // handle bad request error
+            alert("Ошибка: неправильный запрос");
+          } else {
+            // handle other errors
+            alert("Ошибка: " + error);
+          }
+        });
+      }
+    });
+  });
+</script>
 
 </html>
 {{end}}

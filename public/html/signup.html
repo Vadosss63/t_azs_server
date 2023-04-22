@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <title>Signup page</title>
   <style>
-    h1 {
+    header {
       font-size: 36px;
       color: #1c7ed6;
       text-align: center;
@@ -118,8 +118,8 @@
 </head>
 
 <body>
+  <header>Добавление нового пользователя</header>
   {{template "admin_navi.html" .}}
-  <h1>Добавление нового пользователя</h1>
   <form action="/signup" method="post" id="loginForm" name="signUpForm">
     <div class="container">
       <label for="name"><b>Имя</b></label>
@@ -143,6 +143,10 @@
       {{end}}
     </div>
   </form>
+  <!-- <footer>
+    <p>Copyright © 2023 T-azs</p>
+    <p>Тел: +7 911 911 4651 </p>
+  </footer> -->
 </body>
 
 </html>

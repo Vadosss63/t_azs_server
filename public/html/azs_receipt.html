@@ -5,7 +5,7 @@
 <head>
     <title>История операций</title>
     <style>
-        h1 {
+        header {
             font-size: 36px;
             color: #1c7ed6;
             text-align: center;
@@ -82,7 +82,7 @@
 </head>
 
 <body>
-    <h1>История операций - {{.Azs.Name}}</h1>
+    <header>История операций - {{.Azs.Name}}</header>
     {{template "user_navi.html" .}}
     <ul>
         <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch" name="searchForm">
@@ -103,6 +103,10 @@
         </div>
         {{end}}
     </ul>
+    <!-- <footer>
+        <p>Copyright © 2023 T-azs</p>
+        <p>Тел: +7 911 911 4651 </p>        
+    </footer>    -->
 </body>
 
 </html>
