@@ -377,7 +377,7 @@
                 <tr>
                     <td>Цена колонка-1, руб</td>
                     <td>
-                        <input id="price1Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
+                        <input id="price1Input" type="number" step="0.01" min="0" max="200.99" placeholder="Цена"
                             value="0.00" required>
                     </td>
                     <td>
@@ -446,11 +446,28 @@
     </div>
 </body>
 <script>
-    const retryTime = 15000;
-    let retryCount = 0;
 
     const message = document.getElementById('message');
-    let noAnswer = false;
+
+    function priceValidator(priceInput) {
+        const newValue = priceInput.value;
+        const oldValue = priceInput.defaultValue;
+        if (!newValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+            priceInput.value = oldValue;
+            return;
+        };
+
+        const priceFloat = parseFloat(newValue);
+        if (priceFloat > 200.99) {
+            priceInput.value = oldValue;
+            return;
+        }
+        priceInput.defaultValue = newValue;
+    }
+
+    function convertPriceToInt(price) {
+        return Math.round(price * 100);
+    }
 
     function showMessage(text) {
         message.innerHTML = text;
@@ -459,74 +476,77 @@
 
     function hideMessage() {
         message.classList.remove('loading');
+        window.location.reload();
     }
 
-    function sendToAzs(form, msg, price = 0) {
-        noAnswer = false;
-        const confirmed = window.confirm(msg);
-        if (confirmed) {
-            const formData = new FormData(form);
-            const idAzs = formData.get("id_azs");
-            formData.set("price", price);
-            showMessage('Отправка запроса на АЗС...');
-            fetch(form.action, {
-                method: "POST",
-                body: formData
-            }).then(() => {
-                let retryTimer;
-                const xhr = new XMLHttpRequest();
-                const url = '/azs_button_ready?id_azs=' + idAzs; // append the "id_azs" parameter to the URL
-                xhr.open('GET', url);
-                xhr.onload = handleXhrLoad.bind(null, xhr, retryTime, retryTimer, idAzs);
-                xhr.send();
-            }).catch((error) => {
-                // handle error
-                if (error.response.status === 400) {
-                    // handle bad request error
-                    alert("Ошибка: неправильный запрос");
-                } else {
-                    // handle other errors
-                    alert("Ошибка: " + error);
-                }
-                hideMessage();
-            });
-        }
-    }
-
-    function handleXhrLoad(xhr, retryTime, retryTimer, idAzs) {
-        if (xhr.status === 200) {
-            console.log(xhr.responseText);
-            if (noAnswer) {
+    function handleXhrLoad(handlerObject) {
+        if (handlerObject.xhr.status === 200) {
+            if (handlerObject.noAnswer) {
                 alert("АЗС не отвечает!");
             } else {
                 alert("Успешно!");
             }
             hideMessage();
-            window.location.reload();
+
+        } else if (handlerObject.retryCount < handlerObject.retryTime / 1000) {
+            handlerObject.retryTimer = setTimeout(function () {
+                handlerObject.xhr.open('GET', handlerObject.isReadyUrl);
+                handlerObject.xhr.send();
+                handlerObject.retryCount++;
+            }, 1000);
+        } else if (!handlerObject.noAnswer) {
+            handlerObject.noAnswer = true;
+            handlerObject.xhr.open('GET', handlerObject.resetUrl);
+            handlerObject.xhr.send();
         } else {
-            //alert("АЗС не отвечает!"+ retryCount);
-            if (retryCount < retryTime / 1000) {
-                retryTimer = setTimeout(function () {
-                    xhr.open('GET', '/azs_button_ready?id_azs=' + idAzs);
-                    xhr.send();
-                    retryCount++;
-                }, 1000); // wait for 1 second before retrying
-            } else if (!noAnswer) {
-                noAnswer = true;
-                xhr.open('GET', '/reset_azs_button?id=' + idAzs);
-                xhr.send();
-            } else {
-                hideMessage();
-                window.location.reload();
-            }
+            hideMessage();
         }
+    }
+
+    function sendToAzs(form, msg, price = 0) {
+        const confirmed = window.confirm(msg);
+        if (!confirmed) {
+            return;
+        }
+
+        const formData = new FormData(form);
+        const idAzs = formData.get("id_azs");
+        formData.set("price", price);
+
+        showMessage('Отправка запроса на АЗС...');
+        fetch(form.action, {
+            method: "POST",
+            body: formData
+        }).then(() => {
+            const handlerObject = {
+                retryTime: 15000,
+                noAnswer: false,
+                retryCount: 0,
+                idAzs: idAzs,
+                retryTimer: null,
+                xhr: new XMLHttpRequest(),
+                isReadyUrl: '/azs_button_ready?id_azs=' + idAzs,
+                resetUrl: '/reset_azs_button?id=' + idAzs,
+            };
+
+            handlerObject.xhr.open('GET', handlerObject.isReadyUrl);
+            handlerObject.xhr.onload = handleXhrLoad.bind(null, handlerObject);
+            handlerObject.xhr.send();
+        }).catch((error) => {
+            // handle error
+            if (error.response.status === 400) {
+                alert("Ошибка: неправильный запрос");
+            } else {
+                alert("Ошибка: " + error);
+            }
+            hideMessage();
+        });
     }
 
     const resetAzs1 = document.querySelectorAll(".resetAzs1");
     resetAzs1.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
             sendToAzs(form, "Сбросить колонку 1?");
         });
     });
@@ -535,7 +555,6 @@
     resetAzs2.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
             sendToAzs(form, "Сбросить колонку 2?");
         });
     });
@@ -544,7 +563,6 @@
     resetDallyCounter.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
             sendToAzs(form, "Сбросить суточные счетчики?");
         });
     });
@@ -553,7 +571,6 @@
     serviceBtn1.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
             sendToAzs(form, "Выполнить Сервисная кнопка 1?");
         });
     });
@@ -562,7 +579,6 @@
     serviceBtn2.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
             sendToAzs(form, "Выполнить Сервисная кнопка 2?");
         });
     });
@@ -571,113 +587,68 @@
     serviceBtn3.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
             sendToAzs(form, "Выполнить Сервисная кнопка 3?");
         });
     });
 
     const price1Input = document.getElementById("price1Input");
     const priceBtn1 = document.querySelectorAll(".priceBtn1");
-    let priceVal1 = price1Input.value;
     priceBtn1.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            retryCount = 0;
-            let price = price1Input.value;
-            let priceInt = Math.round(price * 100);
-            sendToAzs(form, "Установить цену для 1-й колонки?", priceInt);
+            sendToAzs(form, "Установить цену для 1-й колонки?", convertPriceToInt(price1Input.value));
         });
     });
 
     price1Input.addEventListener("input", function () {
-        let priceValue = price1Input.value;
-        if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-            price1Input.value = priceVal1;
-            return;
-        };
-        priceVal1 = price1Input.value;
+        priceValidator(this);
     });
 
     const priceBtn3 = document.querySelectorAll(".priceBtn3");
     const price1cashlessInput = document.getElementById("price1cashlessInput");
-    let priceCashlessVal1 = 0
-    if (price1cashlessInput !== null && price1cashlessInput !== undefined) {
-        priceCashlessVal1 = price1cashlessInput.value;
-    }
     if (priceBtn3 !== null && priceBtn3 !== undefined) {
         priceBtn3.forEach((form) => {
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
-                retryCount = 0;
-                let price = price1cashlessInput.value;
-                let priceInt = Math.round(price * 100);
-                sendToAzs(form, "Установить цену для 1-й колонки?", priceInt);
+                sendToAzs(form, "Установить цену для 1-й колонки?", convertPriceToInt(price1cashlessInput.value));
             });
         });
     }
-
     if (price1cashlessInput !== null && price1cashlessInput !== undefined) {
         price1cashlessInput.addEventListener("input", function () {
-            let priceValue = price1cashlessInput.value;
-            if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-                price1cashlessInput.value = priceCashlessVal1;
-                return;
-            };
-            priceCashlessVal1 = price1cashlessInput.value;
+            priceValidator(this);
         });
     }
 
     const priceBtn2 = document.querySelectorAll(".priceBtn2");
     const price2Input = document.getElementById("price2Input");
-    if (price2Input !== null && price2Input !== undefined) {
-        let priceVal2 = price2Input.value;
-    }
     if (priceBtn2 !== null && priceBtn2 !== undefined) {
         priceBtn2.forEach((form) => {
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
-                retryCount = 0;
-                let price = price2Input.value;
-                let priceInt = Math.round(price * 100);
-                sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+                sendToAzs(form, "Установить цену для 2-й колонки?", convertPriceToInt(price2Input.value));
             });
         });
     }
     if (price2Input !== null && price2Input !== undefined) {
         price2Input.addEventListener("input", function () {
-            let priceValue = price2Input.value;
-            if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-                price2Input.value = priceVal2;
-                return;
-            };
-            priceVal2 = price2Input.value;
+            priceValidator(this);
         });
     }
 
     const priceBtn4 = document.querySelectorAll(".priceBtn4");
     const price2cashlessInput = document.getElementById("price2cashlessInput");
-    if (price2cashlessInput !== null && price2cashlessInput !== undefined) {
-        let priceCashlessVal2 = price2cashlessInput.value;
-    }
     if (priceBtn4 !== null && priceBtn4 !== undefined) {
         priceBtn4.forEach((form) => {
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
-                retryCount = 0;
-                let price = price2cashlessInput.value;
-                let priceInt = Math.round(price * 100);
-                sendToAzs(form, "Установить цену для 2-й колонки?", priceInt);
+                sendToAzs(form, "Установить цену для 2-й колонки?", convertPriceToInt(price2cashlessInput.value));
             });
         });
     }
     if (price2cashlessInput !== null && price2cashlessInput !== undefined) {
         price2cashlessInput.addEventListener("input", function () {
-            let priceValue = price2cashlessInput.value;
-            if (!priceValue.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
-                price2cashlessInput.value = priceCashlessVal2;
-                return;
-            };
-            priceCashlessVal2 = price2cashlessInput.value;
+            priceValidator(this);
         });
     }
 
