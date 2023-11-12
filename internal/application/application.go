@@ -44,8 +44,7 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
-		oneMonthAgo := now.AddDate(0, -1, 0)
-		a.historyReceiptsPage(rw, r, p, oneMonthAgo, now)
+		a.historyReceiptsPage(rw, r, p, now, now)
 	}))
 
 	router.POST("/azs_receipt/history", a.authorized(a.showHistoryReceiptsPage))

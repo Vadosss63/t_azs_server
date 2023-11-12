@@ -47,7 +47,10 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	receipts, err := a.repo.GetReceiptInRange(a.ctx, id_azs, fromSearchTime.Unix(), toSearchTime.Unix())
+	fromTime := time.Date(fromSearchTime.Year(), fromSearchTime.Month(), fromSearchTime.Day(), 0, 0, 0, fromSearchTime.Nanosecond(), fromSearchTime.Location())
+	toTime := time.Date(toSearchTime.Year(), toSearchTime.Month(), toSearchTime.Day(), 23, 59, 59, toSearchTime.Nanosecond(), toSearchTime.Location())
+
+	receipts, err := a.repo.GetReceiptInRange(a.ctx, id_azs, fromTime.Unix(), toTime.Unix())
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
