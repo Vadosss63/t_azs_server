@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
@@ -23,7 +24,33 @@ type AzsReceiptTemplate struct {
 	ToSearchVal   string
 	Receipts      []repository.Receipt
 	Count         int
-	TotalSum      float64
+	TotalSum      string
+}
+
+func addSpaces(s string) string {
+	n := len(s)
+	if n <= 3 {
+		return s
+	}
+
+	var result string
+	for i, c := range s {
+		if i > 0 && (n-i)%3 == 0 {
+			result += " "
+		}
+		result += string(c)
+	}
+
+	return result
+}
+
+func formatNumber(num float64) string {
+	numStr := fmt.Sprintf("%0.2f", num)
+	parts := strings.Split(numStr, ".")
+	formattedInteger := addSpaces(parts[0])
+	formattedNumber := formattedInteger + "." + parts[1]
+
+	return formattedNumber
 }
 
 func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -82,7 +109,7 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		ToSearchVal:   toSearchTime.Format("2006-01-02"),
 		Receipts:      receipts,
 		Count:         len(receipts),
-		TotalSum:      totalSum,
+		TotalSum:      formatNumber(totalSum),
 	}
 
 	lp := filepath.Join("public", "html", "azs_receipt.html")
