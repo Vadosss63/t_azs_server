@@ -32,7 +32,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 0px 0px 5px #ccc;
-            width: 200px;
+            width: 1000px;
             margin: 10px auto;
             padding: 10px;
         }
@@ -90,16 +90,11 @@
                 по: <input type="date" name="toSearch" value="{{.ToSearchVal}}">
                 <button type="submit" name="showBtn">Показать</button>
             </p>
-            <p>Результат: {{.Count}} шт.</p>
+            <p>Результат: {{.TotalSum}} руб, {{.Count}} шт.</p>
         </form>
         {{ range .Receipts }}
         <div class="container">
-            <span>{{.Data}}</span>
-            <span>-------------------------------------</span>
-            <span>Колонка: {{.NumOfAzsNode}}</span>
-            <span>Топливо: {{.GasType}}</span>
-            <span>Литры: {{.CountLitres}}</span>
-            <span>Сумма: {{.Sum}} руб</span>
+            <span> {{.Data}} | Колонка: {{.NumOfAzsNode}} | Топливо: {{.GasType}} | Литры: {{.CountLitres}} | Сумма: {{.Sum}} руб</span>
         </div>
         {{end}}
     </ul>

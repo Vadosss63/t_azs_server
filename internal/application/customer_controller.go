@@ -1,9 +1,11 @@
 package application
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
@@ -21,6 +23,7 @@ type AzsReceiptTemplate struct {
 	ToSearchVal   string
 	Receipts      []repository.Receipt
 	Count         int
+	TotalSum      float64
 }
 
 func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -47,8 +50,8 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	fromTime := time.Date(fromSearchTime.Year(), fromSearchTime.Month(), fromSearchTime.Day(), 0, 0, 0, fromSearchTime.Nanosecond(), fromSearchTime.Location())
-	toTime := time.Date(toSearchTime.Year(), toSearchTime.Month(), toSearchTime.Day(), 23, 59, 59, toSearchTime.Nanosecond(), toSearchTime.Location())
+	fromTime := time.Date(fromSearchTime.Year(), fromSearchTime.Month(), fromSearchTime.Day(), 0, 0, 0, 0, time.Now().Location())
+	toTime := time.Date(toSearchTime.Year(), toSearchTime.Month(), toSearchTime.Day(), 23, 59, 59, 0, time.Now().Location())
 
 	receipts, err := a.repo.GetReceiptInRange(a.ctx, id_azs, fromTime.Unix(), toTime.Unix())
 	if err != nil {
@@ -62,12 +65,24 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
+	totalSum := 0.0
+	for _, receipt := range receipts {
+		// Convert Sum from string to float64
+		sum, err := strconv.ParseFloat(receipt.Sum, 64)
+		if err != nil {
+			fmt.Println("Error parsing Sum:", err)
+			continue
+		}
+		totalSum += sum
+	}
+
 	azsReceiptDatas := AzsReceiptTemplate{
 		Azs:           azs,
 		FormSearchVal: fromSearchTime.Format("2006-01-02"),
 		ToSearchVal:   toSearchTime.Format("2006-01-02"),
 		Receipts:      receipts,
 		Count:         len(receipts),
+		TotalSum:      totalSum,
 	}
 
 	lp := filepath.Join("public", "html", "azs_receipt.html")

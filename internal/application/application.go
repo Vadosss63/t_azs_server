@@ -44,6 +44,7 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
+
 		a.historyReceiptsPage(rw, r, p, now, now)
 	}))
 
