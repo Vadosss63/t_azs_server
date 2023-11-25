@@ -186,12 +186,12 @@ func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 	// pushedBtn = 2 - set price2
 	// pushedBtn = 3 - set price1Cashless
 	// pushedBtn = 4 - set price2Cashless
-	//0x11 – сброс колонки 1,
-	//0x12 – сброс колонки 2,
-	//0x21 – сервисная кнопка 1 (зарезервировано на будущее)
-	//0x22 – сервисная кнопка 2 (зарезервировано на будущее)
-	//0x23 – сервисная кнопка 3 (зарезервировано на будущее)
-	//0xFF – сброс суточных счетчиков
+	//0x11 – Блокировка АЗС,
+	//0x12 – Разблокировать АЗС,
+	//0x21 – Снять Z - отчёт
+	//0x22 – Откличить N
+	//0x23 – Включить N
+	//0xFF – Инкассация
 	err := error(nil)
 
 	switch pushedBtn {

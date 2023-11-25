@@ -361,7 +361,7 @@
                             <input type="hidden" name="price" value=0>
                             <input type="hidden" name="pushedBtn" value=17>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type="submit" value="Сброс колонки 1">
+                            <input type="submit" value="Блокировка АЗС">
                         </form>
                     </td>
                     <td>
@@ -369,8 +369,7 @@
                             <input type="hidden" name="price" value=0>
                             <input type="hidden" name="pushedBtn" value=18>
                             <input type="hidden" name="id_azs" value={{.IdAzs}}>
-                            <input type={{if eq .CountColum 2}} "submit" {{ else }} "hidden" {{ end }}
-                                value="Сброс колонки 2">
+                            <input type="submit" value="Разблокировать АЗС">
                         </form>
                     </td>
                 </tr>
@@ -559,7 +558,7 @@
     resetAzs1.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            sendToAzs(form, "Сбросить колонку 1?");
+            sendToAzs(form, "Заблокировать АЗС?");
         });
     });
 
@@ -567,7 +566,7 @@
     resetAzs2.forEach((form) => {
         form.addEventListener("submit", (event) => {
             event.preventDefault();
-            sendToAzs(form, "Сбросить колонку 2?");
+            sendToAzs(form, "Разблокировать АЗС?");
         });
     });
 
