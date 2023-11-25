@@ -377,8 +377,10 @@
                 <tr>
                     <td>Цена колонка-1, руб</td>
                     <td>
+                        {{ with index .AzsNodes 0 }}
                         <input id="price1Input" type="number" step="0.01" min="0" max="200.99" placeholder="Цена"
-                            value="0.00" required>
+                            value="{{.Price}}" required>
+                        {{ end }}
                     </td>
                     <td>
                         <form action="/push_azs_button" method="post" class="priceBtn1">
@@ -393,8 +395,10 @@
                 <tr>
                     <td>Цена колонка-1 безналич., руб</td>
                     <td>
+                        {{ with index .AzsNodes 0 }}
                         <input id="price1cashlessInput" type="number" step="0.01" min="0" max="180" placeholder="Цена"
-                            value="0.00" required>
+                            value="{{.PriceCashless}}" required>
+                        {{ end }}
                     </td>
                     <td>
                         <form action="/push_azs_button" method="post" class="priceBtn3">
@@ -410,8 +414,10 @@
                 <tr>
                     <td>Цена колонка-2, руб</td>
                     <td>
+                        {{ with index .AzsNodes 1 }}
                         <input id="price2Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
-                            value="0.00" required>
+                            value="{{.Price}}" required>
+                        {{ end }}
                     </td>
                     <td>
                         <form action="/push_azs_button" method="post" class="priceBtn2">
@@ -426,8 +432,10 @@
                 <tr>
                     <td>Цена колонка-2 безналич., руб</td>
                     <td>
+                        {{ with index .AzsNodes 1 }}
                         <input id="price2cashlessInput" type="number" step="0.01" min="0" max="180" placeholder="Цена"
-                            value="0.00" required>
+                            value="{{.PriceCashless}}" required>
+                        {{ end }}
                     </td>
                     <td>
                         <form action="/push_azs_button" method="post" class="priceBtn4">
