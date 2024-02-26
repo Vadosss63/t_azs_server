@@ -86,8 +86,10 @@
     {{template "user_navi.html" .}}
     <ul>
         <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch" name="searchForm">
-            <p>Выберите период с: <input type="date" name="formSearch" value="{{.FormSearchVal}}">
-                по: <input type="date" name="toSearch" value="{{.ToSearchVal}}">
+            <p>Выберите период с: <input type="date" name="fromSearch" value="{{.FormSearchVal}}"> <input type="time"
+                    name="fromTime" value="{{.FromTimeVal}}">
+                по: <input type="date" name="toSearch" value="{{.ToSearchVal}}"> <input type="time" name="toTime"
+                    value="{{.ToTimeVal}}">
                 <button type="submit" name="showBtn">Показать</button>
             </p>
             <p>Результат: {{.TotalSum}} руб, {{.Count}} шт.</p>
@@ -98,10 +100,6 @@
         </div>
         {{end}}
     </ul>
-    <!-- <footer>
-        <p>Copyright © 2023 T-azs</p>
-        <p>Тел: +7 911 911 4651 </p>        
-    </footer>    -->
 </body>
 
 </html>

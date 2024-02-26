@@ -22,6 +22,8 @@ type AzsReceiptTemplate struct {
 	Azs           repository.AzsStatsData
 	FormSearchVal string
 	ToSearchVal   string
+	FromTimeVal   string
+	ToTimeVal     string
 	Receipts      []repository.Receipt
 	Count         int
 	TotalSum      string
@@ -54,18 +56,21 @@ func formatNumber(num float64) string {
 }
 
 func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fromSearchDate := r.FormValue("formSearch")
+	fromSearchDate := r.FormValue("fromSearch")
 	toSearchDate := r.FormValue("toSearch")
+	fromTimeStr := r.FormValue("fromTime")
+	toTimeStr := r.FormValue("toTime")
 
-	fromSearchTime, fromErr := time.Parse("2006-01-02", fromSearchDate)
-	toSearchTime, toErr := time.Parse("2006-01-02", toSearchDate)
+	// Парсинг даты
+	fromSearchDateTime, fromErr := time.Parse("2006-01-02 15:04", fromSearchDate+" "+fromTimeStr)
+	toSearchDateTime, toErr := time.Parse("2006-01-02 15:04", toSearchDate+" "+toTimeStr)
 
 	if fromErr != nil || toErr != nil {
-		http.Error(rw, "Error parsing: SearchDate", http.StatusBadRequest)
+		http.Error(rw, "Error parsing dates or times", http.StatusBadRequest)
 		return
 	}
 
-	a.historyReceiptsPage(rw, r, p, fromSearchTime, toSearchTime)
+	a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime)
 }
 
 func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time) {
@@ -77,8 +82,10 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	fromTime := time.Date(fromSearchTime.Year(), fromSearchTime.Month(), fromSearchTime.Day(), 0, 0, 0, 0, time.Now().Location())
-	toTime := time.Date(toSearchTime.Year(), toSearchTime.Month(), toSearchTime.Day(), 23, 59, 59, 0, time.Now().Location())
+	loc := time.Now().Location()
+
+	fromTime := time.Date(fromSearchTime.Year(), fromSearchTime.Month(), fromSearchTime.Day(), fromSearchTime.Hour(), fromSearchTime.Minute(), fromSearchTime.Second(), 0, loc)
+	toTime := time.Date(toSearchTime.Year(), toSearchTime.Month(), toSearchTime.Day(), toSearchTime.Hour(), toSearchTime.Minute(), toSearchTime.Second(), 0, loc)
 
 	receipts, err := a.repo.GetReceiptInRange(a.ctx, id_azs, fromTime.Unix(), toTime.Unix())
 	if err != nil {
@@ -107,6 +114,8 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		Azs:           azs,
 		FormSearchVal: fromSearchTime.Format("2006-01-02"),
 		ToSearchVal:   toSearchTime.Format("2006-01-02"),
+		FromTimeVal:   fromSearchTime.Format("15:04"),
+		ToTimeVal:     toSearchTime.Format("15:04"),
 		Receipts:      receipts,
 		Count:         len(receipts),
 		TotalSum:      formatNumber(totalSum),
