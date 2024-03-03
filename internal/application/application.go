@@ -71,6 +71,13 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.GET("/azs_button_ready", a.azsButtonReady)
 
+	router.POST("/get_log_cmd", a.getLogButton)
+	router.POST("/upload_log", a.uploadLogs)
+	router.POST("/reset_log_cmd", a.resetLogButton)
+	router.GET("/list_logs", a.listLogFiles)
+	router.GET("/download_log", a.downloadLogFile)
+	router.GET("/delete_logs", a.deleteLogs)
+
 	router.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
 
 	router.GET("/users", a.authorized(a.showUsersPage))
