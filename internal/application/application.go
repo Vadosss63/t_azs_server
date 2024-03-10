@@ -80,6 +80,10 @@ func (a app) Routes(router *httprouter.Router) {
 	router.GET("/download_log", a.downloadLogFile)
 	router.GET("/delete_logs", a.deleteLogs)
 
+	router.POST("/get_app_update_button", a.getAppUpdateButton)
+	router.POST("/reset_app_update_button", a.resetAppUpdateButton)
+	router.GET("/set_app_update_cmd", a.setAppUpdateCmd)
+
 	router.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
 
 	router.GET("/users", a.authorized(a.showUsersPage))
