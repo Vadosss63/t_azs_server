@@ -156,6 +156,29 @@ func (a app) resetLogButton(rw http.ResponseWriter, r *http.Request, p httproute
 	a.resetLogAzs(rw, r, p)
 }
 
+func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	rw.Header().Set("Content-Type", "application/json")
+	tokenReq := strings.TrimSpace(r.FormValue("token"))
+	if a.token != tokenReq {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+		return
+	}
+	id := strings.TrimSpace(r.FormValue("id"))
+	idInt, ok := getIntVal(id)
+
+	if ok {
+		err := a.repo.UpdateLogButton(a.ctx, idInt, 1)
+		if err == nil {
+			rw.WriteHeader(http.StatusOK)
+			json.NewEncoder(rw).Encode(answer{Msg: "Ok", Status: "Ok"})
+			return
+		}
+	}
+	rw.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error"})
+}
+
 func (a app) resetLogAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id"))
 	idInt, ok := getIntVal(id)

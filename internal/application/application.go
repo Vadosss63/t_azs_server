@@ -74,6 +74,8 @@ func (a app) Routes(router *httprouter.Router) {
 	router.POST("/get_log_cmd", a.getLogButton)
 	router.POST("/upload_log", a.uploadLogs)
 	router.POST("/reset_log_cmd", a.resetLogButton)
+	router.GET("/set_log_cmd", a.setLogCmd)
+
 	router.GET("/list_logs", a.listLogFiles)
 	router.GET("/download_log", a.downloadLogFile)
 	router.GET("/delete_logs", a.deleteLogs)
