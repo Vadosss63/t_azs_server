@@ -1,7 +1,6 @@
 package application
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -9,11 +8,7 @@ import (
 )
 
 func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
@@ -23,21 +18,15 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 	if ok {
 		updateCommand, err := a.repo.GetUpdateCommand(a.ctx, idInt)
 		if err == nil {
-			rw.WriteHeader(http.StatusOK)
-			json.NewEncoder(rw).Encode(updateCommand)
+			sendJson(rw, http.StatusOK, updateCommand)
 			return
 		}
 	}
-	rw.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error id or GetAppUpdateButton"})
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 	id := strings.TrimSpace(r.FormValue("id"))
@@ -46,21 +35,15 @@ func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request, p httprout
 	if ok {
 		err := a.repo.UpdateUpdateCommand(a.ctx, idInt, "http://t-azs.ru:8085/public/update/GasStationPro.tar.gz")
 		if err == nil {
-			rw.WriteHeader(http.StatusOK)
-			json.NewEncoder(rw).Encode(answer{Msg: "Ok", Status: "Ok"})
+			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
 		}
 	}
-	rw.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error"})
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a app) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
@@ -68,17 +51,19 @@ func (a app) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p htt
 }
 
 func (a app) resetAppUpdateAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 
-	if ok {
-		err := a.repo.UpdateUpdateCommand(a.ctx, idInt, "")
-		if err == nil {
-			rw.WriteHeader(http.StatusOK)
-			json.NewEncoder(rw).Encode(answer{Msg: "Ok", Status: "Ok"})
-			return
-		}
+	if !ok {
+		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
+		return
 	}
-	rw.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error"})
+
+	err := a.repo.UpdateUpdateCommand(a.ctx, idInt, "")
+	if err != nil {
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+
+		return
+	}
+	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+
 }

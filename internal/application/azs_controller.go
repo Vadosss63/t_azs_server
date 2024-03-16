@@ -1,7 +1,6 @@
 package application
 
 import (
-	"encoding/json"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -34,88 +33,101 @@ var azsPageTemplate = template.Must(template.ParseFiles(
 	filepath.Join("public", "html", "user_navi.html"),
 ))
 
-type answer struct {
-	Msg    string `json:"msg"`
-	Status string `json:"status"`
-}
-
-type responseMessage struct {
-	Msg    string `json:"msg"`
-	Status string `json:"status"`
-}
-
-func sendJsonResponse(rw http.ResponseWriter, statusCode int, msg, status string) {
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(statusCode)
-	json.NewEncoder(rw).Encode(responseMessage{Msg: msg, Status: status})
-}
-
-func sendError(rw http.ResponseWriter, message string, statusCode int) {
-	rw.WriteHeader(statusCode)
-	http.Error(rw, message, statusCode)
-}
-
 func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		sendJsonResponse(rw, http.StatusBadRequest, "Invalid token", "Error")
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
-	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
-	t := time.Now()
+	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
+	if !ok {
+		sendJsonResponse(rw, http.StatusBadRequest, "Invalid ID format", "Error")
+		return
+	}
+
 	name := strings.TrimSpace(r.FormValue("name"))
 	address := strings.TrimSpace(r.FormValue("address"))
-	count_colum, ok_count_colum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
-	is_second_price, ok_is_second_price := getIntVal(strings.TrimSpace(r.FormValue("is_second_price")))
+	countColum, okCountColum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
+	isSecondPrice, okIsSecondPrice := getIntVal(strings.TrimSpace(r.FormValue("is_second_price")))
 	stats := strings.TrimSpace(r.FormValue("stats"))
 
-	if !ok || !ok_count_colum || !ok_is_second_price || id == "" || name == "" || address == "" || stats == "" {
-		sendJsonResponse(rw, http.StatusOK, "Все поля должны быть заполнены!", "error")
-
+	if name == "" || address == "" || stats == "" || !okCountColum || !okIsSecondPrice {
+		sendJsonResponse(rw, http.StatusBadRequest, "All fields must be filled!", "Error")
 		return
 	}
+
+	if err := a.manageAzs(idInt, countColum, isSecondPrice, name, address, stats); err != nil {
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		return
+	}
+
+	sendJsonResponse(rw, http.StatusOK, "Operation successful", "Ok")
+}
+
+func (a app) manageAzs(idInt, countColum, isSecondPrice int, name, address, stats string) error {
+	t := time.Now().Format(time.RFC3339)
 
 	azs, err := a.repo.GetAzs(a.ctx, idInt)
-
-	if azs.Id == -1 {
-		err = a.repo.AddAzs(a.ctx, idInt, 0, count_colum, is_second_price, t.Format(time.RFC822), name, address, stats)
-		if err == nil {
-			err = a.repo.AddAzsButton(a.ctx, idInt)
-			err = a.repo.CreateReceipt(a.ctx, idInt)
-		}
-
-	} else if err == nil {
-		azs.Time = t.Format(time.RFC822)
-		azs.CountColum = count_colum
-		azs.Name = name
-		azs.Address = address
-		azs.Stats = stats
-		azs.IsSecondPriceEnable = is_second_price
-		err = a.repo.UpdateAzs(a.ctx, azs)
+	if err != nil {
+		return err
 	}
 
-	if err != nil {
-		sendJsonResponse(rw, http.StatusOK, err.Error(), "Error")
+	if azs.Id == -1 {
+		return a.createAzs(idInt, countColum, isSecondPrice, name, address, stats, t)
+	}
+
+	azs.Time = t
+	azs.CountColum = countColum
+	azs.Name = name
+	azs.Address = address
+	azs.Stats = stats
+	azs.IsSecondPriceEnable = isSecondPrice
+	return a.repo.UpdateAzs(a.ctx, azs)
+}
+
+func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stats, time string) error {
+	if err := a.repo.AddAzs(a.ctx, idInt, 0, countColum, isSecondPrice, time, name, address, stats); err != nil {
+		return err
+	}
+	if err := a.repo.AddAzsButton(a.ctx, idInt); err != nil {
+		return err
+	}
+	return a.repo.CreateReceipt(a.ctx, idInt)
+}
+
+func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idAzs, ok := getIntVal(r.FormValue("id_azs"))
+	if !ok {
+		sendError(rw, "Invalid id_azs", http.StatusBadRequest)
 		return
 	}
 
-	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+	if err := a.repo.DeleteAzs(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete AZS: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := a.repo.DeleteReceiptAll(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := a.repo.DeleteAzsButton(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
 func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		sendJsonResponse(rw, http.StatusBadRequest, "Invalid token", "Error")
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
-
-	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("id")))
+	id, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 	receiptJson := strings.TrimSpace(r.FormValue("receipt"))
 
-	if !ok_id || receiptJson == "" {
-		sendJsonResponse(rw, http.StatusBadRequest, "Все поля должны быть заполнены!", "Error")
+	if !ok || receiptJson == "" {
+		sendJsonResponse(rw, http.StatusBadRequest, "All fields must be filled!", "Error")
 		return
 	}
 
@@ -127,7 +139,7 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 	err = a.repo.AddReceipt(a.ctx, id, receipt)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
@@ -135,14 +147,11 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 }
 
 func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		sendJsonResponse(rw, http.StatusBadRequest, "Invalid token", "Error")
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
-	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id or GetAzsButton", "Error")
@@ -154,16 +163,11 @@ func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
-
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
-	json.NewEncoder(rw).Encode(azsButton)
+	sendJson(rw, http.StatusOK, azsButton)
 }
 
 func (a app) resetAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		sendJsonResponse(rw, http.StatusBadRequest, "error", "invalid token")
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
@@ -237,31 +241,6 @@ func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 	} else {
 		sendJsonResponse(rw, http.StatusOK, "Ok", "noready")
 	}
-}
-
-func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	idAzs, ok := getIntVal(r.FormValue("id_azs"))
-	if !ok {
-		sendError(rw, "Invalid id_azs", http.StatusBadRequest)
-		return
-	}
-
-	if err := a.repo.DeleteAzs(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete AZS: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := a.repo.DeleteReceiptAll(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := a.repo.DeleteAzsButton(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
 func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {

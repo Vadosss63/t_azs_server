@@ -1,7 +1,6 @@
 package application
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,9 +12,7 @@ import (
 )
 
 func (a app) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		http.Error(rw, "Ivalid token: ", http.StatusInternalServerError)
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
@@ -60,11 +57,7 @@ func (a app) downloadLogFile(rw http.ResponseWriter, r *http.Request, p httprout
 }
 
 func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
@@ -72,84 +65,68 @@ func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	_, ok := getIntVal(id)
 
 	if !ok {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "error id"})
+		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
 
 	// 10 MB максимальный размер файла
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", err.Error()})
+		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
 
 	file, handler, err := r.FormFile("file")
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", err.Error()})
+		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
 	defer file.Close()
 
 	uploadsDir := "./uploads/" + id + "/"
 	if _, err := os.Stat(uploadsDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(uploadsDir, 0755); err != nil { // Используйте os.MkdirAll вместо os.Mkdir
-			rw.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(rw).Encode(answer{"error", err.Error()})
+		if err := os.MkdirAll(uploadsDir, 0755); err != nil {
+			sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 			return
 		}
 	}
 
 	dst, err := os.Create(uploadsDir + handler.Filename)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(rw).Encode(answer{"error", err.Error()})
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(rw).Encode(answer{"error", err.Error()})
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
-	rw.WriteHeader(http.StatusOK)
-	json.NewEncoder(rw).Encode(answer{"ok", "Файл успешно загружен"})
+	sendJsonResponse(rw, http.StatusOK, "Файл успешно загружен", "Ok")
 }
 
 func (a app) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
-	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 
-	if ok {
-		// a.repo.UpdateLogButton(a.ctx, idInt, 1)
-		logButton, err := a.repo.GetLogButton(a.ctx, idInt)
-		if err == nil {
-			rw.WriteHeader(http.StatusOK)
-			json.NewEncoder(rw).Encode(logButton)
-			return
-		}
+	if !ok {
+		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
+		return
 	}
-	rw.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error id or GetLogButton"})
+	logButton, err := a.repo.GetLogButton(a.ctx, idInt)
+	if err != nil {
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+
+		return
+	}
+	sendJson(rw, http.StatusOK, logButton)
 }
 
 func (a app) resetLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
@@ -157,11 +134,7 @@ func (a app) resetLogButton(rw http.ResponseWriter, r *http.Request, p httproute
 }
 
 func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	rw.Header().Set("Content-Type", "application/json")
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 	id := strings.TrimSpace(r.FormValue("id"))
@@ -170,13 +143,11 @@ func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	if ok {
 		err := a.repo.UpdateLogButton(a.ctx, idInt, 1)
 		if err == nil {
-			rw.WriteHeader(http.StatusOK)
-			json.NewEncoder(rw).Encode(answer{Msg: "Ok", Status: "Ok"})
+			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
 		}
 	}
-	rw.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error"})
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a app) resetLogAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -186,30 +157,21 @@ func (a app) resetLogAzs(rw http.ResponseWriter, r *http.Request, p httprouter.P
 	if ok {
 		err := a.repo.UpdateLogButton(a.ctx, idInt, 0)
 		if err == nil {
-			rw.WriteHeader(http.StatusOK)
-			json.NewEncoder(rw).Encode(answer{Msg: "Ok", Status: "Ok"})
+			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
 		}
 	}
-	rw.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(rw).Encode(answer{Msg: "error", Status: "error"})
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-
-	rw.Header().Set("Content-Type", "application/json")
-
-	tokenReq := strings.TrimSpace(r.FormValue("token"))
-	if a.token != tokenReq {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "invalid token"})
+	if !a.validateToken(rw, r.FormValue("token")) {
 		return
 	}
 
 	id := strings.TrimSpace(r.FormValue("id"))
 	if id == "" {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(answer{"error", "ID is required"})
+		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
 
@@ -217,8 +179,7 @@ func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 
 	err := os.RemoveAll(uploadsDir)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(rw).Encode(answer{"error", err.Error()})
+		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
