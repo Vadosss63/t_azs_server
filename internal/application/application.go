@@ -45,11 +45,12 @@ func (a app) Routes(router *httprouter.Router) {
 	router.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
 		loc := now.Location()
+		paymentType := ""
 
 		fromSearchDateTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
 		toSearchDateTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, loc)
 
-		a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime)
+		a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
 	}))
 
 	router.POST("/azs_receipt/history", a.authorized(a.showHistoryReceiptsPage))

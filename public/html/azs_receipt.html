@@ -86,19 +86,27 @@
     {{template "user_navi.html" .}}
     <ul>
         <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch" name="searchForm">
-            <p>Выберите период с: <input type="date" name="fromSearch" value="{{.FormSearchVal}}"> <input type="time"
-                    name="fromTime" value="{{.FromTimeVal}}">
-                по: <input type="date" name="toSearch" value="{{.ToSearchVal}}"> <input type="time" name="toTime"
-                    value="{{.ToTimeVal}}">
-                <button type="submit" name="showBtn">Показать</button>
-            </p>
+            <p><label for="fromSearch">Выберите период с:</label>
+                <input type="date" id="fromSearch" name="fromSearch" value="{{.FormSearchVal}}">
+                <input type="time" id="fromTime" name="fromTime" value="{{.FromTimeVal}}">
+
+                <label for="toSearch">по:</label>
+                <input type="date" id="toSearch" name="toSearch" value="{{.ToSearchVal}}">
+                <input type="time" id="toTime" name="toTime" value="{{.ToTimeVal}}">
+            </p><p><label for="paymentType">Тип оплаты:</label>
+                <select id="paymentType" name="paymentType">
+                    <option value="" {{if eq .FormPaymentType "" }}selected{{end}}>Все</option>
+                    <option value="cash" {{if eq .FormPaymentType "cash" }}selected{{end}}>Наличные</option>
+                    <option value="cashless" {{if eq .FormPaymentType "cashless" }}selected{{end}}>Безналичные</option>
+                </select>
+                <button type="submit" name="showBtn">Показать</button></p>
             <p>Результат: {{.TotalSum}} руб, {{.Count}} шт.</p>
         </form>
+
         {{ range .Receipts }}
         <div class="container">
-            <span> {{.Data}} | Колонка: {{.NumOfAzsNode}} | Топливо: {{.GasType}} | Литры: {{.CountLitres}} | Сумма: {{.Sum}} руб</span>
-        </div>
-        {{end}}
+            <span>{{.Data}} | Колонка: {{.NumOfAzsNode}} | Топливо: {{.GasType}} | Литры: {{.CountLitres}} | Сумма: {{.Sum}} руб | Наличные: {{.Cash}} руб | Безналичные: {{.Cashless}} руб</span>        </div>
+        {{end}}        
     </ul>
 </body>
 

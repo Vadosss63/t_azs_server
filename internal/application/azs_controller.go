@@ -64,15 +64,15 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 }
 
 func (a app) manageAzs(idInt, countColum, isSecondPrice int, name, address, stats string) error {
-	t := time.Now().Format(time.RFC3339)
+	t := time.Now().Format(time.RFC822)
 
 	azs, err := a.repo.GetAzs(a.ctx, idInt)
-	if err != nil {
-		return err
-	}
-
 	if azs.Id == -1 {
 		return a.createAzs(idInt, countColum, isSecondPrice, name, address, stats, t)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	azs.Time = t
@@ -91,6 +91,12 @@ func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stat
 	if err := a.repo.AddAzsButton(a.ctx, idInt); err != nil {
 		return err
 	}
+	if err := a.repo.AddUpdateCommand(a.ctx, idInt); err != nil {
+		return err
+	}
+	if err := a.repo.AddLogButton(a.ctx, idInt); err != nil {
+		return err
+	}
 	return a.repo.CreateReceipt(a.ctx, idInt)
 }
 
@@ -106,13 +112,23 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	if err := a.repo.DeleteReceiptAll(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
+	if err := a.repo.DeleteAzsButton(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.DeleteAzsButton(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
+	if err := a.repo.DeleteLogButton(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete AZS Log button: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := a.repo.DeleteUpdateCommand(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete Update Command: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := a.repo.DeleteReceiptAll(a.ctx, idAzs); err != nil {
+		sendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
