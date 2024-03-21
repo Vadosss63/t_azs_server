@@ -11,23 +11,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const (
-	SetPrice1         = 0x01
-	SetPrice2         = 0x02
-	SetPrice1Cashless = 0x03
-	SetPrice2Cashless = 0x04
-	BlockAzs          = 0x11
-	UnblockAzs        = 0x12
-	TakeZReport       = 0x21
-	CancelN           = 0x22
-	EnableN           = 0x23
-	SetFuelArrival1   = 0x31
-	SetFuelArrival2   = 0x32
-	SetLockFuelValue1 = 0x33
-	SetLockFuelValue2 = 0x34
-	Encashment        = 0xFF
-)
-
 var azsPageTemplate = template.Must(template.ParseFiles(
 	filepath.Join("public", "html", "azs_page.html"),
 	filepath.Join("public", "html", "user_navi.html"),
@@ -205,11 +188,21 @@ func (a app) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 }
 
 func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	validBtns := map[int]bool{
-		SetPrice1: true, SetPrice2: true, SetPrice1Cashless: true, SetPrice2Cashless: true,
-		BlockAzs: true, UnblockAzs: true, TakeZReport: true, CancelN: true, EnableN: true,
-		SetFuelArrival1: true, SetFuelArrival2: true, SetLockFuelValue1: true, SetLockFuelValue2: true,
-		Encashment: true,
+	validBtns := map[string]int{
+		"serviceBtn1":       0x01,
+		"serviceBtn2":       0x02,
+		"serviceBtn3":       0x03,
+		"resetCounters":     0x10,
+		"blockAzsNode":      0x11,
+		"unblockAzsNode":    0x12,
+		"setPriceCash1":     0x30,
+		"setPriceCashless1": 0x38,
+		"setPriceCash2":     0x31,
+		"setPriceCashless2": 0x39,
+		"setFuelArrival1":   0x48,
+		"setLockFuelValue1": 0x40,
+		"setFuelArrival2":   0x49,
+		"setLockFuelValue2": 0x41,
 	}
 
 	id_azs, ok := getIntVal(r.FormValue("id_azs"))
@@ -218,8 +211,8 @@ func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 		return
 	}
 
-	pushedBtn, ok := getIntVal(r.FormValue("pushedBtn"))
-	if !ok || !validBtns[pushedBtn] {
+	pushedBtn := validBtns[r.FormValue("pushedBtn")]
+	if pushedBtn == 0 {
 		sendError(rw, "Invalid pushedBtn value: "+r.FormValue("pushedBtn"), http.StatusBadRequest)
 		return
 	}

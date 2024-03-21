@@ -32,17 +32,14 @@ function hideMessage() {
     window.location.reload();
 }
 
-async function sendToAzs(form, msg, value = 0) {
+async function sendToAzs(formData, msg) {
     const confirmed = window.confirm(msg);
     if (!confirmed) return;
-
-    const formData = new FormData(form);
-    formData.set("value", value);
 
     showMessage('Отправка запроса на АЗС...');
 
     try {
-        const response = await fetch(form.action, { method: "POST", body: formData });
+        const response = await fetch('/push_azs_button', { method: "POST", body: formData });
         if (!response.ok) throw new Error("Сетевая ошибка");
 
         let retries = 15;
@@ -75,73 +72,96 @@ async function sendToAzs(form, msg, value = 0) {
     }
 }
 
-const selectorsArray =  [
-    ".resetAzs1",
-    ".resetAzs2",
-    ".resetDallyCounter",
-    ".serviceBtn1",
-    ".serviceBtn2",
-    ".serviceBtn3",
-    ".priceBtn1",
-    ".priceBtn2",
-    ".priceBtn3",
-    ".priceBtn4",
-    ".fuelArrivalBtn1",
-    ".fuelArrivalBtn2",
-    ".lockFuelValueBtn1",
-    ".lockFuelValueBtn2"
-  ]
+const buttonIdArray = [
+    "service1Btn",
+    "service2Btn",
+    "service3Btn",
+    "resetCountersBtn",
+    "blockAzsNodeBtn",
+    "unblockAzsNodeBtn",
+    "priceCash1Btn",
+    "priceCashless1Btn",
+    "priceCash2Btn",
+    "priceCashless2Btn",
+    "fuelArrival1Btn",
+    "lockFuelValue1Btn",
+    "fuelArrival2Btn",
+    "lockFuelValue2Btn"
+]
 
-document.querySelectorAll(selectorsArray).forEach(form => {
-    form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const inputMap = {
-            'priceBtn1': "price1Input",
-            'priceBtn2': "price2Input",
-            'priceBtn3': "price1cashlessInput",
-            'priceBtn4': "price2cashlessInput",
-            'fuelArrivalBtn1': "fuelArrival1Input",
-            'fuelArrivalBtn2': "fuelArrival2Input",
-            'lockFuelValueBtn1': "lockFuelValue1Input",
-            'lockFuelValueBtn2': "lockFuelValue2Input"
-        };
+const actionMap = {
+    "service1Btn": "serviceBtn1",
+    "service2Btn": "serviceBtn2",
+    "service3Btn": "serviceBtn3",
+    "resetCountersBtn": "resetCounters",
+    "blockAzsNodeBtn": "blockAzsNode",
+    "unblockAzsNodeBtn": "unblockAzsNode",
+    "priceCash1Btn": "setPriceCash1",
+    "priceCashless1Btn": "setPriceCashless1",
+    "priceCash2Btn": "setPriceCash2",
+    "priceCashless2Btn": "setPriceCashless2",
+    "fuelArrival1Btn": "setFuelArrival1",
+    "lockFuelValue1Btn": "setLockFuelValue1",
+    "fuelArrival2Btn": "setFuelArrival2",
+    "lockFuelValue2Btn": "setLockFuelValue2"
+};
 
-        const actionMsgMap = {
-            'resetAzs1': "Заблокировать АЗС?",
-            'resetAzs2': "Разблокировать АЗС?",
-            'resetDallyCounter': "Выполнить Инкассацию?",
-            'serviceBtn1': "Выполнить Снятие Z - отчёта?",
-            'serviceBtn2': "Выполнить Отключение N?",
-            'serviceBtn3': "Выполнить Включение N?",
-            'priceBtn1': "Установить цену для 1-й колонки?",
-            'priceBtn2': "Установить цену для 2-й колонки?",
-            'priceBtn3': "Установить цену для 1-й колонки безналичного расчета?",
-            'priceBtn4': "Установить цену для 2-й колонки безналичного расчета?",
-            'fuelArrivalBtn1': "Установить приход для 1-й колонки?",
-            'fuelArrivalBtn2': "Установить приход для 2-й колонки?",
-            'lockFuelValueBtn1': "Установить значение блокировки для 1-й колонки?",
-            'lockFuelValueBtn2': "Установить значение блокировки для 2-й колонки?"
-        };
+const inputMap = {
+    "priceCash1Btn": "priceCash1Input",
+    "priceCashless1Btn": "priceCashless1Input",
+    "priceCash2Btn": "priceCash2Input",
+    "priceCashless2Btn": "priceCashless2Input",
+    "fuelArrival1Btn": "fuelArrival1Input",
+    "lockFuelValue1Btn": "lockFuelValue1Input",
+    "fuelArrival2Btn": "fuelArrival2Input",
+    "lockFuelValue2Btn": "lockFuelValue2Input"
+};
 
-        const className = form.classList[0];
+const actionMsgMap = {
+    "service1Btn": "Выполнить Снятие Z - отчёта?",
+    "service2Btn": "Выполнить Отключение N?",
+    "service3Btn": "Выполнить Включение N?",
+    "resetCountersBtn": "Выполнить Инкассацию?",
+    "blockAzsNodeBtn": "Заблокировать АЗС?",
+    "unblockAzsNodeBtn": "Разблокировать АЗС?",
+    "priceCash1Btn": "Установить цену для 1-й колонки?",
+    "priceCashless1Btn": "Установить цену для 1-й колонки безналичного расчета?",
+    "priceCash2Btn": "Установить цену для 2-й колонки",
+    "priceCashless2Btn": "Установить цену для 2-й колонки безналичного расчета?",
+    "fuelArrival1Btn": "Установить приход для 1-й колонки?",
+    "lockFuelValue1Btn": "Установить значение блокировки для 1-й колонки?",
+    "fuelArrival2Btn": "Установить приход для 2-й колонки?",
+    "lockFuelValue2Btn": "Установить значение блокировки для 2-й колонки?"
+};
 
-        const inputId = inputMap[className];
+buttonIdArray.forEach(id => {
+    const button = document.getElementById(id);
+    if (button) {
+        button.addEventListener('click', () => {
+            const azsId = document.getElementById('azsId').value;
+            const action = actionMap[id];
+            const inputId = inputMap[id];
 
-        let value = 0;
-        if (inputId) {
-            const inputElement = document.getElementById(inputId);
-            if (inputElement) {
-                value = convertPriceToInt(inputElement.value);
+            let value = 0;
+            if (inputId) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement) {
+                    value = convertPriceToInt(inputElement.value);
+                }
             }
-        }
 
-        const msg = actionMsgMap[className];
+            const form = new FormData();
+            form.append('value', value);
+            form.append('pushedBtn', action);
+            form.append('id_azs', azsId);
 
-        sendToAzs(form, msg, value);
-    });
+            const msg = actionMsgMap[id];
+            sendToAzs(form, msg);
+        });
+    }
 });
 
-["price1Input", "price2Input", "price1cashlessInput", "price2cashlessInput"].forEach(id => {
+["priceCash1Input", "priceCash2Input", "priceCashless1Input", "priceCashless2Input"].forEach(id => {
     const inputElement = document.getElementById(id);
     if (inputElement) {
         inputElement.addEventListener("input", function () {
