@@ -9,9 +9,9 @@ function priceValidator(priceInput) {
     }
 }
 
-function floatValidator(priceInput) {
-    const { value, defaultValue } = priceInput;
-    if (!value.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/)) {
+function integerValidator(val) {
+    const { value, defaultValue } = val;
+    if (!value.match(/^(0|[1-9]\d*)$/)) {
         priceInput.value = defaultValue;
     } else {
         priceInput.defaultValue = value;
@@ -89,6 +89,13 @@ const buttonIdArray = [
     "lockFuelValue2Btn"
 ]
 
+const priceInputArray = [
+    "priceCash1Btn",
+    "priceCashless1Btn",
+    "priceCash2Btn",
+    "priceCashless2Btn"
+]
+
 const actionMap = {
     "service1Btn": "serviceBtn1",
     "service2Btn": "serviceBtn2",
@@ -126,7 +133,7 @@ const actionMsgMap = {
     "unblockAzsNodeBtn": "Разблокировать АЗС?",
     "priceCash1Btn": "Установить цену для 1-й колонки?",
     "priceCashless1Btn": "Установить цену для 1-й колонки безналичного расчета?",
-    "priceCash2Btn": "Установить цену для 2-й колонки",
+    "priceCash2Btn": "Установить цену для 2-й колонки?",
     "priceCashless2Btn": "Установить цену для 2-й колонки безналичного расчета?",
     "fuelArrival1Btn": "Установить приход для 1-й колонки?",
     "lockFuelValue1Btn": "Установить значение блокировки для 1-й колонки?",
@@ -146,7 +153,11 @@ buttonIdArray.forEach(id => {
             if (inputId) {
                 const inputElement = document.getElementById(inputId);
                 if (inputElement) {
-                    value = convertPriceToInt(inputElement.value);
+                    if (priceInputArray.includes(id)) {
+                        value = convertPriceToInt(inputElement.value);
+                    } else {
+                        value = inputElement.value;
+                    }
                 }
             }
 
@@ -174,7 +185,7 @@ buttonIdArray.forEach(id => {
     const inputElement = document.getElementById(id);
     if (inputElement) {
         inputElement.addEventListener("input", function () {
-            floatValidator(this);
+            integerValidator(this);
         });
     }
 });

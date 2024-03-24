@@ -405,10 +405,10 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <td>Приход топлива-1, м3</td>
+                    <td>Приход топлива-1, л</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="fuelArrival1Input" type="number" step="0.01" min="0" max="180"
+                        <input id="fuelArrival1Input" type="number" step="1" min="0" max="1000000"
                             placeholder="Приход топлива-1" value="0" required>
                         {{ end }}
                     </td>
@@ -417,10 +417,10 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Заблокировать колонку-1 при объеме топлива менее, м3</td>
+                    <td>Заблокировать колонку-1 при объеме топлива менее, л</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="lockFuelValue1Input" type="number" step="0.01" min="0" max="180"
+                        <input id="lockFuelValue1Input" type="number" step="1" min="0" max="1000000"
                             placeholder="Заблокировать колонку-1" value="0" required>
                         {{ end }}
                     </td>
@@ -430,10 +430,10 @@
                 </tr>
                 {{if eq .CountColum 2}}
                 <tr>
-                    <td>Приход топлива-2, м3</td>
+                    <td>Приход топлива-2, л</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="fuelArrival2Input" type="number" step="0.01" min="0" max="180"
+                        <input id="fuelArrival2Input" type="number" step="1" min="0" max="1000000"
                             placeholder="Приход топлива-2" value="0" required>
                         {{ end }}
                     </td>
@@ -442,10 +442,10 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Заблокировать колонку-2 при объеме топлива менее, м3</td>
+                    <td>Заблокировать колонку-2 при объеме топлива менее, л</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="lockFuelValue2Input" type="number" step="0.01" min="0" max="180"
+                        <input id="lockFuelValue2Input" type="number" step="1" min="0" max="1000000"
                             placeholder="Заблокировать колонку-2" value="0" required>
                         {{ end }}
                     </td>
