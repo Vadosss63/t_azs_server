@@ -191,6 +191,10 @@
                     <th>Время обновления</th>
                     <td>{{.Time}}</td>
                 </tr>
+                <tr>
+                    <th>Вресия ПО</th>
+                    <td>{{.Info.Version}}</td>
+                </tr>
             </table>
             <b> </b>
             <table>
@@ -339,10 +343,10 @@
                         <button id="resetCountersBtn">Инкассация</button>
                     </td>
                     <td>
-                        <button id="blockAzsNodeBtn">Блокировка АЗС</button>
+                        <button id="blockAzsNodeBtn" {{if .Info.IsBlock}}disabled{{end}}>Блокировка АЗС</button>
                     </td>
                     <td>
-                        <button id="unblockAzsNodeBtn">Разблокировать АЗС</button>
+                        <button id="unblockAzsNodeBtn" {{if not .Info.IsBlock}}disabled{{end}}>Разблокировать АЗС</button>
                     </td>
                 </tr>
                 <tr>
@@ -407,9 +411,9 @@
                 <tr>
                     <td>Приход топлива-1, л</td>
                     <td>
-                        {{ with index .AzsNodes 1 }}
+                        {{ with index .AzsNodes 0 }}
                         <input id="fuelArrival1Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Приход топлива-1" value="0" required>
+                            placeholder="Приход топлива-1" value="{{.FuelArrival}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -419,9 +423,9 @@
                 <tr>
                     <td>Заблокировать колонку-1 при объеме топлива менее, л</td>
                     <td>
-                        {{ with index .AzsNodes 1 }}
+                        {{ with index .AzsNodes 0 }}
                         <input id="lockFuelValue1Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Заблокировать колонку-1" value="0" required>
+                            placeholder="Заблокировать колонку-1" value="{{.LockFuelValue}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -434,7 +438,7 @@
                     <td>
                         {{ with index .AzsNodes 1 }}
                         <input id="fuelArrival2Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Приход топлива-2" value="0" required>
+                            placeholder="Приход топлива-2" value="{{.FuelArrival}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -446,7 +450,7 @@
                     <td>
                         {{ with index .AzsNodes 1 }}
                         <input id="lockFuelValue2Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Заблокировать колонку-2" value="0" required>
+                            placeholder="Заблокировать колонку-2" value="{{.LockFuelValue}}" required>
                         {{ end }}
                     </td>
                     <td>

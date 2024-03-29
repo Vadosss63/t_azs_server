@@ -19,12 +19,14 @@ type AzsStatsData struct {
 }
 
 type Info struct {
-	CommonOnlineSum   int `json:"commonOnline"`
-	CommonSumCash     int `json:"commonCash"`
-	CommonSumCashless int `json:"commonCashless"`
-	DailyOnlineSum    int `json:"dailyOnline"`
-	DailySumCash      int `json:"dailyCash"`
-	DailySumCashless  int `json:"dailyCashless"`
+	CommonOnlineSum   int    `json:"commonOnline"`
+	CommonSumCash     int    `json:"commonCash"`
+	CommonSumCashless int    `json:"commonCashless"`
+	DailyOnlineSum    int    `json:"dailyOnline"`
+	DailySumCash      int    `json:"dailyCash"`
+	DailySumCashless  int    `json:"dailyCashless"`
+	Version           string `json:"version"`
+	IsBlock           bool   `json:"isBlock"`
 }
 
 type AzsNode struct {
@@ -37,6 +39,8 @@ type AzsNode struct {
 	FuelVolumePerc     string  `json:"fuelVolumePerc"`
 	Density            string  `json:"density"`
 	AverageTemperature string  `json:"averageTemperature"`
+	LockFuelValue      int     `json:"lockFuelValue"`
+	FuelArrival        int     `json:"fuelArrival"`
 }
 
 type AzsStatsDataFull struct {
