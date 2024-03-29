@@ -3,10 +3,8 @@ package application
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -28,6 +26,7 @@ type AzsReceiptTemplate struct {
 	Receipts        []repository.Receipt
 	Count           int
 	TotalSum        string
+	TotalLiters     string
 	FormPaymentType string
 }
 
@@ -106,13 +105,20 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 
 	totalSum := 0.0
+	totalLiters := 0.0
 	for _, receipt := range receipts {
-		sum, err := strconv.ParseFloat(receipt.Sum, 64)
-		if err != nil {
-			log.Printf("Error parsing receipt sum to float: %v", err)
-			continue
+		switch paymentType {
+		case "cash":
+			totalSum += float64(receipt.Cash)
+		case "cashless":
+			totalSum += float64(receipt.Cashless)
+		case "online":
+			totalSum += float64(receipt.Online)
+		default:
+			totalSum += float64(receipt.Sum)
 		}
-		totalSum += sum
+
+		totalLiters += float64(receipt.CountLitres)
 	}
 
 	azsReceiptDatas := AzsReceiptTemplate{
@@ -124,6 +130,7 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		Receipts:        receipts,
 		Count:           len(receipts),
 		TotalSum:        formatNumber(totalSum),
+		TotalLiters:     formatNumber(totalLiters),
 		FormPaymentType: paymentType, // Установка выбранного типа оплаты
 	}
 

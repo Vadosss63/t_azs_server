@@ -98,14 +98,16 @@
                     <option value="" {{if eq .FormPaymentType "" }}selected{{end}}>Все</option>
                     <option value="cash" {{if eq .FormPaymentType "cash" }}selected{{end}}>Наличные</option>
                     <option value="cashless" {{if eq .FormPaymentType "cashless" }}selected{{end}}>Безналичные</option>
+                    <option value="online" {{if eq .FormPaymentType "online" }}selected{{end}}>Онлайн</option>
                 </select>
                 <button type="submit" name="showBtn">Показать</button></p>
-            <p>Результат: {{.TotalSum}} руб, {{.Count}} шт.</p>
+            <p>Результат: {{.TotalSum}} руб, {{.TotalLiters}} л, {{.Count}} шт.</p>
         </form>
 
         {{ range .Receipts }}
         <div class="container">
-            <span>{{.Data}} | Колонка: {{.NumOfAzsNode}} | Топливо: {{.GasType}} | Литры: {{.CountLitres}} | Сумма: {{.Sum}} руб | Наличные: {{.Cash}} руб | Безналичные: {{.Cashless}} руб</span>        </div>
+            <span>{{.Date}} | {{.Sum}} руб | {{.CountLitres}} л | к-{{.NumOfAzsNode}} | {{.GasType}} | Нал: {{.Cash}} | Безнал: {{.Cashless}} | Онлайн: {{.Online}} </span>
+        </div>
         {{end}}        
     </ul>
 </body>
