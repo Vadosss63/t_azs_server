@@ -37,3 +37,4 @@ create table if not exists azs_button
 );
 -- insert into azs_button (id_azs, price, button)
 -- values (10111999, 4300, 33);
+-- DELETE FROM azses WHERE id_user = -1;
