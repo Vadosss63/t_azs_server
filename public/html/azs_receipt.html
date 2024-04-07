@@ -3,83 +3,11 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <link rel="icon" href="/public/image/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
     <title>История операций</title>
-    <style>
-        header {
-            font-size: 36px;
-            color: #1c7ed6;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
-            border-radius: 5px 5px 0 0;
-        }
-
-        p {
-            font-size: 20px;
-            color: #05111b;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #fff;
-
-        }
-
-        .container {
-            white-space: pre-line;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0px 0px 5px #ccc;
-            width: 1000px;
-            margin: 10px auto;
-            padding: 10px;
-        }
-
-        a {
-            text-decoration: none;
-            display: inline-block;
-            padding: 8px 16px;
-        }
-
-        a:hover {
-            background-color: #1c7ed6;
-            color: black;
-        }
-
-        .previous {
-            padding: 5px;
-            color: black;
-        }
-
-        nav {
-            background-color: #1c7ed6;
-        }
-
-        nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            text-align: right;
-        }
-
-        nav li {
-            display: inline-block;
-        }
-
-        nav a {
-            display: block;
-            padding: 10px;
-            color: #fff;
-        }
-
-        nav ul {
-            margin-right: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="/public/css/style.css">
     <meta charset="utf-8">
 </head>
 
@@ -87,30 +15,36 @@
     <header>История операций - {{.Azs.Name}}</header>
     {{template "user_navi.html" .}}
     <ul>
-        <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch" name="searchForm">
-            <p><label for="fromSearch">Выберите период с:</label>
-                <input type="date" id="fromSearch" name="fromSearch" value="{{.FormSearchVal}}">
-                <input type="time" id="fromTime" name="fromTime" value="{{.FromTimeVal}}">
+        <div class="receiptFilter">
+            <form action="/azs_receipt/history?id_azs={{.Azs.IdAzs}}" method="post" id="historySearch"
+                name="searchForm">
+                <p><label for="fromSearch">Выберите период с:</label>
+                    <input type="date" id="fromSearch" name="fromSearch" value="{{.FormSearchVal}}">
+                    <input type="time" id="fromTime" name="fromTime" value="{{.FromTimeVal}}">
 
-                <label for="toSearch">по:</label>
-                <input type="date" id="toSearch" name="toSearch" value="{{.ToSearchVal}}">
-                <input type="time" id="toTime" name="toTime" value="{{.ToTimeVal}}">
-            </p><p><label for="paymentType">Тип оплаты:</label>
-                <select id="paymentType" name="paymentType">
-                    <option value="" {{if eq .FormPaymentType "" }}selected{{end}}>Все</option>
-                    <option value="cash" {{if eq .FormPaymentType "cash" }}selected{{end}}>Наличные</option>
-                    <option value="cashless" {{if eq .FormPaymentType "cashless" }}selected{{end}}>Безналичные</option>
-                    <option value="online" {{if eq .FormPaymentType "online" }}selected{{end}}>Онлайн</option>
-                </select>
-                <button type="submit" name="showBtn">Показать</button></p>
-            <p>Результат: {{.TotalSum}} руб, {{.TotalLiters}} л, {{.Count}} шт.</p>
-        </form>
+                    <label for="toSearch">по:</label>
+                    <input type="date" id="toSearch" name="toSearch" value="{{.ToSearchVal}}">
+                    <input type="time" id="toTime" name="toTime" value="{{.ToTimeVal}}">
+                </p>
+                <p><label for="paymentType">Тип оплаты:</label>
+                    <select id="paymentType" name="paymentType">
+                        <option value="" {{if eq .FormPaymentType "" }}selected{{end}}>Все</option>
+                        <option value="cash" {{if eq .FormPaymentType "cash" }}selected{{end}}>Наличные</option>
+                        <option value="cashless" {{if eq .FormPaymentType "cashless" }}selected{{end}}>Безналичные
+                        </option>
+                        <option value="online" {{if eq .FormPaymentType "online" }}selected{{end}}>Онлайн</option>
+                    </select>
+                    <button type="submit" name="showBtn">Показать</button>
+                </p>
+                <p>Результат: {{.TotalSum}} руб, {{.TotalLiters}} л, {{.Count}} шт.</p>
+            </form>
+        </div>
 
         {{ range .Receipts }}
-        <div class="container">
-            <span>{{.Date}} | {{.Sum}} руб | {{.CountLitres}} л | к-{{.NumOfAzsNode}} | {{.GasType}} | Нал: {{.Cash}} | Безнал: {{.Cashless}} | Онлайн: {{.Online}} </span>
+        <div class="receipt">
+            <span>{{.Date}} | {{.Sum}} руб | {{.CountLitres}} л | к-{{.NumOfAzsNode}} | {{.GasType}} | Нал: {{.Cash}} | Безнал: {{.Cashless}} | Онлайн: {{.Online}}</span>
         </div>
-        {{end}}        
+        {{end}}
     </ul>
 </body>
 

@@ -7,104 +7,14 @@
   <link rel="icon" href="/public/image/favicon.ico" type="image/x-icon">
   <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
   <title>Администратор</title>
-  <style>
-    header {
-      font-size: 36px;
-      color: #1c7ed6;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-      background-color: #fff;
-      box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
-      border-radius: 5px 5px 0 0;
-    }
-
-    table {
-      margin: 0 auto;
-      padding: 20px;
-      width: 100%;
-      text-align: left;
-      max-width: 800px;
-      border-collapse: collapse;
-      box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
-      border-radius: 0 0 5px 5px;
-    }
-
-    table td,
-    table th {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-
-    table th {
-      background-color: #1c7ed6;
-      width: 35%;
-      color: #fff;
-      font-weight: bold;
-      white-space: nowrap;
-      text-align: center;
-    }
-
-    table tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    .container {
-      white-space: pre-line;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0px 0px 5px #ccc;
-      width: auto;
-      margin: 1% 0% 0% 0%;
-      padding: 30px;
-    }
-
-    input[type=password],
-    input[type=submit],
-    button {
-      width: 150px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    .ref {
-      text-align: center;
-    }
-
-    nav {
-      background-color: #1c7ed6;
-    }
-
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      text-align: right;
-    }
-
-    nav li {
-      display: inline-block;
-    }
-
-    nav a {
-      display: block;
-      padding: 10px;
-      color: #fff;
-    }
-
-    nav ul {
-      margin-right: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="/public/css/style.css">
 </head>
 
 <body>
   <header>Пользователи</header>
   {{template "admin_navi.html" .}}
-  <div class="overall">
-    <div class="container">
+  <div class="usersOverall">
+    <div class="usersContainer">
       <table .text-cell>
         <tr>
           <th>Логин</th>
@@ -136,7 +46,7 @@
         {{end}}
 
       </table>
-      <div class="ref">
+      <div class="signupRef">
         <a .ref href="/signup">Добавить пользователя</a>
       </div>
     </div>
