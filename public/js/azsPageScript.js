@@ -93,7 +93,12 @@ class PriceValidator extends Validator {
 
 class IntegerValidator extends Validator {
     isValid(value) {
-        return value.match(/^(0|[1-9]\d*)$/);
+        if (!value.match(/^(-?(0|[1-9]\d*))$/)) {
+            return false;
+        }    
+        const number = parseInt(value, 10);
+    
+        return number >= -100000 && number <= 100000;
     }
 }
 
