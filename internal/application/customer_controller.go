@@ -175,7 +175,8 @@ func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 
 	lp := filepath.Join("public", "html", "azs_stats.html")
 	navi := filepath.Join("public", "html", "user_navi.html")
-	tmpl := template.Must(template.ParseFiles(lp, navi))
+	azs := filepath.Join("public", "html", "azs_container.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi, azs))
 
 	err = tmpl.ExecuteTemplate(rw, "AzsStatsTemplate", azsStatsTemplate)
 	if err != nil {

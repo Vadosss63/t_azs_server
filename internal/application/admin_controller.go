@@ -60,7 +60,8 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 
 	lp := filepath.Join("public", "html", "admin_page.html")
 	navi := filepath.Join("public", "html", "admin_navi.html")
-	tmpl := template.Must(template.ParseFiles(lp, navi))
+	azs := filepath.Join("public", "html", "azs_container.html")
+	tmpl := template.Must(template.ParseFiles(lp, navi, azs))
 
 	err = tmpl.ExecuteTemplate(rw, "AdminPageTemplate", adminPageTemplate)
 	if err != nil {

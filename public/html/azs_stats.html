@@ -17,68 +17,7 @@
         <div style="width:100%; height:1px; clear:both;"></div> <!-- выравниваем без обтекания -->
         {{ range .Azses }}
         <div class="container">
-            <table>
-                <tr>
-                    <th>Название</th>
-                    <td>{{.Name}}</td>
-                </tr>
-                <tr>
-                    <th>Адрес</th>
-                    <td>{{.Address}}</td>
-                </tr>
-                <tr>
-                    <th>АЗС id</th>
-                    <td>{{.IdAzs}}</td>
-                </tr>
-                <tr>
-                    <th>Время обновления</th>
-                    <td>{{.Time}}</td>
-                </tr>
-                {{ with index .AzsNodes 0 }}
-                <tr>
-                    <th>Объем топлива-1, м3</th>
-                    <td>{{ .FuelVolume }}</td>
-                </tr>
-                {{ end }}
-
-                {{if eq .CountColum 2}}
-                {{ with index .AzsNodes 1 }}
-                <tr>
-                    <th>Объем топлива-2, м3</th>
-                    <td>{{ .FuelVolume }}</td>
-                </tr>
-                {{ end }}
-                {{end}}
-                </tr>
-                <tr>
-                    <th>Наличные, руб</th>
-                    <td class="sum-cell daily">{{.Info.DailySumCash}}</td>
-                </tr>
-                <tr>
-                    <th>Безналичные, руб</th>
-                    <td class="sum-cell daily">{{.Info.DailySumCashless}}</td>
-                </tr>
-                <tr>
-                    <th>Онлайн оплата, руб</th>
-                    <td class="sum-cell daily">{{.Info.DailyOnlineSum}}</td>
-                </tr>
-                {{ with index .AzsNodes 0 }}
-                <tr>
-                    <th>Колонка-1, л</th>
-                    <td class="liters-cell daily">{{.DailyLiters}}</td>
-                </tr>
-                {{ end }}
-
-                {{if eq .CountColum 2}}
-                {{ with index .AzsNodes 1 }}
-                <tr>
-                    <th>Колонка-2, л</th>
-                    <td class="liters-cell daily">{{.DailyLiters}}</td>
-                </tr>
-                {{ end }}
-                {{end}}
-
-            </table>
+            {{template "azs_container.html" .}}
             <div class="ref">
                 <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
             </div>
