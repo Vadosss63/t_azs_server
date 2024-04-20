@@ -1,9 +1,11 @@
 package application
 
 import (
+	"fmt"
 	"html/template"
-	"io"
 	"log"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,13 +25,46 @@ type LogsPageTemplate struct {
 	Logs   []string
 }
 
-func ensureDirectory(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0755); err != nil {
-			return err
-		}
+func processFileUpload(r *http.Request, maxUploadSize int64) (multipart.File, *multipart.FileHeader, error) {
+	contentType := r.Header.Get("Content-Type")
+	log.Println("Received Content-Type:", contentType)
+
+	mediaType, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		log.Printf("Error parsing media type '%s': %s\n", contentType, err)
+		return nil, nil, fmt.Errorf("Error parsing media type: %s", err)
 	}
-	return nil
+
+	if mediaType != "multipart/form-data" {
+		log.Printf("Expected 'multipart/form-data', but got '%s'\n", mediaType)
+		return nil, nil, fmt.Errorf("Invalid Content-Type: Expected multipart/form-data, got: %s", mediaType)
+	}
+
+	boundary, ok := params["boundary"]
+	if !ok {
+		log.Println("No boundary parameter found in Content-Type")
+		return nil, nil, fmt.Errorf("No boundary found in Content-Type")
+	}
+	log.Printf("Boundary received: %s\n", boundary)
+
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		log.Printf("Error parsing multipart form with boundary '%s': %s\n", boundary, err)
+		return nil, nil, fmt.Errorf("Error parsing multipart form: %s", err)
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		log.Printf("Error retrieving the file: %s\n", err)
+		return nil, nil, err
+	}
+
+	if handler.Size > maxUploadSize {
+		log.Printf("File too large: %d bytes, maximum allowed: %d bytes\n", handler.Size, maxUploadSize)
+		file.Close()
+		return nil, nil, fmt.Errorf("File too large: %d bytes, maximum allowed: %d bytes", handler.Size, maxUploadSize)
+	}
+
+	return file, handler, nil
 }
 
 func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -44,47 +79,17 @@ func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	contentType := r.Header.Get("Content-Type")
-	log.Println("Content-Type:", contentType)
-	if !strings.HasPrefix(contentType, "multipart/form-data") {
-		log.Println("Invalid Content-Type: Expected multipart/form-data")
-		sendJsonResponse(rw, http.StatusBadRequest, "Invalid Content-Type: Expected multipart/form-data", "Error")
-		return
-	}
-
-	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-		log.Println(err.Error())
-		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
-		return
-	}
-
-	file, handler, err := r.FormFile("file")
+	file, handler, err := processFileUpload(r, maxUploadSize)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
 	defer file.Close()
 
-	if handler.Size > maxUploadSize {
-		sendJsonResponse(rw, http.StatusBadRequest, "Файл слишком большой", "Error")
-		return
-	}
-
 	uploadsDir := filepath.Join(logsPath, id)
-	if err := ensureDirectory(uploadsDir); err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
-		return
-	}
 
-	safeFilename := filepath.Base(handler.Filename)
-	dst, err := os.Create(filepath.Join(uploadsDir, safeFilename))
+	err = saveUploadedFile(uploadsDir, handler.Filename, file)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
-		return
-	}
-	defer dst.Close()
-
-	if _, err := io.Copy(dst, file); err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
@@ -176,7 +181,7 @@ func (a app) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.
 		return
 	}
 
-	files, err := os.ReadDir(uploadsDir)
+	fileNames, err := listFilesInDirectory(uploadsDir)
 	if err != nil {
 		http.Error(rw, "Не удалось прочитать директорию: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -185,12 +190,7 @@ func (a app) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.
 	logsPageTemplate := LogsPageTemplate{
 		IdAzs:  id,
 		IdUser: 0, // Установите корректное значение IdUser, если это необходимо
-		Logs:   make([]string, 0, len(files)),
-	}
-	for _, file := range files {
-		if !file.IsDir() { // Убедитесь, что это файл, а не директория
-			logsPageTemplate.Logs = append(logsPageTemplate.Logs, file.Name())
-		}
+		Logs:   fileNames,
 	}
 
 	tpl, err := template.ParseFiles(
@@ -216,8 +216,7 @@ func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 
 	uploadsDir := filepath.Join(logsPath, id) + "/"
 
-	err := os.RemoveAll(uploadsDir)
-	if err != nil {
+	if err := deleteDirectory(uploadsDir); err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
