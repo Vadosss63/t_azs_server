@@ -18,7 +18,7 @@
     </tr>
     {{ with index .AzsNodes 0 }}
     <tr>
-        <th>Объем топлива-1, м3</th>
+        <th>Объем топлива-1, л</th>
         <td>{{ .FuelVolume }}</td>
     </tr>
     {{ end }}
@@ -26,7 +26,7 @@
     {{if eq .CountColum 2}}
     {{ with index .AzsNodes 1 }}
     <tr>
-        <th>Объем топлива-2, м3</th>
+        <th>Объем топлива-2, л</th>
         <td>{{ .FuelVolume }}</td>
     </tr>
     {{ end }}

@@ -11,11 +11,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var azsPageTemplate = template.Must(template.ParseFiles(
-	filepath.Join("public", "html", "azs_page.html"),
-	filepath.Join("public", "html", "user_navi.html"),
-))
-
 func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if !a.validateToken(rw, r.FormValue("token")) {
 		return
@@ -271,6 +266,11 @@ func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Param
 		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	var azsPageTemplate = template.Must(template.ParseFiles(
+		filepath.Join("public", "html", "azs_page.html"),
+		filepath.Join("public", "html", "user_navi.html"),
+	))
 
 	if err := azsPageTemplate.ExecuteTemplate(rw, "azsStatsDataFull", azsStatsDataFull); err != nil {
 		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)

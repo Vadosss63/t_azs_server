@@ -1,0 +1,33 @@
+{{define "logsPageTemplate"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/public/image/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
+    <title>Логи</title>
+    <link rel="stylesheet" href="/public/css/style.css">
+</head>
+
+<body>
+    <header>Список лог-файлов для АЗС ID: {{.IdAzs}}</header>
+    {{template "admin_navi.html" .}}
+    <div class="overall">
+        <div class="container">
+            <div>
+                <a href="/delete_logs?id_azs={{.IdAzs}}" class="button">Delete Logs</a>
+                <a href="/set_log_cmd?id_azs={{.IdAzs}}" class="button">Get Logs</a>
+            </div>
+            <p>Лог-файлы:</p>
+            <ul>
+                {{range .Logs}}
+                <li><a href="/download_log?file={{.}}&id_azs={{$.IdAzs}}">{{.}}</a></li>
+                {{end}}
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>
+{{end}}
