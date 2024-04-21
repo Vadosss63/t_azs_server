@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -41,20 +42,20 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 }
 
 func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
-	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+    id := strings.TrimSpace(r.FormValue("id_azs"))
+    idInt, ok := getIntVal(id)
 
-	if ok {
-		err := a.repo.UpdateUpdateCommand(a.ctx, idInt, "http://t-azs.ru:8085/public/update/GasStationPro.tar.gz")
-		if err == nil {
-			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
-			return
-		}
-	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+    version := strings.TrimSpace(r.FormValue("version"))
+
+    if ok {
+        url := "http://t-azs.ru:" + strconv.Itoa(a.port) + "/install/" + version
+        err := a.repo.UpdateUpdateCommand(a.ctx, idInt, url)
+        if err == nil {
+            sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+            return
+        }
+    }
+    sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a app) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {

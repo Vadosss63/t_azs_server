@@ -1,21 +1,44 @@
 {{define "updatePageTemplate"}}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/public/image/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
     <title>Обновления ПО АЗС</title>
     <link rel="stylesheet" href="/public/css/style.css">
-</head>
+    <script>
+        async function installVersion(version, azsId) { 
+            try {
+                const formData = new FormData(); 
+                formData.append('version', version); 
+                formData.append('id_azs', azsId);
 
+                const response = await fetch('/install_update', { method: "POST", body: formData });
+                if (response.ok) {
+                    const result = await response.text(); 
+                    alert(result); 
+                } else {
+                    throw new Error(await response.text());
+                }
+            } catch (error) {
+                alert("Ошибка установки: " + error.message);
+            }
+        }
+    </script>
+</head>
 <body>
     <header>Обновление ПО для АЗС ID: {{.IdAzs}}</header>
     {{template "admin_navi.html" .}}
     <div class="overall">
         <div class="container">
             <h2>Доступные файлы обновлений:</h2>
+            <select id="availableFiles">
+                {{range .AvailableAppFiles}}
+                <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+            <button onclick="installVersion(document.getElementById('availableFiles').value, '{{.IdAzs}}')">Установить</button> <!-- Добавили кавычки вокруг {{.IdAzs}} -->
             <ul>
                 {{range .AvailableAppFiles}}
                 <li>{{.}}</li>
@@ -30,6 +53,5 @@
         </div>
     </div>
 </body>
-
 </html>
 {{end}}

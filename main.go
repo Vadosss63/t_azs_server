@@ -53,7 +53,7 @@ func main() {
 		log.Fatalf("%w failed to init DB connection", err)
 	}
 	defer dbpool.Close()
-	a := application.NewApp(ctx, dbpool, settings.Token)
+	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port)
 	r := httprouter.New()
 	a.Routes(r)
 	fmt.Printf("It's alive! Try http://t-azs.ru:%d/\n", settings.Port)

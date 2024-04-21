@@ -17,14 +17,17 @@ type app struct {
 	repo  *repository.Repository
 	cache map[string]repository.User
 	token string
+	port  int
 }
 
-func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string) *app {
-	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User), token}
+func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port  int) *app {
+	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User), token, port}
 }
 
 func (a app) Routes(router *httprouter.Router) {
 	router.ServeFiles("/public/*filepath", http.Dir("public"))
+	
+    router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
 
 	router.GET("/", a.authorized(a.startPage))
 
@@ -83,7 +86,7 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/get_app_update_button", a.getAppUpdateButton)
 	router.POST("/reset_app_update_button", a.resetAppUpdateButton)
-	router.GET("/set_app_update_cmd", a.setAppUpdateCmd)
+	router.POST("/install_update", a.authorized(a.setAppUpdateCmd))
 	router.GET("/update_app_page", a.authorized(a.showUpdateAppPage))
 	router.GET("/download_version", a.authorized(a.downloadVersionHandler))
 
