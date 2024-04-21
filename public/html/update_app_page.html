@@ -7,51 +7,32 @@
     <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
     <title>Обновления ПО АЗС</title>
     <link rel="stylesheet" href="/public/css/style.css">
-    <script>
-        async function installVersion(version, azsId) { 
-            try {
-                const formData = new FormData(); 
-                formData.append('version', version); 
-                formData.append('id_azs', azsId);
-
-                const response = await fetch('/install_update', { method: "POST", body: formData });
-                if (response.ok) {
-                    const result = await response.text(); 
-                    alert(result); 
-                } else {
-                    throw new Error(await response.text());
-                }
-            } catch (error) {
-                alert("Ошибка установки: " + error.message);
-            }
-        }
-    </script>
 </head>
 <body>
+    <div id="message"></div>
+    <input type="hidden" id="azsId" value={{.IdAzs}}>
     <header>Обновление ПО для АЗС ID: {{.IdAzs}}</header>
     {{template "admin_navi.html" .}}
     <div class="overall">
         <div class="container">
-            <h2>Доступные файлы обновлений:</h2>
+            <h2>Доступные версии (теги):</h2>
+            <select id="availableTags">
+                {{range .AvailableTags}}
+                <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+            <button id="downloadAppBtn">Загрузить на сервер</button>
+            <h2>Доступные версии для обновлений:</h2>
             <select id="availableFiles">
                 {{range .AvailableAppFiles}}
                 <option value="{{.}}">{{.}}</option>
                 {{end}}
             </select>
-            <button onclick="installVersion(document.getElementById('availableFiles').value, '{{.IdAzs}}')">Установить</button> <!-- Добавили кавычки вокруг {{.IdAzs}} -->
-            <ul>
-                {{range .AvailableAppFiles}}
-                <li>{{.}}</li>
-                {{end}}
-            </ul>
-            <h2>Доступные версии (теги):</h2>
-            <ul>
-                {{range .AvailableTags}}
-                <li><a href="/download_version?id_azs={{$.IdAzs}}&version={{.}}">{{.}}</a></li>
-                {{end}}
-            </ul>
+            <button id="installAppBtn">Установить на АЗС</button>
+            <button id="deleteAppFileBtn">Удалить с сервера</button>
         </div>
     </div>
 </body>
+<script type="module" src="/public/js/updateAppPageScript.js"></script>
 </html>
 {{end}}

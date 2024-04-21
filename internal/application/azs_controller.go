@@ -243,7 +243,7 @@ func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 	if azsButton.Button == 0 && azsButton.Value == 0 {
 		sendJsonResponse(rw, http.StatusOK, "Ok", "ready")
 	} else {
-		sendJsonResponse(rw, http.StatusOK, "Ok", "noready")
+		sendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
 	}
 }
 

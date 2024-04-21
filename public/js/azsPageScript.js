@@ -4,7 +4,10 @@ import { PriceValidator, IntegerValidator } from './Validator.js';
 import InputField from './InputField.js';
 import ButtonAction from './ButtonAction.js';
 
-const azsService = new AzsService();
+const pushUrl = "/push_azs_button";
+const statusUrl = "/azs_button_ready";
+
+const azsService = new AzsService(pushUrl, statusUrl);
 
 new ButtonAction("service1Btn", "serviceBtn1", "Выполнить Снятие Z - отчёта?", azsService);
 new ButtonAction("service2Btn", "serviceBtn2", "Выполнить Отключение N?", azsService);

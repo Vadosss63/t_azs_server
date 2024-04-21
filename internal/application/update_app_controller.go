@@ -23,6 +23,131 @@ type UpdatePageTemplate struct {
 	AvailableTags     []string
 }
 
+func (a app) appUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	pushedBtn := r.FormValue("pushedBtn")
+
+	switch pushedBtn {
+	case "install":
+		a.setAppUpdateCmd(rw,r)
+		return	
+	case "download":
+		a.downloadVersionHandler(rw,r)
+		return	
+	case "delete":
+		a.deleteAppFile(rw,r)
+		return
+	}
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+}
+
+func (a app) deleteAppFile(rw http.ResponseWriter, r *http.Request) {
+	_, ok := getIntVal(r.FormValue("id_azs"))
+	if !ok {
+		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		return
+	}
+	
+    filename := strings.TrimSpace(r.FormValue("value"))
+
+    if filename == "" {
+		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+        return
+	}   
+	filePath := filepath.Join(updateAppPath, filename)
+
+	exists, err := checkFileExists(filePath)
+	if err != nil {
+		sendJsonResponse(rw, http.StatusInternalServerError, "Error", "Ошибка сервера при проверке файла: "+err.Error())
+		return
+	}
+
+	if exists {
+		err = deleteDirectory(filePath)
+		if err != nil {
+			sendJsonResponse(rw, http.StatusInternalServerError, "Error", "Ошибка при удалени файла: "+err.Error())
+			return
+		}
+	}
+	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+}
+
+func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
+	idInt, ok := getIntVal(r.FormValue("id_azs"))
+	if !ok {
+		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		return
+	}
+
+    version := strings.TrimSpace(r.FormValue("value"))
+
+    if version == "" {
+		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+        return
+	}        
+	
+	url := "http://t-azs.ru:" + strconv.Itoa(a.port) + "/install/" + version
+    err := a.repo.UpdateUpdateCommand(a.ctx, idInt, url)
+        
+	if err != nil {  
+		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+        return        
+	}		
+	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+}
+
+func (a app) downloadVersionHandler(rw http.ResponseWriter, r *http.Request) {
+	_, ok := getIntVal(r.FormValue("id_azs"))
+	if !ok {
+		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		return
+	}
+	
+    version := strings.TrimSpace(r.FormValue("value"))
+
+    if version == "" {
+		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+        return
+	}   
+
+	filename := fmt.Sprintf("%s.tar.gz", version)
+	filePath := filepath.Join(updateAppPath, filename)
+
+	exists, err := checkFileExists(filePath)
+	if err != nil {
+		sendJsonResponse(rw, http.StatusInternalServerError, "Error", "Ошибка сервера при проверке файла: "+err.Error())
+		return
+	}
+
+	if !exists {
+		err = downloadFromGitHub("Vadosss63", "GasStationPro", version, updateAppPath)
+		if err != nil {
+			sendJsonResponse(rw, http.StatusInternalServerError, "Error", "Ошибка при скачивании файла: "+err.Error())
+			return
+		}
+	}
+	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+}
+
+func (a app) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idInt, ok := getIntVal(r.FormValue("id_azs"))
+	if !ok {
+		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		return
+	}
+
+	updateCommand, err := a.repo.GetUpdateCommand(a.ctx, idInt)
+	if err != nil {
+		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if updateCommand.Url == ""{
+		sendJsonResponse(rw, http.StatusOK, "Ok", "ready")
+	} else {
+		sendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
+	}
+}
+
 func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if !a.validateToken(rw, r.FormValue("token")) {
 		return
@@ -39,23 +164,6 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 		}
 	}
 	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
-}
-
-func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-    id := strings.TrimSpace(r.FormValue("id_azs"))
-    idInt, ok := getIntVal(id)
-
-    version := strings.TrimSpace(r.FormValue("version"))
-
-    if ok {
-        url := "http://t-azs.ru:" + strconv.Itoa(a.port) + "/install/" + version
-        err := a.repo.UpdateUpdateCommand(a.ctx, idInt, url)
-        if err == nil {
-            sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
-            return
-        }
-    }
-    sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a app) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -132,33 +240,6 @@ func downloadFromGitHub(owner, repo, tag, destinationDir string) error {
 	}
 
 	return nil
-}
-
-func (a app) downloadVersionHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id := strings.TrimSpace(r.FormValue("id_azs"))
-	if _, ok := getIntVal(id); !ok {
-		http.Error(rw, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-	version := r.URL.Query().Get("version")
-	filename := fmt.Sprintf("%s.tar.gz", version)
-	filePath := filepath.Join(updateAppPath, filename)
-
-	exists, err := checkFileExists(filePath)
-	if err != nil {
-		http.Error(rw, "Ошибка сервера при проверке файла: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if !exists {
-		err = downloadFromGitHub("Vadosss63", "GasStationPro", version, updateAppPath)
-		if err != nil {
-			http.Error(rw, "Ошибка при скачивании файла: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	http.Redirect(rw, r, "/update_app_page?id_azs="+id, http.StatusSeeOther)
 }
 
 func (a app) showUpdateAppPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {

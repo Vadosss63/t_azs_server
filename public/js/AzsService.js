@@ -1,6 +1,9 @@
-// AzsService.js
 class AzsService {
-    constructor() {
+    constructor(pushUrl, statusUrl, maxRetries = 15, resetUrl = null) {
+        this.pushUrl = pushUrl;
+        this.statusUrl = statusUrl;
+        this.maxRetries = maxRetries;
+        this.resetUrl = resetUrl;
         this.messageElement = document.getElementById('message');
     }
 
@@ -20,7 +23,7 @@ class AzsService {
 
         this.showMessage('Отправка запроса на АЗС...');
         try {
-            const response = await fetch('/push_azs_button', { method: "POST", body: formData });
+            const response = await fetch(this.pushUrl, { method: "POST", body: formData });
             if (!response.ok) throw new Error("Сетевая ошибка");
             await this.checkStatus(formData);
         } catch (error) {
@@ -30,10 +33,10 @@ class AzsService {
     }
 
     async checkStatus(formData) {
-        let retries = 15;
+        let retries = this.maxRetries;
         const check = async () => {
             try {
-                const statusResponse = await fetch('/azs_button_ready?id_azs=' + formData.get("id_azs"));
+                const statusResponse = await fetch(`${this.statusUrl}?id_azs=${formData.get("id_azs")}`);
                 if (!statusResponse.ok) throw new Error("Ошибка сервера при проверке статуса");
 
                 const data = await statusResponse.json();
@@ -43,6 +46,11 @@ class AzsService {
                 } else if (--retries > 0) {
                     setTimeout(check, 1000);
                 } else {
+                    if(this.resetUrl)
+                    {
+                        const status = await fetch(`${this.resetUrl}?id=${formData.get("id_azs")}`);
+                        if (!status.ok) throw new Error("Ошибка сервера при проверке статуса");
+                    }
                     throw new Error("АЗС не отвечает!");
                 }
             } catch (error) {

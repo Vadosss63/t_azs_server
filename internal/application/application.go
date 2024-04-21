@@ -86,9 +86,10 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/get_app_update_button", a.getAppUpdateButton)
 	router.POST("/reset_app_update_button", a.resetAppUpdateButton)
-	router.POST("/install_update", a.authorized(a.setAppUpdateCmd))
+	router.POST("/app_update_button", a.authorized(a.appUpdateButton))
+	router.GET("/app_update_button_ready", a.authorized(a.appUpdateButtonReady))
+	router.GET("/app_update_button_reset", a.authorized(a.resetAppUpdateAzs))
 	router.GET("/update_app_page", a.authorized(a.showUpdateAppPage))
-	router.GET("/download_version", a.authorized(a.downloadVersionHandler))
 
 	router.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
 
