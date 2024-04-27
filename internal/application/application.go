@@ -20,14 +20,14 @@ type app struct {
 	port  int
 }
 
-func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port  int) *app {
+func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int) *app {
 	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User), token, port}
 }
 
 func (a app) Routes(router *httprouter.Router) {
 	router.ServeFiles("/public/*filepath", http.Dir("public"))
-	
-    router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
+
+	router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
 
 	router.GET("/", a.authorized(a.startPage))
 
@@ -70,19 +70,19 @@ func (a app) Routes(router *httprouter.Router) {
 	router.POST("/reset_azs_button", a.resetAzsButton)
 
 	router.GET("/reset_azs_button", a.authorized(a.resetAzs))
-
 	router.POST("/push_azs_button", a.authorized(a.pushAzsButton))
-
 	router.GET("/azs_button_ready", a.azsButtonReady)
 
 	router.POST("/get_log_cmd", a.getLogButton)
 	router.POST("/upload_log", a.uploadLogs)
 	router.POST("/reset_log_cmd", a.resetLogButton)
 
-	router.GET("/set_log_cmd", a.authorized(a.setLogCmd))
+	router.POST("/log_button", a.authorized(a.logButton))
+	router.GET("/log_button_ready", a.authorized(a.logButtonReady))
+	router.GET("/log_button_reset", a.authorized(a.logButtonReset))
+
 	router.GET("/list_logs", a.authorized(a.listLogFiles))
 	router.GET("/download_log", a.authorized(a.downloadLogFile))
-	router.GET("/delete_logs", a.authorized(a.deleteLogs))
 
 	router.POST("/get_app_update_button", a.getAppUpdateButton)
 	router.POST("/reset_app_update_button", a.resetAppUpdateButton)

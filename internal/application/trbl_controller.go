@@ -74,6 +74,7 @@ func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 
 	id := strings.TrimSpace(r.FormValue("id"))
 	_, ok := getIntVal(id)
+
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
@@ -122,35 +123,7 @@ func (a app) resetLogButton(rw http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 
-	a.resetLogAzs(rw, r, p)
-}
-
-func (a app) resetLogAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
-
-	if ok {
-		err := a.repo.UpdateLogButton(a.ctx, idInt, 0)
-		if err == nil {
-			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
-			return
-		}
-	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
-}
-
-func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id := strings.TrimSpace(r.FormValue("id_azs"))
-	idInt, ok := getIntVal(id)
-
-	if ok {
-		err := a.repo.UpdateLogButton(a.ctx, idInt, 1)
-		if err == nil {
-			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
-			return
-		}
-	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+	a.logButtonReset(rw, r, p)
 }
 
 func (a app) downloadLogFile(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -207,7 +180,7 @@ func (a app) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.
 	}
 }
 
-func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request) {
 	id := strings.TrimSpace(r.FormValue("id_azs"))
 	if id == "" {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
@@ -222,4 +195,69 @@ func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 
 	http.Redirect(rw, r, "/list_logs?id_azs="+id, http.StatusSeeOther)
+}
+
+func (a app) logButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	pushedBtn := r.FormValue("pushedBtn")
+
+	switch pushedBtn {
+	case "download":
+		a.setLogCmd(rw, r)
+		return
+	case "delete":
+		a.deleteLogs(rw, r)
+		return
+	}
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+
+}
+
+func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request) {
+
+	id := strings.TrimSpace(r.FormValue("id_azs"))
+	idInt, ok := getIntVal(id)
+
+	if ok {
+		err := a.repo.UpdateLogButton(a.ctx, idInt, 1)
+		if err == nil {
+			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+			return
+		}
+	}
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+}
+
+func (a app) logButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idInt, ok := getIntVal(r.FormValue("id_azs"))
+	if !ok {
+		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		return
+	}
+
+	button, err := a.repo.GetLogButton(a.ctx, idInt)
+	if err != nil {
+		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if button.Download == 0 {
+		sendJsonResponse(rw, http.StatusOK, "Ok", "ready")
+	} else {
+		sendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
+	}
+}
+
+func (a app) logButtonReset(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id := strings.TrimSpace(r.FormValue("id"))
+	idInt, ok := getIntVal(id)
+
+	if ok {
+		err := a.repo.UpdateLogButton(a.ctx, idInt, 0)
+		if err == nil {
+			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+			return
+		}
+	}
+	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }

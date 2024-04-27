@@ -11,13 +11,15 @@
 </head>
 
 <body>
+    <div id="message"></div>
+    <input type="hidden" id="azsId" value={{.IdAzs}}>
     <header>Список лог-файлов для АЗС ID: {{.IdAzs}}</header>
     {{template "admin_navi.html" .}}
     <div class="overall">
         <div class="container">
             <div>
-                <a href="/delete_logs?id_azs={{.IdAzs}}" class="button">Delete Logs</a>
-                <a href="/set_log_cmd?id_azs={{.IdAzs}}" class="button">Get Logs</a>
+                <button id="downloadLogsBtn">Загрузить логи с АЗС</button>
+                <button id="deleteLogsBtn">Удалить логи</button>
             </div>
             <p>Лог-файлы:</p>
             <ul>
@@ -28,6 +30,6 @@
         </div>
     </div>
 </body>
-
+<script type="module" src="/public/js/logPageScript.js"></script>
 </html>
 {{end}}
