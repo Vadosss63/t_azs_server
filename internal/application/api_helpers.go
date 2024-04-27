@@ -3,21 +3,13 @@ package application
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
+	"fmt"	
+	"strconv"
 )
 
 type responseMessage struct {
 	Msg    string `json:"msg"`
 	Status string `json:"status"`
-}
-
-func (a app) validateToken(rw http.ResponseWriter, tokenReq string) bool {
-	tokenReq = strings.TrimSpace(tokenReq)
-	if a.token != tokenReq {
-		sendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
-		return false
-	}
-	return true
 }
 
 func sendJson(rw http.ResponseWriter, statusCode int, data interface{}) {
@@ -33,4 +25,13 @@ func sendJsonResponse(rw http.ResponseWriter, statusCode int, msg, status string
 func sendError(rw http.ResponseWriter, message string, statusCode int) {
 	rw.WriteHeader(statusCode)
 	http.Error(rw, message, statusCode)
+}
+
+func getIntVal(val string) (int, bool) {
+	res, err := strconv.Atoi(val)
+	if err != nil {
+		fmt.Println(err)
+		return 0, false
+	}
+	return res, true
 }

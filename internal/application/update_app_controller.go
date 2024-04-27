@@ -149,9 +149,6 @@ func (a app) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p htt
 }
 
 func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
 
 	id := strings.TrimSpace(r.FormValue("id"))
 	idInt, ok := getIntVal(id)
@@ -167,10 +164,6 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 }
 
 func (a app) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
-
 	a.resetAppUpdateAzs(rw, r, p)
 }
 

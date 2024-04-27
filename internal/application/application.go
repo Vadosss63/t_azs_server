@@ -2,9 +2,7 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
@@ -60,22 +58,22 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/signup", a.signup)
 
-	router.POST("/azs_stats", a.azsStats)
+	router.POST("/azs_stats", a.authorized(a.azsStats))
 	router.DELETE("/azs_stats", a.authorized(a.deleteAsz))
 
-	router.POST("/azs_receipt", a.azsReceipt)
+	router.POST("/azs_receipt", a.authorized(a.azsReceipt))
 
-	router.POST("/get_azs_button", a.getAzsButton)
+	router.POST("/get_azs_button", a.authorized(a.getAzsButton))
 
-	router.POST("/reset_azs_button", a.resetAzsButton)
+	router.POST("/reset_azs_button", a.authorized(a.resetAzsButton))
 
 	router.GET("/reset_azs_button", a.authorized(a.resetAzs))
 	router.POST("/push_azs_button", a.authorized(a.pushAzsButton))
-	router.GET("/azs_button_ready", a.azsButtonReady)
+	router.GET("/azs_button_ready", a.authorized(a.azsButtonReady))
 
-	router.POST("/get_log_cmd", a.getLogButton)
-	router.POST("/upload_log", a.uploadLogs)
-	router.POST("/reset_log_cmd", a.resetLogButton)
+	router.POST("/get_log_cmd", a.authorized(a.getLogButton))
+	router.POST("/upload_log", a.authorized(a.uploadLogs))
+	router.POST("/reset_log_cmd", a.authorized(a.resetLogButton))
 
 	router.POST("/log_button", a.authorized(a.logButton))
 	router.GET("/log_button_ready", a.authorized(a.logButtonReady))
@@ -84,8 +82,8 @@ func (a app) Routes(router *httprouter.Router) {
 	router.GET("/list_logs", a.authorized(a.listLogFiles))
 	router.GET("/download_log", a.authorized(a.downloadLogFile))
 
-	router.POST("/get_app_update_button", a.getAppUpdateButton)
-	router.POST("/reset_app_update_button", a.resetAppUpdateButton)
+	router.POST("/get_app_update_button", a.authorized(a.getAppUpdateButton))
+	router.POST("/reset_app_update_button", a.authorized(a.resetAppUpdateButton))
 	router.POST("/app_update_button", a.authorized(a.appUpdateButton))
 	router.GET("/app_update_button_ready", a.authorized(a.appUpdateButtonReady))
 	router.GET("/app_update_button_reset", a.authorized(a.resetAppUpdateAzs))
@@ -118,15 +116,6 @@ func (a app) Routes(router *httprouter.Router) {
 		}
 		a.adminPage(rw, r, p, u, id_user)
 	}))
-}
-
-func getIntVal(val string) (int, bool) {
-	sum, err := strconv.Atoi(val)
-	if err != nil {
-		fmt.Println(err)
-		return 0, false
-	}
-	return sum, true
 }
 
 func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {

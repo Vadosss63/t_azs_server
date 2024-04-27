@@ -80,7 +80,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		http.Error(rw, "Ошибка удаления admin. Администратора нельзя удалить!", http.StatusBadRequest)
 		return
 	}
-	// Reset All azs for Current user
+
 	err = a.repo.RemoveUserFromAzsAll(a.ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -145,6 +145,7 @@ func (a app) signupPage(rw http.ResponseWriter, message string) {
 func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	login := r.FormValue("login")
 	password := r.FormValue("password")
+
 	if login == "" || password == "" {
 		a.loginPage(rw, "Необходимо указать логин и пароль!")
 		return
@@ -156,7 +157,7 @@ func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 		a.loginPage(rw, "Вы ввели неверный логин или пароль!")
 		return
 	}
-	//логин и пароль совпадают, поэтому генерируем токен, пишем его в кеш и в куки
+
 	time64 := time.Now().Unix()
 	timeInt := string(time64)
 	token := login + password + timeInt
@@ -165,7 +166,7 @@ func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	a.cache[hashedToken] = user
 	livingTime := 60 * time.Minute
 	expiration := time.Now().Add(livingTime)
-	//кука будет жить 1 час
+
 	cookie := http.Cookie{Name: "token", Value: url.QueryEscape(hashedToken), Expires: expiration}
 	http.SetCookie(rw, &cookie)
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
@@ -187,20 +188,34 @@ func (a app) loginPage(rw http.ResponseWriter, message string) {
 	}
 }
 
+func (a app) validateToken(rw http.ResponseWriter, tokenReq string) bool {
+	tokenReq = strings.TrimSpace(tokenReq)
+	if a.token != tokenReq {
+		return false
+	}
+	return true
+}
+
 func (a app) authorized(next httprouter.Handle) httprouter.Handle {
 	return func(rw http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		token, err := readCookie("token", r)
-		if err != nil {
-			http.Redirect(rw, r, "/login", http.StatusSeeOther)
+		if err == nil {
+			if user, ok := a.cache[token]; ok {
+				next(rw, r.WithContext(context.WithValue(r.Context(), "userId", user.Id)), ps)
+				return
+			}
+		}
+
+		tokenReq := r.FormValue("token")
+		if tokenReq != "" {
+			if a.validateToken(rw, tokenReq) {
+				next(rw, r, ps)
+				return
+			}
+			sendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
 			return
 		}
 
-		user, ok := a.cache[token]
-		if !ok {
-			http.Redirect(rw, r, "/login", http.StatusSeeOther)
-			return
-		}
-		// Call the next handler with the user information
-		next(rw, r.WithContext(context.WithValue(r.Context(), "userId", user.Id)), ps)
+		http.Redirect(rw, r, "/login", http.StatusSeeOther)
 	}
 }

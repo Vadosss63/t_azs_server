@@ -68,9 +68,6 @@ func processFileUpload(r *http.Request, maxUploadSize int64) (multipart.File, *m
 }
 
 func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
 
 	id := strings.TrimSpace(r.FormValue("id"))
 	_, ok := getIntVal(id)
@@ -99,9 +96,6 @@ func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 }
 
 func (a app) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
 
 	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 
@@ -119,10 +113,6 @@ func (a app) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 }
 
 func (a app) resetLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
-
 	a.logButtonReset(rw, r, p)
 }
 

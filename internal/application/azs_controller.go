@@ -12,9 +12,6 @@ import (
 )
 
 func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
 
 	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 	if !ok {
@@ -114,9 +111,6 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 }
 
 func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
 	id, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 	receiptJson := strings.TrimSpace(r.FormValue("receipt"))
 
@@ -141,9 +135,6 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 }
 
 func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
 
 	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
 
@@ -161,10 +152,6 @@ func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 }
 
 func (a app) resetAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !a.validateToken(rw, r.FormValue("token")) {
-		return
-	}
-
 	a.resetAzs(rw, r, p)
 }
 
