@@ -4,10 +4,12 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/public/image/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
     <title>Статистика АЗС</title>
     <link rel="stylesheet" href="/public/css/style.css">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 </head>
 
 <body>
@@ -26,10 +28,6 @@
                     <td>{{.Name}}</td>
                 </tr>
                 <tr>
-                    <th>Адрес</th>
-                    <td>{{.Address}}</td>
-                </tr>
-                <tr>
                     <th>Id АЗС</th>
                     <td>{{.IdAzs}}</td>
                 </tr>
@@ -41,8 +39,25 @@
                     <th>Вресия ПО</th>
                     <td>{{.Info.Version}}</td>
                 </tr>
+                <tr>
+                    <th>Адрес</th>
+                    <td>{{.Address}}</td>
+                </tr>
+                <tr>
+                    <th>Координаты</th>
+                    <td id="coordinateVals">0.00 0.00</td>
+                </tr>
+                <tr>
+                    <th>Редактировать координаты</th>
+                    <td><input type="checkbox" id="modeSwitch"></td>
+                </tr>
             </table>
             <b> </b>
+            <div style="width:100%; height:5px; clear:both;"></div>
+            <table>
+                <div id="map" style="width: 100%; height: 400px;"></div>
+            </table>
+            <div style="width:100%; height:5px; clear:both;"></div>
             <table>
                 <tr>
                     <th></th>
@@ -192,7 +207,8 @@
                         <button id="blockAzsNodeBtn" {{if .Info.IsBlock}}disabled{{end}}>Блокировка АЗС</button>
                     </td>
                     <td>
-                        <button id="unblockAzsNodeBtn" {{if not .Info.IsBlock}}disabled{{end}}>Разблокировать АЗС</button>
+                        <button id="unblockAzsNodeBtn" {{if not .Info.IsBlock}}disabled{{end}}>Разблокировать
+                            АЗС</button>
                     </td>
                 </tr>
                 <tr>
@@ -310,6 +326,6 @@
     </div>
 </body>
 <script type="module" src="/public/js/azsPageScript.js"></script>
-
+<script type="module" src="/public/js/yaMap.js"></script>
 </html>
 {{end}}

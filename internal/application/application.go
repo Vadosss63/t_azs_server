@@ -116,6 +116,17 @@ func (a app) Routes(router *httprouter.Router) {
 		}
 		a.adminPage(rw, r, p, u, id_user)
 	}))
+
+	router.GET("/tanker/station", getStationsHandler)
+	router.GET("/tanker/price", getPriceListHandler)
+
+	router.GET("/tanker/ping", pingHandler)
+
+	router.POST("/tanker/order", updateOrderStatusHandler)
+
+	router.POST("/save-point", savePointHandler)
+	router.GET("/points", pointsHandler)
+
 }
 
 func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
