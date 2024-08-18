@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <header>АЗС</header> 
+    <header>АЗС</header>
     {{template "admin_navi.html" .}}
     <div id="message"></div>
     <div class="overall">
@@ -22,13 +22,10 @@
                 <label>Показать для пользователя</label>
                 <select name="user">
                     <option value="-1">Не выбран</option>
+                    <option value="-2" {{ if eq $.SelectedUserId -2 }}selected{{ end }}>Показать для всех</option>
                     {{ range $.Users }}
-                    {{ if eq .Id $.SelectedUserId }}
-                    <option value="{{.Id}}" selected>{{.Login}}</option>
-                    {{ else }}
-                    <option value="{{.Id}}">{{.Login}}</option>
+                    <option value="{{.Id}}" {{ if eq .Id $.SelectedUserId }}selected{{ end }}>{{.Login}}</option>
                     {{ end }}
-                    {{end}}
                 </select>
                 <input type="submit" value="Показать">
             </form>
@@ -36,7 +33,7 @@
 
         {{ range .Azses }}
         <div class="container"><b> </b>
-        {{template "azs_container.html" .}}
+            {{template "azs_container.html" .}}
             <div class="ref">
                 <table>
                     <tr>
@@ -47,7 +44,7 @@
                         </td>
                         <td>
                             <a href="/update_app_page?id_azs={{.IdAzs}}">Обновление</a>
-                        </td>                        
+                        </td>
                     </tr>
                     <tr>
                         <td>

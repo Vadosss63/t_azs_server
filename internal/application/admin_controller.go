@@ -28,11 +28,13 @@ func deleteUser(users []repository.User, login string) []repository.User {
 
 func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
 
-	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, id)
-
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
+	var azs_statses []repository.AzsStatsData
+	var err error
+	
+	if id == -2 {
+		azs_statses, err = a.repo.GetAzsAll(a.ctx)
+	} else {
+		azs_statses, err = a.repo.GetAzsAllForUser(a.ctx, id)
 	}
 
 	users, err := a.repo.GetUserAll(a.ctx)
