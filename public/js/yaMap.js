@@ -4,12 +4,10 @@ ymaps.ready(init);
 const zoomVal = 16;
 
 function init() {
-    const modeSwitch = document.getElementById('modeSwitch');
     const coordinateVals = document.getElementById('coordinateVals');
 
-    // Проверяем, что элементы существуют
-    if (!modeSwitch || !coordinateVals) {
-        console.error('Не удалось найти элементы modeSwitch или coordinateVals на странице.');
+    if (!coordinateVals) {
+        console.error('Не удалось найти элемент coordinateVals на странице.');
         return;
     }
 
@@ -20,11 +18,15 @@ function init() {
 
     let placemark = null;
 
-    let editMode = modeSwitch.checked;
+    let editMode = false;
+    const modeSwitch = document.getElementById('modeSwitch');
 
-    modeSwitch.addEventListener('change', function() {
-        editMode = this.checked;
-    });
+    if (modeSwitch) {
+        editMode = modeSwitch.checked;
+        modeSwitch.addEventListener('change', function() {
+            editMode = this.checked;
+        });
+    }
 
     fetch('/points')
         .then(response => {
