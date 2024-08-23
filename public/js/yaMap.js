@@ -39,6 +39,8 @@ function init() {
             return response.json();
         })
         .then(point => {
+            if (point.lat !== 0.0 || point.lng !== 0.0) {
+
             placemark = new ymaps.Placemark([point.lat, point.lng], {}, {
                 iconLayout: 'default#image',
                 iconImageHref: '/public/image/gas_station_icon.png',
@@ -50,7 +52,7 @@ function init() {
             coordinateVals.innerText = point.lat + ', ' + point.lng;
             map.setCenter([point.lat, point.lng], zoomVal);
 
-        })
+            }})
         .catch(error => {
             console.error('Произошла ошибка:', error);
         });
