@@ -41,18 +41,19 @@ function init() {
         .then(point => {
             if (point.lat !== 0.0 || point.lng !== 0.0) {
 
-            placemark = new ymaps.Placemark([point.lat, point.lng], {}, {
-                iconLayout: 'default#image',
-                iconImageHref: '/public/image/gas_station_icon.png',
-                iconImageSize: [30, 30],
-                iconImageOffset: [-15, -15]
-            });
-            map.geoObjects.add(placemark);
-            // Устанавливаем координаты в таблице
-            coordinateVals.innerText = point.lat + ', ' + point.lng;
-            map.setCenter([point.lat, point.lng], zoomVal);
+                placemark = new ymaps.Placemark([point.lat, point.lng], {}, {
+                    iconLayout: 'default#image',
+                    iconImageHref: '/public/image/gas_station_icon.png',
+                    iconImageSize: [30, 30],
+                    iconImageOffset: [-15, -15]
+                });
+                map.geoObjects.add(placemark);
+                // Устанавливаем координаты в таблице
+                coordinateVals.innerText = point.lat + ', ' + point.lng;
+                map.setCenter([point.lat, point.lng], zoomVal);
 
-            }})
+            }
+        })
         .catch(error => {
             console.error('Произошла ошибка:', error);
         });
