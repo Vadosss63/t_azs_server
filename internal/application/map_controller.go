@@ -3,7 +3,6 @@ package application
 import (
 	"encoding/json"
 	"net/http"
-	"sync"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -13,10 +12,7 @@ type Point struct {
 	Lng float64 `json:"lng"`
 }
 
-var points []Point
-var mu sync.Mutex
-
-func savePointHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
+func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
 	var p Point
 
 	err := json.NewDecoder(r.Body).Decode(&p)
@@ -25,9 +21,17 @@ func savePointHandler(w http.ResponseWriter, r *http.Request, par httprouter.Par
 		return
 	}
 
-	mu.Lock()
-	points = []Point{p}
-	mu.Unlock()
+	err = a.repo.UpdateYaAzsInfoLocation(a.ctx, requestData.IdAzs, requestData.IsEnabled)
+
+	if err != nil {
+		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "success",
+	})
 
 	w.WriteHeader(http.StatusOK)
 }

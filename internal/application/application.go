@@ -98,6 +98,7 @@ func (a app) Routes(router *httprouter.Router) {
 	router.POST("/reset_password", a.authorized(a.resetPasswordUser))
 
 	router.GET("/show_for_user", a.authorized(a.showUsersAzsPage))
+	router.POST("/update_yandexpay_status", a.authorized(a.updateYandexPayStatusHandler))
 
 	router.POST("/show_azs_for", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		id_user, ok_id := getIntVal(r.FormValue("user"))

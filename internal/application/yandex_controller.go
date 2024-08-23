@@ -8,56 +8,14 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/Vadosss63/t-azs/internal/repository"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-type Station struct {
-	Id       string `json:"Id"`
-	Enable   bool   `json:"Enable"`
-	Name     string `json:"Name"`
-	Address  string `json:"Address"`
-	Location struct {
-		Lat float64 `json:"Lat"`
-		Lon float64 `json:"Lon"`
-	} `json:"Location"`
-	Columns map[int32][]string `json:"Columns"`
-}
-
-type Order struct {
-	Id                string    `json:"Id"`
-	DateCreate        time.Time `json:"DateCreate"`
-	OrderType         string    `json:"OrderType"`
-	OrderVolume       float64   `json:"OrderVolume"`
-	StationId         string    `json:"StationId"`
-	StationExtendedId string    `json:"StationExtendedId"`
-	ColumnId          int       `json:"ColumnId"`
-	FuelId            string    `json:"FuelId"`
-	FuelMarka         string    `json:"FuelMarka"`
-	PriceId           string    `json:"PriceId"`
-	FuelExtendedId    string    `json:"FuelExtendedId"`
-	PriceFuel         float64   `json:"PriceFuel"`
-	Sum               float64   `json:"Sum"`
-	Litre             float64   `json:"Litre"`
-	SumPaid           float64   `json:"SumPaid"`
-	Status            string    `json:"Status"`
-	DateEnd           time.Time `json:"DateEnd"`
-	ReasonId          string    `json:"ReasonId"`
-	Reason            string    `json:"Reason"`
-	LitreCompleted    float64   `json:"LitreCompleted"`
-	SumPaidCompleted  float64   `json:"SumPaidCompleted"`
-	ContractId        string    `json:"ContractId"`
-}
-
-type PriceEntry struct {
-	StationId string  `json:"StationId"`
-	ProductId string  `json:"ProductId"`
-	Price     float64 `json:"Price"`
-}
-
 // Заглушка данных для демонстрации ответа
-var samplePrices = []PriceEntry{
+var samplePrices = []repository.PriceEntry{
 	{StationId: "0001", ProductId: "a92", Price: 38.66},
 	{StationId: "0001", ProductId: "a95_premium", Price: 45.21},
 	{StationId: "0002", ProductId: "a92", Price: 38.98},
@@ -85,22 +43,36 @@ func getPriceListHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 // Функция для получения списка АЗС
 func getStationsHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// В реальном приложении здесь будет логика получения данных
-	stations := []Station{
+	stations := []repository.Station{
 		{
-			Id:      "1",
+			Id:      "001",
 			Enable:  true,
 			Name:    "Station 1",
 			Address: "123 Main St",
-			Location: struct {
-				Lat float64 `json:"Lat"`
-				Lon float64 `json:"Lon"`
-			}{Lat: 55.7558, Lon: 37.6173},
-			Columns: map[int32][]string{
-				1: {"a92", "a95"},
+			Location: repository.Location{
+				Lat: 59.9343,
+				Lon: 30.3351,
+			},
+			Columns: map[int32]repository.Column{
+				1: {Fuels: []string{"a92", "a95", "diesel_premium"}},
+				2: {Fuels: []string{"a92", "a95"}},
+			},
+		},
+		{
+			Id:      "002",
+			Enable:  false,
+			Name:    "Station 2",
+			Address: "456 Elm St",
+			Location: repository.Location{
+				Lat: 55.7558,
+				Lon: 37.6173,
+			},
+			Columns: map[int32]repository.Column{
+				1: {Fuels: []string{"a92", "a95"}},
+				3: {Fuels: []string{"diesel_premium"}},
 			},
 		},
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(stations)
 }
@@ -108,7 +80,7 @@ func getStationsHandler(w http.ResponseWriter, r *http.Request, p httprouter.Par
 // Функция для обновления статуса заказа
 func updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	decoder := json.NewDecoder(r.Body)
-	var order Order
+	var order repository.Order
 	err := decoder.Decode(&order)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -122,15 +94,8 @@ func updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprout
 
 //PING handler
 
-// Модель данных станции и ТРК для демонстрации
-type StationStatus struct {
-	ID      string
-	Active  bool
-	Columns map[int]bool // Ключ - ID колонки, значение - активность колонки
-}
-
 // Заглушка данных о станциях
-var stations = map[string]StationStatus{
+var stations = map[string]repository.StationStatus{
 	"station1": {
 		ID:     "station1",
 		Active: true,
@@ -250,35 +215,32 @@ func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, ext
 	return sendOrderStatus("/api/order/completed", params)
 }
 
-// func main() {
-// 	apiKey := "your_api_key"
-// 	orderID := "123456"
-// 	reason := "Customer request"
-// 	litre := 50.0
-// 	extendedOrderID := "ext123456"
-// 	extendedDate := "01.01.2020 12:00:00"
+func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		return
+	}
 
-// 	if err := handleAccept(apiKey, orderID); err != nil {
-// 		log.Printf("Failed to send accept status: %v", err)
-// 	} else {
-// 		fmt.Println("Accept status sent successfully.")
-// 	}
+	var requestData struct {
+		IdAzs     int  `json:"idAzs"`
+		IsEnabled bool `json:"isEnabled"`
+	}
 
-// 	if err := handleFueling(apiKey, orderID); err != nil {
-// 		log.Printf("Failed to send fueling status: %v", err)
-// 	} else {
-// 		fmt.Println("Fueling status sent successfully.")
-// 	}
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Неверные данные", http.StatusBadRequest)
+		return
+	}
 
-// 	if err := handleCanceled(apiKey, orderID, reason); err != nil {
-// 		log.Printf("Failed to send canceled status: %v", err)
-// 	} else {
-// 		fmt.Println("Canceled status sent successfully.")
-// 	}
+	err = a.repo.UpdateYaAzsInfoEnable(a.ctx, requestData.IdAzs, requestData.IsEnabled)
 
-// 	if err := handleCompleted(apiKey, orderID, litre, extendedOrderID, extendedDate); err != nil {
-// 		log.Printf("Failed to send completed status: %v", err)
-// 	} else {
-// 		fmt.Println("Completed status sent successfully.")
-// 	}
-// }
+	if err != nil {
+		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "success",
+	})
+}

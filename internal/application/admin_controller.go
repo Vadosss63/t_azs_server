@@ -28,9 +28,11 @@ func deleteUser(users []repository.User, login string) []repository.User {
 
 func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
 
+	// a.repo.CreateYaAzsInfoTable(a.ctx)
+
 	var azs_statses []repository.AzsStatsData
 	var err error
-	
+
 	if id == -2 {
 		azs_statses, err = a.repo.GetAzsAll(a.ctx)
 	} else {
@@ -57,6 +59,13 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
+		azsStatsDataFull.IsEnabled, err = a.repo.GetYaAzsInfoEnable(a.ctx, azsStatsDataFull.IdAzs)
+
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		adminPageTemplate.Azses = append(adminPageTemplate.Azses, azsStatsDataFull)
 	}
 

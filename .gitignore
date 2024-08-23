@@ -5,6 +5,7 @@
 *.so
 *.dylib
 main
+.vscode
 
 # Config file
 settings.json
