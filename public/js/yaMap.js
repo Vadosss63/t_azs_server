@@ -11,9 +11,12 @@ function init() {
         return;
     }
 
+    const azsId = document.getElementById('azsId').value;
+    const azsIdInt = parseInt(azsId);
+
     var map = new ymaps.Map("map", {
-        center: [59.9343, 30.3351], 
-        zoom: zoomVal 
+        center: [59.9343, 30.3351],
+        zoom: zoomVal
     });
 
     let placemark = null;
@@ -23,32 +26,30 @@ function init() {
 
     if (modeSwitch) {
         editMode = modeSwitch.checked;
-        modeSwitch.addEventListener('change', function() {
+        modeSwitch.addEventListener('change', function () {
             editMode = this.checked;
         });
     }
 
-    fetch('/points')
+    fetch('/points?id_azs=' + azsId)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Ошибка загрузки точек с сервера');
             }
             return response.json();
         })
-        .then(points => {
-            if (points.length > 0) {
-                const point = points[0]; 
-                placemark = new ymaps.Placemark([point.lat, point.lng], {}, {
-                    iconLayout: 'default#image',
-                    iconImageHref: '/public/image/gas_station_icon.png',
-                    iconImageSize: [30, 30], 
-                    iconImageOffset: [-15, -15] 
-                });
-                map.geoObjects.add(placemark);
-                // Устанавливаем координаты в таблице
-                coordinateVals.innerText = point.lat + ', ' + point.lng;
-                map.setCenter([point.lat, point.lng], zoomVal);
-            }
+        .then(point => {
+            placemark = new ymaps.Placemark([point.lat, point.lng], {}, {
+                iconLayout: 'default#image',
+                iconImageHref: '/public/image/gas_station_icon.png',
+                iconImageSize: [30, 30],
+                iconImageOffset: [-15, -15]
+            });
+            map.geoObjects.add(placemark);
+            // Устанавливаем координаты в таблице
+            coordinateVals.innerText = point.lat + ', ' + point.lng;
+            map.setCenter([point.lat, point.lng], zoomVal);
+
         })
         .catch(error => {
             console.error('Произошла ошибка:', error);
@@ -66,7 +67,7 @@ function init() {
             placemark = new ymaps.Placemark(coords, {}, {
                 iconLayout: 'default#image',
                 iconImageHref: '/public/image/gas_station_icon.png',
-                iconImageSize: [30, 30], 
+                iconImageSize: [30, 30],
                 iconImageOffset: [-15, -15]
             });
             map.geoObjects.add(placemark);
@@ -81,16 +82,16 @@ function init() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ lat: coords[0], lng: coords[1] })
+            body: JSON.stringify({ id_azs: azsIdInt, lat: coords[0], lng: coords[1] })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка сохранения точки на сервере');
-            }
-            return response.json();
-        })
-        .catch(error => {
-            console.error('Произошла ошибка при сохранении точки:', error);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сохранения точки на сервере');
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Произошла ошибка при сохранении точки:', error);
+            });
     });
 }

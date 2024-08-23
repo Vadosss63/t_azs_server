@@ -3,17 +3,20 @@ package application
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
+	"github.com/Vadosss63/t-azs/internal/repository"
 	"github.com/julienschmidt/httprouter"
 )
 
-type Point struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+type PointData struct {
+	IdAzs int     `json:"id_azs"`
+	Lat   float64 `json:"lat"`
+	Lng   float64 `json:"lng"`
 }
 
 func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
-	var p Point
+	var p PointData
 
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
@@ -21,7 +24,7 @@ func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httpro
 		return
 	}
 
-	err = a.repo.UpdateYaAzsInfoLocation(a.ctx, requestData.IdAzs, requestData.IsEnabled)
+	err = a.repo.UpdateYaAzsInfoLocation(a.ctx, p.IdAzs, repository.Location{Lat: p.Lat, Lon: p.Lng})
 
 	if err != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
@@ -32,16 +35,23 @@ func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httpro
 	json.NewEncoder(w).Encode(map[string]string{
 		"status": "success",
 	})
-
-	w.WriteHeader(http.StatusOK)
 }
 
-func pointsHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
+func (a app) pointsHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
+
+	id := strings.TrimSpace(r.FormValue("id_azs"))
+	id_azs, ok := getIntVal(id)
+
+	if !ok {
+		http.Error(w, "Error user", http.StatusBadRequest)
+		return
+	}
+
+	point, err := a.repo.GetYaAzsInfoLocation(a.ctx, id_azs)
+
 	w.Header().Set("Content-Type", "application/json")
 
-	mu.Lock()
-	err := json.NewEncoder(w).Encode(points)
-	mu.Unlock()
+	err = json.NewEncoder(w).Encode(PointData{IdAzs: id_azs, Lat: point.Lat, Lng: point.Lon})
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

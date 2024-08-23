@@ -56,7 +56,7 @@ func main() {
 	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port)
 	r := httprouter.New()
 	a.Routes(r)
-	fmt.Printf("It's alive! Try http://t-azs.ru:%d/\n", settings.Port)
+	fmt.Printf("It's alive! Try http://t-azs.ru:%d/ or http://127.0.0.1:%d\n", settings.Port, settings.Port)
 	http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), r)
 	//http.ListenAndServeTLS(fmt.Sprintf(":%d", settings.Port), "cert.pem", "key.pem", r)
 }

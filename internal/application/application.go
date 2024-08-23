@@ -125,8 +125,8 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/tanker/order", updateOrderStatusHandler)
 
-	router.POST("/save-point", savePointHandler)
-	router.GET("/points", pointsHandler)
+	router.POST("/save-point", a.authorized(a.savePointHandler))
+	router.GET("/points", a.authorized(a.pointsHandler))
 
 }
 
