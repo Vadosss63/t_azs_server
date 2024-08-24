@@ -34,14 +34,13 @@ func readSettings(filename string) (*Settings, error) {
 }
 
 func main() {
-
 	settings, err := readSettings("settings.json")
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to read settings: %v", err)
 	}
 
 	if len(settings.Token) != 32 {
-		panic(fmt.Sprintf("Error Token = %s", settings.Token))
+		log.Fatalf("Invalid token length: got %d, want 32", len(settings.Token))
 	}
 
 	fmt.Println("Port:", settings.Port)
@@ -50,13 +49,22 @@ func main() {
 	ctx := context.Background()
 	dbpool, err := repository.InitDBConn(ctx)
 	if err != nil {
-		log.Fatalf("%w failed to init DB connection", err)
+		log.Fatalf("Failed to init DB connection: %v", err)
 	}
 	defer dbpool.Close()
+
 	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port)
 	r := httprouter.New()
 	a.Routes(r)
+
 	fmt.Printf("It's alive! Try http://t-azs.ru:%d/ or http://127.0.0.1:%d\n", settings.Port, settings.Port)
-	http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), r)
-	//http.ListenAndServeTLS(fmt.Sprintf(":%d", settings.Port), "cert.pem", "key.pem", r)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), r)
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+	// To use HTTPS uncomment the line below and provide correct paths to cert.pem and key.pem
+	// err = http.ListenAndServeTLS(fmt.Sprintf(":%d", settings.Port), "cert.pem", "key.pem", r)
+	// if err != nil {
+	//     log.Fatalf("Failed to start HTTPS server: %v", err)
+	// }
 }

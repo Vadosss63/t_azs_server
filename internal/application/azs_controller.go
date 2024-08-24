@@ -250,19 +250,6 @@ func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Param
 		return
 	}
 
-	userId, ok_id := r.Context().Value("userId").(int)
-
-	if !ok_id {
-		sendError(rw, "Error user", http.StatusBadRequest)
-		return
-	}
-	user, err := a.repo.GetUser(a.ctx, userId)
-
-	if err != nil {
-		sendError(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	azsStats, err := a.repo.GetAzs(a.ctx, idInt)
 	if err != nil {
 		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
@@ -274,7 +261,6 @@ func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Param
 		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	azsStatsDataFull.UserName = user.Login
 
 	var azsPageTemplate = template.Must(template.ParseFiles(
 		filepath.Join("public", "html", "azs_page.html"),

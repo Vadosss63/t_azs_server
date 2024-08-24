@@ -44,7 +44,6 @@ type AzsNode struct {
 }
 
 type AzsStatsDataFull struct {
-	UserName            string
 	IsEnabled           bool
 	Id                  int       `json:"id"`
 	IdAzs               int       `json:"id_azs"`
