@@ -40,41 +40,66 @@ func getPriceListHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 }
 
-// Функция для получения списка АЗС
-func getStationsHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	// В реальном приложении здесь будет логика получения данных
-	stations := []repository.Station{
-		{
-			Id:      "001",
-			Enable:  true,
-			Name:    "Station 1",
-			Address: "123 Main St",
-			Location: repository.Location{
-				Lat: 59.9343,
-				Lon: 30.3351,
-			},
-			Columns: map[int32]repository.Column{
-				1: {Fuels: []string{"a92", "a95", "diesel_premium"}},
-				2: {Fuels: []string{"a92", "a95"}},
-			},
+func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	stations, err := a.repo.GetYaAzsInfoAllEnable(a.ctx)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	}
+
+	for i := 0; i < len(stations); i++ {
+
+		idInt, _ := getIntVal(stations[i].Id)
+		azsStats, err := a.repo.GetAzs(a.ctx, idInt)
+		if err != nil {
+			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		azsStatsDataFull, err := repository.ParseStats(azsStats)
+		if err != nil {
+			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		stations[i].Address = azsStatsDataFull.Address
+		stations[i].Name = azsStatsDataFull.Name
+
+		if stations[i].Columns == nil {
+			stations[i].Columns = make(map[int32]repository.Column)
+		}
+
+		for j := 0; j < len(azsStatsDataFull.AzsNodes); j++ {
+			//TODO: Add convert
+			typeFuel := azsStatsDataFull.AzsNodes[j].TypeFuel
+			column := stations[i].Columns[int32(j)]
+
+			if column.Fuels == nil {
+				column.Fuels = []string{}
+			}
+			column.Fuels = append(column.Fuels, typeFuel)
+			stations[i].Columns[int32(j)] = column
+		}
+	}
+
+	stationTest := repository.Station{
+		Id:      "001",
+		Enable:  true,
+		Name:    "Station 1",
+		Address: "123 Main St",
+		Location: repository.Location{
+			Lat: 59.9343,
+			Lon: 30.3351,
 		},
-		{
-			Id:      "002",
-			Enable:  false,
-			Name:    "Station 2",
-			Address: "456 Elm St",
-			Location: repository.Location{
-				Lat: 55.7558,
-				Lon: 37.6173,
-			},
-			Columns: map[int32]repository.Column{
-				1: {Fuels: []string{"a92", "a95"}},
-				3: {Fuels: []string{"diesel_premium"}},
-			},
+		Columns: map[int32]repository.Column{
+			1: {Fuels: []string{"a92", "a95", "diesel_premium"}},
+			2: {Fuels: []string{"a92", "a95"}},
 		},
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stations)
+
+	stations = append(stations, stationTest)
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(stations)
 }
 
 // Функция для обновления статуса заказа

@@ -118,7 +118,7 @@ func (a app) Routes(router *httprouter.Router) {
 		a.adminPage(rw, r, p, u, id_user)
 	}))
 
-	router.GET("/tanker/station", getStationsHandler)
+	router.GET("/tanker/station", a.getStationsHandler)
 	router.GET("/tanker/price", getPriceListHandler)
 
 	router.GET("/tanker/ping", pingHandler)

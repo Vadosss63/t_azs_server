@@ -38,3 +38,9 @@ create table if not exists azs_button
 -- insert into azs_button (id_azs, price, button)
 -- values (10111999, 4300, 33);
 -- DELETE FROM azses WHERE id_user = -1;
+-- DELETE FROM ya_azs_info
+-- WHERE ctid NOT IN (
+--     SELECT MIN(ctid)
+--     FROM ya_azs_info
+--     GROUP BY id_azs, lat, lon, enable
+-- );

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -157,4 +158,33 @@ func (r *Repository) GetYaAzsInfoEnable(ctx context.Context, idAzs int) (bool, e
 	}
 
 	return isEnable, nil
+}
+
+func (r *Repository) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, error) {
+
+	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s WHERE %s = true`, columnAzsId, columnLat, columnLon, yaAzsInfoName, enable)
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query %s: %w", yaAzsInfoName, err)
+	}
+	defer rows.Close()
+
+	var stations []Station
+	for rows.Next() {
+		var station Station
+		var id int
+		if err := rows.Scan(&id, &station.Location.Lat, &station.Location.Lon); err != nil {
+			return nil, fmt.Errorf("failed to scan from %s: %w", tableName, err)
+		}
+		station.Enable = true
+		station.Id = strconv.Itoa(id)
+		stations = append(stations, station)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error after iterating over %s: %w", tableName, err)
+	}
+
+	return stations, nil
 }
