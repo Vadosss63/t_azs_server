@@ -55,15 +55,49 @@ func convertTypeFuelToYaFormat(s string) string {
 }
 
 // Функция обработчика для получения прайс-листа
-func getPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/price?apikey=expected_api_key
 	if !checkAPIKey(rw, r) {
 		return
 	}
-	var samplePrices = []repository.PriceEntry{
-		{StationId: "0001", ProductId: "a92", Price: 38.66},
-		{StationId: "0001", ProductId: "a95_premium", Price: 45.21},
-		{StationId: "0002", ProductId: "a92", Price: 38.98},
+
+	azsIds, err := a.repo.GetYaAzsInfoEnableList(a.ctx)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	}
+
+	var samplePrices = []repository.PriceEntry{}
+	for i := 0; i < len(azsIds); i++ {
+		azsStats, err := a.repo.GetAzs(a.ctx, azsIds[i])
+		if err != nil {
+			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		azsStatsDataFull, err := repository.ParseStats(azsStats)
+		if err != nil {
+			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for j := 0; j < len(azsStatsDataFull.AzsNodes); j++ {
+			typeFuel := convertTypeFuelToYaFormat(azsStatsDataFull.AzsNodes[j].TypeFuel)
+			if typeFuel == "" {
+				continue
+			}
+
+			price := fmt.Sprintf("%.2f", azsStatsDataFull.AzsNodes[j].Price)
+
+			priceFloat, _ := strconv.ParseFloat(price, 64)
+
+			var samplePrice = repository.PriceEntry{
+				StationId: strconv.Itoa(azsIds[i]),
+				ProductId: typeFuel,
+				Price:     priceFloat,
+			}
+
+			samplePrices = append(samplePrices, samplePrice)
+		}
+
 	}
 
 	sendJsonData(rw, samplePrices)
@@ -133,6 +167,36 @@ func updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprout
 	// Здесь должна быть логика обработки заказа
 
 	fmt.Fprintf(w, "Order with ID %s updated to status %s", order.Id, order.Status)
+}
+
+func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var requestData struct {
+		IdAzs     int  `json:"idAzs"`
+		IsEnabled bool `json:"isEnabled"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Неверные данные", http.StatusBadRequest)
+		return
+	}
+
+	err = a.repo.UpdateYaAzsInfoEnable(a.ctx, requestData.IdAzs, requestData.IsEnabled)
+
+	if err != nil {
+		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "success",
+	})
 }
 
 //PING handler
@@ -253,34 +317,4 @@ func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, ext
 	params.Add("extendedDate", extendedDate)
 
 	return sendOrderStatus("/api/order/completed", params)
-}
-
-func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var requestData struct {
-		IdAzs     int  `json:"idAzs"`
-		IsEnabled bool `json:"isEnabled"`
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&requestData)
-	if err != nil {
-		http.Error(w, "Неверные данные", http.StatusBadRequest)
-		return
-	}
-
-	err = a.repo.UpdateYaAzsInfoEnable(a.ctx, requestData.IdAzs, requestData.IsEnabled)
-
-	if err != nil {
-		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "success",
-	})
 }

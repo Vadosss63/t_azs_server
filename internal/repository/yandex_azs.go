@@ -188,3 +188,29 @@ func (r *Repository) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, erro
 
 	return stations, nil
 }
+
+func (r *Repository) GetYaAzsInfoEnableList(ctx context.Context) ([]int, error) {
+
+	query := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = true`, columnAzsId, yaAzsInfoName, enable)
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query %s: %w", yaAzsInfoName, err)
+	}
+	defer rows.Close()
+
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("failed to scan from %s: %w", tableName, err)
+		}
+		ids = append(ids, id)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error after iterating over %s: %w", tableName, err)
+	}
+
+	return ids, nil
+}

@@ -119,7 +119,7 @@ func (a app) Routes(router *httprouter.Router) {
 	}))
 
 	router.GET("/tanker/station", a.getStationsHandler)
-	router.GET("/tanker/price", getPriceListHandler)
+	router.GET("/tanker/price", a.getPriceListHandler)
 
 	router.GET("/tanker/ping", pingHandler)
 
