@@ -5,9 +5,10 @@ const zoomVal = 16;
 
 function init() {
     const coordinateVals = document.getElementById('coordinateVals');
+    const mapElement = document.getElementById('map');
 
-    if (!coordinateVals) {
-        console.error('Не удалось найти элемент coordinateVals на странице.');
+    if (!coordinateVals || !mapElement) {
+        console.error('Не удалось найти элемент coordinateVals или map на странице.');
         return;
     }
 
@@ -21,13 +22,15 @@ function init() {
 
     let placemark = null;
 
-    let editMode = false;
     const modeSwitch = document.getElementById('modeSwitch');
 
     if (modeSwitch) {
-        editMode = modeSwitch.checked;
         modeSwitch.addEventListener('change', function () {
-            editMode = this.checked;
+            if (this.checked) {
+                mapElement.style.display = 'block';
+            } else {
+                mapElement.style.display = 'none';
+            }
         });
     }
 
@@ -59,9 +62,6 @@ function init() {
         });
 
     map.events.add('click', function (e) {
-        if (!editMode) {
-            return;
-        }
         var coords = e.get('coords');
 
         if (placemark) {

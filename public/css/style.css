@@ -302,7 +302,7 @@ span.psw {
 
 .usersOverall {
     width: auto;
-    max-width: 820px;  
+    max-width: 820px;
     margin: 0 auto;
     background: darkgrey;
     height: 100%;
@@ -316,4 +316,8 @@ span.psw {
     .submitBtn {
         width: 100%;
     }
+}
+
+#map {
+    display: none;
 }
