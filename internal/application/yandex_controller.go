@@ -14,33 +14,66 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Заглушка данных для демонстрации ответа
-var samplePrices = []repository.PriceEntry{
-	{StationId: "0001", ProductId: "a92", Price: 38.66},
-	{StationId: "0001", ProductId: "a95_premium", Price: 45.21},
-	{StationId: "0002", ProductId: "a92", Price: 38.98},
+func checkAPIKey(rw http.ResponseWriter, r *http.Request) bool {
+	apiKey := r.URL.Query().Get("apikey")
+
+	if apiKey != "expected_api_key" {
+		http.Error(rw, "Invalid API key", http.StatusUnauthorized)
+		return false
+	}
+	return true
+}
+
+func sendJsonData(rw http.ResponseWriter, data any) bool {
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(data); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return true
+	}
+	return false
+}
+
+func convertTypeFuelToYaFormat(s string) string {
+	switch s {
+	case "ДТ":
+		return "diesel"
+	case "АИ-92":
+		return "a92"
+	case "АИ-95":
+		return "a95"
+	case "АИ-98":
+		return "a98"
+	case "АИ-100":
+		return "a100"
+	case "Метан":
+		return "metan"
+	case "Пропан":
+		return "propan"
+	default:
+		return ""
+	}
 }
 
 // Функция обработчика для получения прайс-листа
-func getPriceListHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	apiKey := r.URL.Query().Get("apikey")
-
-	// Проверка API ключа
-	if apiKey != "expected_api_key" {
-		http.Error(w, "Invalid API key", http.StatusUnauthorized)
+func getPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// http://127.0.0.1:8086/tanker/price?apikey=expected_api_key
+	if !checkAPIKey(rw, r) {
 		return
 	}
-
-	// Заголовок ответа
-	w.Header().Set("Content-Type", "application/json")
-
-	// Отправка данных в JSON формате
-	if err := json.NewEncoder(w).Encode(samplePrices); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	var samplePrices = []repository.PriceEntry{
+		{StationId: "0001", ProductId: "a92", Price: 38.66},
+		{StationId: "0001", ProductId: "a95_premium", Price: 45.21},
+		{StationId: "0002", ProductId: "a92", Price: 38.98},
 	}
+
+	sendJsonData(rw, samplePrices)
 }
 
 func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// http://127.0.0.1:8086/tanker/station?apikey=expected_api_key
+	if !checkAPIKey(rw, r) {
+		return
+	}
 
 	stations, err := a.repo.GetYaAzsInfoAllEnable(a.ctx)
 	if err != nil {
@@ -70,8 +103,10 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 		}
 
 		for j := 0; j < len(azsStatsDataFull.AzsNodes); j++ {
-			//TODO: Add convert
-			typeFuel := azsStatsDataFull.AzsNodes[j].TypeFuel
+			typeFuel := convertTypeFuelToYaFormat(azsStatsDataFull.AzsNodes[j].TypeFuel)
+			if typeFuel == "" {
+				continue
+			}
 			column := stations[i].Columns[int32(j)]
 
 			if column.Fuels == nil {
@@ -82,24 +117,7 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 		}
 	}
 
-	stationTest := repository.Station{
-		Id:      "001",
-		Enable:  true,
-		Name:    "Station 1",
-		Address: "123 Main St",
-		Location: repository.Location{
-			Lat: 59.9343,
-			Lon: 30.3351,
-		},
-		Columns: map[int32]repository.Column{
-			1: {Fuels: []string{"a92", "a95", "diesel_premium"}},
-			2: {Fuels: []string{"a92", "a95"}},
-		},
-	}
-
-	stations = append(stations, stationTest)
-	rw.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(rw).Encode(stations)
+	sendJsonData(rw, stations)
 }
 
 // Функция для обновления статуса заказа
@@ -141,15 +159,12 @@ var stations = map[string]repository.StationStatus{
 
 // Функция обработчика для проверки станции и колонки
 func pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	apiKey := r.URL.Query().Get("apikey")
-	stationId := r.URL.Query().Get("stationId")
-	columnId := r.URL.Query().Get("columnId")
-
-	// Проверка API ключа
-	if apiKey != "expected_api_key" {
-		http.Error(w, "Unauthorized: Invalid API key", http.StatusUnauthorized)
+	if !checkAPIKey(w, r) {
 		return
 	}
+
+	stationId := r.URL.Query().Get("stationId")
+	columnId := r.URL.Query().Get("columnId")
 
 	// Поиск станции по ID
 	station, ok := stations[stationId]
