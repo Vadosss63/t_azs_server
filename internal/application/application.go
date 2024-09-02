@@ -60,17 +60,6 @@ func (a App) Routes(router *httprouter.Router) {
 	router.POST("/push_azs_button", a.Authorized(a.pushAzsButton))
 	router.GET("/azs_button_ready", a.Authorized(a.azsButtonReady))
 
-	router.POST("/get_log_cmd", a.Authorized(a.getLogButton))
-	router.POST("/upload_log", a.Authorized(a.uploadLogs))
-	router.POST("/reset_log_cmd", a.Authorized(a.resetLogButton))
-
-	router.POST("/log_button", a.Authorized(a.logButton))
-	router.GET("/log_button_ready", a.Authorized(a.logButtonReady))
-	router.GET("/log_button_reset", a.Authorized(a.logButtonReset))
-
-	router.GET("/list_logs", a.Authorized(a.listLogFiles))
-	router.GET("/download_log", a.Authorized(a.downloadLogFile))
-
 	router.POST("/add_user_to_asz", a.Authorized(a.addUserToAsz))
 
 	router.GET("/users", a.Authorized(a.showUsersPage))
