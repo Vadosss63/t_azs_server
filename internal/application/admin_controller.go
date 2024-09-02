@@ -111,21 +111,3 @@ func (a App) addUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.
 	}
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
-
-func (a App) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-
-	userId, ok := GetIntVal(r.FormValue("user"))
-
-	if !ok {
-		http.Error(rw, "Error userId", http.StatusBadRequest)
-		return
-	}
-
-	u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
-
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-	a.userPage(rw, r, p, u)
-}

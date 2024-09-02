@@ -1,4 +1,4 @@
-package application
+package customer_controller
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Vadosss63/t-azs/internal/application"
 	"github.com/Vadosss63/t-azs/internal/repository/azs"
 	"github.com/Vadosss63/t-azs/internal/repository/receipt"
 	"github.com/Vadosss63/t-azs/internal/repository/user"
@@ -30,6 +31,32 @@ type AzsReceiptTemplate struct {
 	TotalSum        string
 	TotalLiters     string
 	FormPaymentType string
+}
+
+type CustomerController struct {
+	app *application.App
+}
+
+func NewController(app *application.App) *CustomerController {
+	return &CustomerController{app: app}
+}
+
+func (c CustomerController) Routes(router *httprouter.Router) {
+	router.GET("/azs_receipt/history", c.app.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		now := time.Now()
+		loc := now.Location()
+		paymentType := ""
+
+		fromSearchDateTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+		toSearchDateTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, loc)
+
+		c.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
+	}))
+
+	router.POST("/azs_receipt/history", c.app.Authorized(c.showHistoryReceiptsPage))
+
+	router.GET("/show_for_user", c.app.Authorized(c.showUsersAzsPage))
+
 }
 
 func addSpaces(s string) string {
@@ -58,7 +85,7 @@ func formatNumber(num float64) string {
 	return formattedNumber
 }
 
-func (a App) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c CustomerController) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fromSearchDate := r.FormValue("fromSearch")
 	toSearchDate := r.FormValue("toSearch")
 	fromTimeStr := r.FormValue("fromTime")
@@ -74,11 +101,11 @@ func (a App) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 		return
 	}
 
-	a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
+	c.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
 }
 
-func (a App) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time, paymentType string) {
-	id_azs, ok := GetIntVal(r.FormValue("id_azs"))
+func (c CustomerController) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time, paymentType string) {
+	id_azs, ok := application.GetIntVal(r.FormValue("id_azs"))
 	if !ok {
 		http.Error(rw, "Invalid id_azs value", http.StatusBadRequest)
 		return
@@ -94,13 +121,13 @@ func (a App) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		PaymentType: paymentType,
 	}
 
-	receipts, err := a.Repo.ReceiptRepo.GetFilteredReceipts(a.Ctx, id_azs, filterParams)
+	receipts, err := c.app.Repo.ReceiptRepo.GetFilteredReceipts(c.app.Ctx, id_azs, filterParams)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve filtered receipts: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	azs, err := a.Repo.AzsRepo.Get(a.Ctx, id_azs)
+	azs, err := c.app.Repo.AzsRepo.Get(c.app.Ctx, id_azs)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve AZS data: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -149,9 +176,9 @@ func (a App) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 }
 
-func (a App) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
+func (c CustomerController) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
 
-	azs_statses, err := a.Repo.AzsRepo.GetAzsAllForUser(a.Ctx, u.Id)
+	azs_statses, err := c.app.Repo.AzsRepo.GetAzsAllForUser(c.app.Ctx, u.Id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -185,4 +212,22 @@ func (a App) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+}
+
+func (c CustomerController) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	userId, ok := application.GetIntVal(r.FormValue("user"))
+
+	if !ok {
+		http.Error(rw, "Error userId", http.StatusBadRequest)
+		return
+	}
+
+	u, err := c.app.Repo.UserRepo.Get(c.app.Ctx, userId)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	c.userPage(rw, r, p, u)
 }

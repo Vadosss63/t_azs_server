@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
 	"github.com/Vadosss63/t-azs/internal/repository/user"
@@ -32,39 +31,10 @@ func (a App) Routes(router *httprouter.Router) {
 	router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
 
 	router.GET("/", a.Authorized(a.startPage))
-	router.GET("/azs/control", a.Authorized(a.azsPage))
-
-	router.GET("/azs_receipt/history", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		now := time.Now()
-		loc := now.Location()
-		paymentType := ""
-
-		fromSearchDateTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
-		toSearchDateTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, loc)
-
-		a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
-	}))
-
-	router.POST("/azs_receipt/history", a.Authorized(a.showHistoryReceiptsPage))
-
-	router.POST("/azs_stats", a.Authorized(a.azsStats))
-	router.DELETE("/azs_stats", a.Authorized(a.deleteAsz))
-
-	router.POST("/azs_receipt", a.Authorized(a.azsReceipt))
-
-	router.POST("/get_azs_button", a.Authorized(a.getAzsButton))
-
-	router.POST("/reset_azs_button", a.Authorized(a.resetAzsButton))
-
-	router.GET("/reset_azs_button", a.Authorized(a.resetAzs))
-	router.POST("/push_azs_button", a.Authorized(a.pushAzsButton))
-	router.GET("/azs_button_ready", a.Authorized(a.azsButtonReady))
 
 	router.POST("/add_user_to_asz", a.Authorized(a.addUserToAsz))
 
 	router.GET("/users", a.Authorized(a.showUsersPage))
-
-	router.GET("/show_for_user", a.Authorized(a.showUsersAzsPage))
 
 	router.POST("/show_azs_for", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		id_user, ok_id := GetIntVal(r.FormValue("user"))
@@ -105,7 +75,7 @@ func (a App) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	a.userPage(rw, r, p, u)
+	//a.userPage(rw, r, p, u)
 }
 
 func readCookie(name string, r *http.Request) (value string, err error) {

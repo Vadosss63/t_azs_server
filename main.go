@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/Vadosss63/t-azs/internal/application"
+	"github.com/Vadosss63/t-azs/internal/controllers/azs_controller"
+	"github.com/Vadosss63/t-azs/internal/controllers/customer_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/map_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/trbl_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/update_app_controller"
@@ -66,6 +68,8 @@ func main() {
 	userController := user_controller.NewController(a)
 	trblController := trbl_controller.NewController(a)
 	mapController := map_controller.NewController(a)
+	customerController := customer_controller.NewController(a)
+	azsController := azs_controller.NewController(a)
 
 	a.Routes(r)
 	yaController.Routes(r)
@@ -73,6 +77,8 @@ func main() {
 	userController.Routes(r)
 	trblController.Routes(r)
 	mapController.Routes(r)
+	customerController.Routes(r)
+	azsController.Routes(r)
 
 	fmt.Printf("It's alive! Try http://t-azs.ru:%d/ or http://127.0.0.1:%d\n", settings.Port, settings.Port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), r)
