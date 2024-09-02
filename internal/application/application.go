@@ -83,10 +83,6 @@ func (a App) Routes(router *httprouter.Router) {
 		}
 		a.adminPage(rw, r, p, u, id_user)
 	}))
-
-	router.POST("/save-point", a.Authorized(a.savePointHandler))
-	router.GET("/points", a.Authorized(a.pointsHandler))
-
 }
 
 func (a App) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
