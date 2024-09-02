@@ -83,13 +83,6 @@ func (a App) Routes(router *httprouter.Router) {
 	router.GET("/list_logs", a.Authorized(a.listLogFiles))
 	router.GET("/download_log", a.Authorized(a.downloadLogFile))
 
-	router.POST("/get_app_update_button", a.Authorized(a.getAppUpdateButton))
-	router.POST("/reset_app_update_button", a.Authorized(a.resetAppUpdateButton))
-	router.POST("/app_update_button", a.Authorized(a.appUpdateButton))
-	router.GET("/app_update_button_ready", a.Authorized(a.appUpdateButtonReady))
-	router.GET("/app_update_button_reset", a.Authorized(a.resetAppUpdateAzs))
-	router.GET("/update_app_page", a.Authorized(a.showUpdateAppPage))
-
 	router.POST("/add_user_to_asz", a.Authorized(a.addUserToAsz))
 
 	router.GET("/users", a.Authorized(a.showUsersPage))

@@ -60,7 +60,7 @@ type YaController struct {
 	app *application.App
 }
 
-func NewYaController(app *application.App) *YaController {
+func NewController(app *application.App) *YaController {
 	return &YaController{app: app}
 }
 

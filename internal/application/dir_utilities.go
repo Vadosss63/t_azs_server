@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func ensureDirectory(path string) error {
+func EnsureDirectory(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return err
@@ -15,7 +15,7 @@ func ensureDirectory(path string) error {
 	return nil
 }
 
-func listFilesInDirectory(directory string) ([]string, error) {
+func ListFilesInDirectory(directory string) ([]string, error) {
 	files, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
@@ -30,12 +30,12 @@ func listFilesInDirectory(directory string) ([]string, error) {
 	return fileNames, nil
 }
 
-func deleteDirectory(directoryPath string) error {
+func DeleteDirectory(directoryPath string) error {
 	return os.RemoveAll(directoryPath)
 }
 
-func saveUploadedFile(uploadsDir, filename string, file io.Reader) error {
-	if err := ensureDirectory(uploadsDir); err != nil {
+func SaveUploadedFile(uploadsDir, filename string, file io.Reader) error {
+	if err := EnsureDirectory(uploadsDir); err != nil {
 		return err
 	}
 
@@ -50,7 +50,7 @@ func saveUploadedFile(uploadsDir, filename string, file io.Reader) error {
 	return err
 }
 
-func checkFileExists(filePath string) (bool, error) {
+func CheckFileExists(filePath string) (bool, error) {
 	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		return false, nil

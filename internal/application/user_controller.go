@@ -212,7 +212,7 @@ func (a App) Authorized(next httprouter.Handle) httprouter.Handle {
 				next(rw, r, ps)
 				return
 			}
-			sendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
+			SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
 			return
 		}
 

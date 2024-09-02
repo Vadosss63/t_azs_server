@@ -73,26 +73,26 @@ func (a App) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	_, ok := GetIntVal(id)
 
 	if !ok {
-		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
 
 	file, handler, err := processFileUpload(r, maxUploadSize)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
 	defer file.Close()
 
 	uploadsDir := filepath.Join(logsPath, id)
 
-	err = saveUploadedFile(uploadsDir, handler.Filename, file)
+	err = SaveUploadedFile(uploadsDir, handler.Filename, file)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
-	sendJsonResponse(rw, http.StatusOK, "Файл успешно загружен", "Ok")
+	SendJsonResponse(rw, http.StatusOK, "Файл успешно загружен", "Ok")
 }
 
 func (a App) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -100,16 +100,16 @@ func (a App) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 
 	if !ok {
-		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
 	logButton, err := a.Repo.TrblButtonRepo.Get(a.Ctx, idInt)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 
 		return
 	}
-	sendJson(rw, http.StatusOK, logButton)
+	SendJson(rw, http.StatusOK, logButton)
 }
 
 func (a App) resetLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -139,12 +139,12 @@ func (a App) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.
 	}
 
 	uploadsDir := logsPath + id + "/"
-	if err := ensureDirectory(uploadsDir); err != nil {
+	if err := EnsureDirectory(uploadsDir); err != nil {
 		http.Error(rw, "Не удалось создать директорию: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fileNames, err := listFilesInDirectory(uploadsDir)
+	fileNames, err := ListFilesInDirectory(uploadsDir)
 	if err != nil {
 		http.Error(rw, "Не удалось прочитать директорию: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -173,14 +173,14 @@ func (a App) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.
 func (a App) deleteLogs(rw http.ResponseWriter, r *http.Request) {
 	id := strings.TrimSpace(r.FormValue("id_azs"))
 	if id == "" {
-		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
 
 	uploadsDir := filepath.Join(logsPath, id) + "/"
 
-	if err := deleteDirectory(uploadsDir); err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+	if err := DeleteDirectory(uploadsDir); err != nil {
+		SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
@@ -199,7 +199,7 @@ func (a App) logButton(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		a.deleteLogs(rw, r)
 		return
 	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+	SendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 
 }
 
@@ -211,11 +211,11 @@ func (a App) setLogCmd(rw http.ResponseWriter, r *http.Request) {
 	if ok {
 		err := a.Repo.TrblButtonRepo.Update(a.Ctx, idInt, 1)
 		if err == nil {
-			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+			SendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
 		}
 	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+	SendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a App) logButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -232,9 +232,9 @@ func (a App) logButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 	}
 
 	if button.Download == 0 {
-		sendJsonResponse(rw, http.StatusOK, "Ok", "ready")
+		SendJsonResponse(rw, http.StatusOK, "Ok", "ready")
 	} else {
-		sendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
+		SendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
 	}
 }
 
@@ -245,9 +245,9 @@ func (a App) logButtonReset(rw http.ResponseWriter, r *http.Request, p httproute
 	if ok {
 		err := a.Repo.TrblButtonRepo.Update(a.Ctx, idInt, 0)
 		if err == nil {
-			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+			SendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
 		}
 	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+	SendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }

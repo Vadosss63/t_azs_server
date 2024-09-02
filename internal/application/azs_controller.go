@@ -16,7 +16,7 @@ func (a App) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 
 	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 	if !ok {
-		sendJsonResponse(rw, http.StatusBadRequest, "Invalid ID format", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "Invalid ID format", "Error")
 		return
 	}
 
@@ -27,16 +27,16 @@ func (a App) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	stats := strings.TrimSpace(r.FormValue("stats"))
 
 	if name == "" || address == "" || stats == "" || !okCountColum || !okIsSecondPrice {
-		sendJsonResponse(rw, http.StatusBadRequest, "All fields must be filled!", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "All fields must be filled!", "Error")
 		return
 	}
 
 	if err := a.manageAzs(idInt, countColum, isSecondPrice, name, address, stats); err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
-	sendJsonResponse(rw, http.StatusOK, "Operation successful", "Ok")
+	SendJsonResponse(rw, http.StatusOK, "Operation successful", "Ok")
 }
 
 func (a App) manageAzs(idInt, countColum, isSecondPrice int, name, address, stats string) error {
@@ -132,23 +132,23 @@ func (a App) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	receiptJson := strings.TrimSpace(r.FormValue("receipt"))
 
 	if !ok || receiptJson == "" {
-		sendJsonResponse(rw, http.StatusBadRequest, "All fields must be filled!", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "All fields must be filled!", "Error")
 		return
 	}
 
 	receipt, err := receipt.ParseReceiptFromJson(receiptJson)
 
 	if err != nil {
-		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
 	err = a.Repo.ReceiptRepo.Add(a.Ctx, id, receipt)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
 
-	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+	SendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 }
 
 func (a App) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -156,16 +156,16 @@ func (a App) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 
 	if !ok {
-		sendJsonResponse(rw, http.StatusBadRequest, "Error id or GetAzsButton", "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, "Error id or GetAzsButton", "Error")
 		return
 	}
 
 	azsButton, err := a.Repo.AzsButtonRepo.Get(a.Ctx, idInt)
 	if err != nil {
-		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
+		SendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
-	sendJson(rw, http.StatusOK, azsButton)
+	SendJson(rw, http.StatusOK, azsButton)
 }
 
 func (a App) resetAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -179,11 +179,11 @@ func (a App) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	if ok {
 		err := a.Repo.AzsButtonRepo.Update(a.Ctx, idInt, 0, 0)
 		if err == nil {
-			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
+			SendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
 		}
 	}
-	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
+	SendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
 func (a App) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -228,7 +228,7 @@ func (a App) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 		return
 	}
 
-	sendJsonResponse(rw, http.StatusOK, "Ok", "Success")
+	SendJsonResponse(rw, http.StatusOK, "Ok", "Success")
 }
 
 func (a App) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -245,9 +245,9 @@ func (a App) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 	}
 
 	if azsButton.Button == 0 && azsButton.Value == 0 {
-		sendJsonResponse(rw, http.StatusOK, "Ok", "ready")
+		SendJsonResponse(rw, http.StatusOK, "Ok", "ready")
 	} else {
-		sendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
+		SendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
 	}
 }
 

@@ -12,14 +12,14 @@ type responseMessage struct {
 	Status string `json:"status"`
 }
 
-func sendJson(rw http.ResponseWriter, statusCode int, data interface{}) {
+func SendJson(rw http.ResponseWriter, statusCode int, data interface{}) {
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(statusCode)
 	json.NewEncoder(rw).Encode(data)
 }
 
-func sendJsonResponse(rw http.ResponseWriter, statusCode int, msg, status string) {
-	sendJson(rw, statusCode, responseMessage{Msg: msg, Status: status})
+func SendJsonResponse(rw http.ResponseWriter, statusCode int, msg, status string) {
+	SendJson(rw, statusCode, responseMessage{Msg: msg, Status: status})
 }
 
 func SendError(rw http.ResponseWriter, message string, statusCode int) {
