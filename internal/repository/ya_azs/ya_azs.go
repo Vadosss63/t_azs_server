@@ -1,10 +1,12 @@
-package repository
+package ya_azs
 
 import (
 	"context"
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Location struct {
@@ -74,7 +76,15 @@ const (
 	enable        = "enable"
 )
 
-func (r *Repository) CreateYaAzsInfoTable(ctx context.Context) error {
+type YaAzsRepo struct {
+	pool *pgxpool.Pool
+}
+
+func NewRepository(pool *pgxpool.Pool) *YaAzsRepo {
+	return &YaAzsRepo{pool: pool}
+}
+
+func (r *YaAzsRepo) CreateYaAzsInfoTable(ctx context.Context) error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %s (
     %s  BIGINT,
@@ -89,7 +99,7 @@ CREATE TABLE IF NOT EXISTS %s (
 	return nil
 }
 
-func (r *Repository) DeleteYaAzsInfoTable(ctx context.Context) error {
+func (r *YaAzsRepo) DeleteYaAzsInfoTable(ctx context.Context) error {
 	query := fmt.Sprintf(`DROP TABLE IF EXISTS %s`, yaAzsInfoName)
 	_, err := r.pool.Exec(ctx, query)
 	if err != nil {
@@ -98,7 +108,7 @@ func (r *Repository) DeleteYaAzsInfoTable(ctx context.Context) error {
 	return nil
 }
 
-func (r *Repository) AddYaAzsInfo(ctx context.Context, idAzs int) error {
+func (r *YaAzsRepo) AddYaAzsInfo(ctx context.Context, idAzs int) error {
 	query := fmt.Sprintf(`INSERT INTO %s (%s, %s, %s, %s ) VALUES ($1, 0, 0, FALSE)`, yaAzsInfoName, columnAzsId, columnLat, columnLon, enable)
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
@@ -107,7 +117,7 @@ func (r *Repository) AddYaAzsInfo(ctx context.Context, idAzs int) error {
 	return nil
 }
 
-func (r *Repository) UpdateYaAzsInfoLocation(ctx context.Context, idAzs int, location Location) error {
+func (r *YaAzsRepo) UpdateYaAzsInfoLocation(ctx context.Context, idAzs int, location Location) error {
 	query := fmt.Sprintf(`UPDATE %s SET %s = $2, %s = $3 WHERE %s = $1`, yaAzsInfoName, columnLat, columnLon, columnAzsId)
 	_, err := r.pool.Exec(ctx, query, idAzs, location.Lat, location.Lon)
 	if err != nil {
@@ -116,7 +126,7 @@ func (r *Repository) UpdateYaAzsInfoLocation(ctx context.Context, idAzs int, loc
 	return nil
 }
 
-func (r *Repository) UpdateYaAzsInfoEnable(ctx context.Context, idAzs int, isEnable bool) error {
+func (r *YaAzsRepo) UpdateYaAzsInfoEnable(ctx context.Context, idAzs int, isEnable bool) error {
 	query := fmt.Sprintf(`UPDATE %s SET %s = $2 WHERE %s = $1`, yaAzsInfoName, enable, columnAzsId)
 	_, err := r.pool.Exec(ctx, query, idAzs, isEnable)
 	if err != nil {
@@ -125,7 +135,7 @@ func (r *Repository) UpdateYaAzsInfoEnable(ctx context.Context, idAzs int, isEna
 	return nil
 }
 
-func (r *Repository) DeleteYaAzsInfo(ctx context.Context, idAzs int) error {
+func (r *YaAzsRepo) DeleteYaAzsInfo(ctx context.Context, idAzs int) error {
 	query := fmt.Sprintf(`DELETE FROM %s WHERE %s = $1`, yaAzsInfoName, columnAzsId)
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
@@ -134,7 +144,7 @@ func (r *Repository) DeleteYaAzsInfo(ctx context.Context, idAzs int) error {
 	return nil
 }
 
-func (r *Repository) GetYaAzsInfoLocation(ctx context.Context, idAzs int) (Location, error) {
+func (r *YaAzsRepo) GetYaAzsInfoLocation(ctx context.Context, idAzs int) (Location, error) {
 	query := fmt.Sprintf(`SELECT %s, %s FROM %s WHERE %s = $1`, columnLat, columnLon, yaAzsInfoName, columnAzsId)
 	row := r.pool.QueryRow(ctx, query, idAzs)
 
@@ -147,7 +157,7 @@ func (r *Repository) GetYaAzsInfoLocation(ctx context.Context, idAzs int) (Locat
 	return location, nil
 }
 
-func (r *Repository) GetYaAzsInfoEnable(ctx context.Context, idAzs int) (bool, error) {
+func (r *YaAzsRepo) GetYaAzsInfoEnable(ctx context.Context, idAzs int) (bool, error) {
 	query := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = $1`, enable, yaAzsInfoName, columnAzsId)
 	row := r.pool.QueryRow(ctx, query, idAzs)
 
@@ -160,7 +170,7 @@ func (r *Repository) GetYaAzsInfoEnable(ctx context.Context, idAzs int) (bool, e
 	return isEnable, nil
 }
 
-func (r *Repository) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, error) {
+func (r *YaAzsRepo) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, error) {
 
 	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s WHERE %s = true`, columnAzsId, columnLat, columnLon, yaAzsInfoName, enable)
 
@@ -189,7 +199,7 @@ func (r *Repository) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, erro
 	return stations, nil
 }
 
-func (r *Repository) GetYaAzsInfoEnableList(ctx context.Context) ([]int, error) {
+func (r *YaAzsRepo) GetYaAzsInfoEnableList(ctx context.Context) ([]int, error) {
 
 	query := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = true`, columnAzsId, yaAzsInfoName, enable)
 

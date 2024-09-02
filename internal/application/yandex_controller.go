@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Vadosss63/t-azs/internal/repository"
 	"github.com/Vadosss63/t-azs/internal/repository/azs"
+	"github.com/Vadosss63/t-azs/internal/repository/ya_azs"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -61,12 +61,12 @@ func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	azsIds, err := a.repo.GetYaAzsInfoEnableList(a.ctx)
+	azsIds, err := a.repo.YaAzsRepo.GetYaAzsInfoEnableList(a.ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
 
-	var samplePrices = []repository.PriceEntry{}
+	var samplePrices = []ya_azs.PriceEntry{}
 	for i := 0; i < len(azsIds); i++ {
 		azsStats, err := a.repo.AzsRepo.GetAzs(a.ctx, azsIds[i])
 		if err != nil {
@@ -89,7 +89,7 @@ func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p http
 
 			priceFloat, _ := strconv.ParseFloat(price, 64)
 
-			var samplePrice = repository.PriceEntry{
+			var samplePrice = ya_azs.PriceEntry{
 				StationId: strconv.Itoa(azsIds[i]),
 				ProductId: typeFuel,
 				Price:     priceFloat,
@@ -109,7 +109,7 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 		return
 	}
 
-	stations, err := a.repo.GetYaAzsInfoAllEnable(a.ctx)
+	stations, err := a.repo.YaAzsRepo.GetYaAzsInfoAllEnable(a.ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
@@ -133,7 +133,7 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 		stations[i].Name = azsStatsDataFull.Name
 
 		if stations[i].Columns == nil {
-			stations[i].Columns = make(map[int32]repository.Column)
+			stations[i].Columns = make(map[int32]ya_azs.Column)
 		}
 
 		for j := 0; j < len(azsStatsDataFull.AzsNodes); j++ {
@@ -177,7 +177,7 @@ func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 	// 	return
 	// }
 
-	enable, err := a.repo.GetYaAzsInfoEnable(a.ctx, idInt)
+	enable, err := a.repo.YaAzsRepo.GetYaAzsInfoEnable(a.ctx, idInt)
 	if err != nil || !enable {
 		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
 		return
@@ -200,7 +200,7 @@ func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 // Функция для обновления статуса заказа
 func (a app) updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	decoder := json.NewDecoder(r.Body)
-	var order repository.Order
+	var order ya_azs.Order
 	err := decoder.Decode(&order)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -208,7 +208,7 @@ func (a app) updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p 
 	}
 
 	stationID, _ := strconv.Atoi(order.StationId)
-	enable, err := a.repo.GetYaAzsInfoEnable(a.ctx, stationID)
+	enable, err := a.repo.YaAzsRepo.GetYaAzsInfoEnable(a.ctx, stationID)
 	if err != nil || !enable {
 		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
 		return
@@ -234,7 +234,7 @@ func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = a.repo.UpdateYaAzsInfoEnable(a.ctx, requestData.IdAzs, requestData.IsEnabled)
+	err = a.repo.YaAzsRepo.UpdateYaAzsInfoEnable(a.ctx, requestData.IdAzs, requestData.IsEnabled)
 
 	if err != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)

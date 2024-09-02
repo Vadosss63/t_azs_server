@@ -60,7 +60,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
-		azsStatsDataFull.IsEnabled, err = a.repo.GetYaAzsInfoEnable(a.ctx, azsStatsDataFull.IdAzs)
+		azsStatsDataFull.IsEnabled, err = a.repo.YaAzsRepo.GetYaAzsInfoEnable(a.ctx, azsStatsDataFull.IdAzs)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)

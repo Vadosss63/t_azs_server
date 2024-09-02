@@ -73,7 +73,7 @@ func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stat
 	if err := a.repo.TrblButtonRepo.AddLogButton(a.ctx, idInt); err != nil {
 		return err
 	}
-	if err := a.repo.AddYaAzsInfo(a.ctx, idInt); err != nil {
+	if err := a.repo.YaAzsRepo.AddYaAzsInfo(a.ctx, idInt); err != nil {
 		return err
 	}
 	if err := a.repo.YaPayRepo.AddYaPay(a.ctx, idInt); err != nil {
@@ -109,7 +109,7 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	if err := a.repo.DeleteYaAzsInfo(a.ctx, idAzs); err != nil {
+	if err := a.repo.YaAzsRepo.DeleteYaAzsInfo(a.ctx, idAzs); err != nil {
 		sendError(rw, "Failed to delete Ya Azs Info: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
