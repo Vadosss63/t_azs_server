@@ -103,7 +103,7 @@ func (a app) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
-	logButton, err := a.repo.GetLogButton(a.ctx, idInt)
+	logButton, err := a.repo.TrblButtonRepo.GetLogButton(a.ctx, idInt)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 
@@ -209,7 +209,7 @@ func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request) {
 	idInt, ok := getIntVal(id)
 
 	if ok {
-		err := a.repo.UpdateLogButton(a.ctx, idInt, 1)
+		err := a.repo.TrblButtonRepo.UpdateLogButton(a.ctx, idInt, 1)
 		if err == nil {
 			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
@@ -225,7 +225,7 @@ func (a app) logButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 
-	button, err := a.repo.GetLogButton(a.ctx, idInt)
+	button, err := a.repo.TrblButtonRepo.GetLogButton(a.ctx, idInt)
 	if err != nil {
 		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -243,7 +243,7 @@ func (a app) logButtonReset(rw http.ResponseWriter, r *http.Request, p httproute
 	idInt, ok := getIntVal(id)
 
 	if ok {
-		err := a.repo.UpdateLogButton(a.ctx, idInt, 0)
+		err := a.repo.TrblButtonRepo.UpdateLogButton(a.ctx, idInt, 0)
 		if err == nil {
 			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
