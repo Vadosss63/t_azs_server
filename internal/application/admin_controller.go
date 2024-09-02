@@ -6,17 +6,18 @@ import (
 	"path/filepath"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/user"
 	"github.com/julienschmidt/httprouter"
 )
 
 type AdminPageTemplate struct {
-	User           repository.User
-	Users          []repository.User
+	User           user.User
+	Users          []user.User
 	Azses          []repository.AzsStatsDataFull
 	SelectedUserId int
 }
 
-func deleteUser(users []repository.User, login string) []repository.User {
+func deleteUser(users []user.User, login string) []user.User {
 	for i, user := range users {
 		if user.Login == login {
 			users = append(users[:i], users[i+1:]...)
@@ -26,7 +27,7 @@ func deleteUser(users []repository.User, login string) []repository.User {
 	return users
 }
 
-func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User, id int) {
+func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User, id int) {
 
 	// a.repo.CreateYaAzsInfoTable(a.ctx)
 
@@ -39,7 +40,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		azs_statses, err = a.repo.GetAzsAllForUser(a.ctx, id)
 	}
 
-	users, err := a.repo.GetUserAll(a.ctx)
+	users, err := a.repo.UserRepo.GetUserAll(a.ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -83,7 +84,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 
 func (a app) showUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	users, err := a.repo.GetUserAll(a.ctx)
+	users, err := a.repo.UserRepo.GetUserAll(a.ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -120,7 +121,7 @@ func (a app) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprou
 		return
 	}
 
-	u, err := a.repo.GetUser(a.ctx, userId)
+	u, err := a.repo.UserRepo.GetUser(a.ctx, userId)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

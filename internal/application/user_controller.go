@@ -52,7 +52,7 @@ func (a app) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httpro
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
 
-	err := a.repo.UpdateUserPassword(a.ctx, id, hashedPass)
+	err := a.repo.UserRepo.UpdateUserPassword(a.ctx, id, hashedPass)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -70,7 +70,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	user, err := a.repo.GetUser(a.ctx, id)
+	user, err := a.repo.UserRepo.GetUser(a.ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -87,7 +87,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	err = a.repo.DeleteUser(a.ctx, id)
+	err = a.repo.UserRepo.DeleteUser(a.ctx, id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -121,7 +121,7 @@ func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	err := a.repo.AddNewUser(a.ctx, name, surname, login, hashedPass)
+	err := a.repo.UserRepo.AddNewUser(a.ctx, name, surname, login, hashedPass)
 	if err != nil {
 		a.signupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
 		return
@@ -152,14 +152,14 @@ func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	user, err := a.repo.Login(a.ctx, login, hashedPass)
+	user, err := a.repo.UserRepo.Login(a.ctx, login, hashedPass)
 	if err != nil {
 		a.loginPage(rw, "Вы ввели неверный логин или пароль!")
 		return
 	}
 
 	time64 := time.Now().Unix()
-	timeInt := string(time64)
+	timeInt := fmt.Sprint(time64)
 	token := login + password + timeInt
 	hashToken := md5.Sum([]byte(token))
 	hashedToken := hex.EncodeToString(hashToken[:])

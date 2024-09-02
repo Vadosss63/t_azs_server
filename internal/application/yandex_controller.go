@@ -54,7 +54,6 @@ func convertTypeFuelToYaFormat(s string) string {
 	}
 }
 
-// Функция обработчика для получения прайс-листа
 func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/price?apikey=expected_api_key
 	if !checkAPIKey(rw, r) {
@@ -154,8 +153,51 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 	sendJsonData(rw, stations)
 }
 
+func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// http://127.0.0.1:8086/tanker/ping?apikey=expected_api_key&stationId=11111111&columnId=0
+	if !checkAPIKey(w, r) {
+		return
+	}
+
+	stationId := r.URL.Query().Get("stationId")
+	// columnId := r.URL.Query().Get("columnId")
+
+	idInt, err := strconv.Atoi(stationId)
+	if err != nil {
+		http.Error(w, "Bad Request: Invalid station ID", http.StatusBadRequest)
+		return
+	}
+
+	//a.repo.CreateYaPayTable(a.ctx)
+
+	// columnIDInt, err := strconv.Atoi(columnId)
+	// if err != nil {
+	// 	http.Error(w, "Bad Request: Invalid column ID", http.StatusBadRequest)
+	// 	return
+	// }
+
+	enable, err := a.repo.GetYaAzsInfoEnable(a.ctx, idInt)
+	if err != nil || !enable {
+		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
+		return
+	}
+
+	// // Проверка доступности станции
+	// if !station.Active {
+	// 	http.Error(w, "Service Unavailable: Station is not active", http.StatusServiceUnavailable)
+	// 	return
+	// }
+
+	// if active, exists := station.Columns[columnIDInt]; !exists || !active {
+	// 	http.Error(w, "Conflict: Column not found or not ready", http.StatusConflict)
+	// 	return
+	// }
+
+	w.WriteHeader(http.StatusOK)
+}
+
 // Функция для обновления статуса заказа
-func updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a app) updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	decoder := json.NewDecoder(r.Body)
 	var order repository.Order
 	err := decoder.Decode(&order)
@@ -164,7 +206,12 @@ func updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprout
 		return
 	}
 
-	// Здесь должна быть логика обработки заказа
+	stationID, _ := strconv.Atoi(order.StationId)
+	enable, err := a.repo.GetYaAzsInfoEnable(a.ctx, stationID)
+	if err != nil || !enable {
+		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
+		return
+	}
 
 	fmt.Fprintf(w, "Order with ID %s updated to status %s", order.Id, order.Status)
 }
@@ -194,69 +241,8 @@ func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "success",
-	})
-}
 
-//PING handler
-
-// Заглушка данных о станциях
-var stations = map[string]repository.StationStatus{
-	"station1": {
-		ID:     "station1",
-		Active: true,
-		Columns: map[int]bool{
-			1: true,
-			2: false, // Эта колонка не активна
-		},
-	},
-	"station2": {
-		ID:     "station2",
-		Active: false, // Станция не активна
-		Columns: map[int]bool{
-			1: true,
-			2: true,
-		},
-	},
-}
-
-// Функция обработчика для проверки станции и колонки
-func pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !checkAPIKey(w, r) {
-		return
-	}
-
-	stationId := r.URL.Query().Get("stationId")
-	columnId := r.URL.Query().Get("columnId")
-
-	// Поиск станции по ID
-	station, ok := stations[stationId]
-	if !ok {
-		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
-		return
-	}
-
-	// Проверка доступности станции
-	if !station.Active {
-		http.Error(w, "Service Unavailable: Station is not active", http.StatusServiceUnavailable)
-		return
-	}
-
-	// Проверка наличия и состояния колонки
-	columnIDInt, err := strconv.Atoi(columnId)
-	if err != nil {
-		http.Error(w, "Bad Request: Invalid column ID", http.StatusBadRequest)
-		return
-	}
-
-	if active, exists := station.Columns[columnIDInt]; !exists || !active {
-		http.Error(w, "Conflict: Column not found or not ready", http.StatusConflict)
-		return
-	}
-
-	// Все проверки пройдены, станция и колонка готовы к использованию
-	w.WriteHeader(http.StatusOK)
+	sendJsonData(w, map[string]string{"status": "success"})
 }
 
 const baseURL = "https://app.tanker.yandex.net" // Константа базового URL

@@ -1,9 +1,9 @@
 module github.com/Vadosss63/t-azs
 
-go 1.18
+go 1.22
 
 require (
-	github.com/jackc/pgx/v4 v4.18.2
+	github.com/jackc/pgx/v4 v4.18.3
 	github.com/julienschmidt/httprouter v1.3.0
 )
 

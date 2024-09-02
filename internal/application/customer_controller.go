@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/user"
 	"github.com/julienschmidt/httprouter"
 )
 
 type AzsStatsTemplate struct {
-	User  repository.User
+	User  user.User
 	Azses []repository.AzsStatsDataFull
 }
 
@@ -147,7 +148,7 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 }
 
-func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u repository.User) {
+func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
 
 	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, u.Id)
 

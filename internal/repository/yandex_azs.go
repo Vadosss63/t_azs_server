@@ -63,7 +63,7 @@ type PriceEntry struct {
 type StationStatus struct {
 	ID      string
 	Active  bool
-	Columns map[int]bool // Ключ - ID колонки, значение - активность колонки
+	Columns map[int]bool
 }
 
 const (
@@ -175,7 +175,7 @@ func (r *Repository) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, erro
 		var station Station
 		var id int
 		if err := rows.Scan(&id, &station.Location.Lat, &station.Location.Lon); err != nil {
-			return nil, fmt.Errorf("failed to scan from %s: %w", tableName, err)
+			return nil, fmt.Errorf("failed to scan from %s: %w", yaAzsInfoName, err)
 		}
 		station.Enable = true
 		station.Id = strconv.Itoa(id)
@@ -183,7 +183,7 @@ func (r *Repository) GetYaAzsInfoAllEnable(ctx context.Context) ([]Station, erro
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error after iterating over %s: %w", tableName, err)
+		return nil, fmt.Errorf("error after iterating over %s: %w", yaAzsInfoName, err)
 	}
 
 	return stations, nil
@@ -203,13 +203,13 @@ func (r *Repository) GetYaAzsInfoEnableList(ctx context.Context) ([]int, error) 
 	for rows.Next() {
 		var id int
 		if err := rows.Scan(&id); err != nil {
-			return nil, fmt.Errorf("failed to scan from %s: %w", tableName, err)
+			return nil, fmt.Errorf("failed to scan from %s: %w", yaAzsInfoName, err)
 		}
 		ids = append(ids, id)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error after iterating over %s: %w", tableName, err)
+		return nil, fmt.Errorf("error after iterating over %s: %w", yaAzsInfoName, err)
 	}
 
 	return ids, nil

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/user"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/julienschmidt/httprouter"
 )
@@ -13,13 +14,13 @@ import (
 type app struct {
 	ctx   context.Context
 	repo  *repository.Repository
-	cache map[string]repository.User
+	cache map[string]user.User
 	token string
 	port  int
 }
 
 func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int) *app {
-	return &app{ctx, repository.NewRepository(dbpool), make(map[string]repository.User), token, port}
+	return &app{ctx, repository.NewRepository(dbpool), make(map[string]user.User), token, port}
 }
 
 func (a app) Routes(router *httprouter.Router) {
@@ -109,7 +110,7 @@ func (a app) Routes(router *httprouter.Router) {
 			http.Error(rw, "Error user", http.StatusBadRequest)
 			return
 		}
-		u, err := a.repo.GetUser(a.ctx, userId)
+		u, err := a.repo.UserRepo.GetUser(a.ctx, userId)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -121,9 +122,9 @@ func (a app) Routes(router *httprouter.Router) {
 	router.GET("/tanker/station", a.getStationsHandler)
 	router.GET("/tanker/price", a.getPriceListHandler)
 
-	router.GET("/tanker/ping", pingHandler)
+	router.GET("/tanker/ping", a.pingHandler)
 
-	router.POST("/tanker/order", updateOrderStatusHandler)
+	router.POST("/tanker/order", a.updateOrderStatusHandler)
 
 	router.POST("/save-point", a.authorized(a.savePointHandler))
 	router.GET("/points", a.authorized(a.pointsHandler))
@@ -138,7 +139,7 @@ func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		http.Error(rw, "Error user", http.StatusBadRequest)
 		return
 	}
-	u, err := a.repo.GetUser(a.ctx, userId)
+	u, err := a.repo.UserRepo.GetUser(a.ctx, userId)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
