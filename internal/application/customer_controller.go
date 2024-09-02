@@ -58,7 +58,7 @@ func formatNumber(num float64) string {
 	return formattedNumber
 }
 
-func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fromSearchDate := r.FormValue("fromSearch")
 	toSearchDate := r.FormValue("toSearch")
 	fromTimeStr := r.FormValue("fromTime")
@@ -77,8 +77,8 @@ func (a app) showHistoryReceiptsPage(rw http.ResponseWriter, r *http.Request, p 
 	a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
 }
 
-func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time, paymentType string) {
-	id_azs, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, fromSearchTime, toSearchTime time.Time, paymentType string) {
+	id_azs, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
 		http.Error(rw, "Invalid id_azs value", http.StatusBadRequest)
 		return
@@ -94,13 +94,13 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		PaymentType: paymentType,
 	}
 
-	receipts, err := a.repo.ReceiptRepo.GetFilteredReceipts(a.ctx, id_azs, filterParams)
+	receipts, err := a.Repo.ReceiptRepo.GetFilteredReceipts(a.Ctx, id_azs, filterParams)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve filtered receipts: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	azs, err := a.repo.AzsRepo.Get(a.ctx, id_azs)
+	azs, err := a.Repo.AzsRepo.Get(a.Ctx, id_azs)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve AZS data: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -149,9 +149,9 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	}
 }
 
-func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
+func (a App) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
 
-	azs_statses, err := a.repo.AzsRepo.GetAzsAllForUser(a.ctx, u.Id)
+	azs_statses, err := a.Repo.AzsRepo.GetAzsAllForUser(a.Ctx, u.Id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

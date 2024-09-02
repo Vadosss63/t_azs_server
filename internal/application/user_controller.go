@@ -33,9 +33,9 @@ func readCookie(name string, r *http.Request) (value string, err error) {
 	return value, err
 }
 
-func (a app) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
+	id, ok_id := GetIntVal(strings.TrimSpace(r.FormValue("userId")))
 	password := strings.TrimSpace(r.FormValue("password"))
 	password2 := strings.TrimSpace(r.FormValue("password2"))
 
@@ -52,7 +52,7 @@ func (a app) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httpro
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
 
-	err := a.repo.UserRepo.UpdateUserPassword(a.ctx, id, hashedPass)
+	err := a.Repo.UserRepo.UpdateUserPassword(a.Ctx, id, hashedPass)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -61,16 +61,16 @@ func (a app) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httpro
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	id, ok_id := getIntVal(strings.TrimSpace(r.FormValue("userId")))
+	id, ok_id := GetIntVal(strings.TrimSpace(r.FormValue("userId")))
 
 	if !ok_id {
 		http.Error(rw, "Ошибка удаление пользователя", http.StatusBadRequest)
 		return
 	}
 
-	user, err := a.repo.UserRepo.Get(a.ctx, id)
+	user, err := a.Repo.UserRepo.Get(a.Ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -81,13 +81,13 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	err = a.repo.AzsRepo.RemoveUserFromAzsAll(a.ctx, id)
+	err = a.Repo.AzsRepo.RemoveUserFromAzsAll(a.Ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = a.repo.UserRepo.Delete(a.ctx, id)
+	err = a.Repo.UserRepo.Delete(a.Ctx, id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -95,7 +95,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 }
 
-func (a app) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	for _, v := range r.Cookies() {
 		c := http.Cookie{
 			Name:   v.Name,
@@ -105,7 +105,7 @@ func (a app) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	http.Redirect(rw, r, "/login", http.StatusSeeOther)
 }
 
-func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	surname := strings.TrimSpace(r.FormValue("surname"))
 	login := strings.TrimSpace(r.FormValue("login"))
@@ -121,7 +121,7 @@ func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	err := a.repo.UserRepo.Add(a.ctx, name, surname, login, hashedPass)
+	err := a.Repo.UserRepo.Add(a.Ctx, name, surname, login, hashedPass)
 	if err != nil {
 		a.signupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
 		return
@@ -129,7 +129,7 @@ func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	http.Redirect(rw, r, "/users", http.StatusSeeOther)
 }
 
-func (a app) signupPage(rw http.ResponseWriter, message string) {
+func (a App) signupPage(rw http.ResponseWriter, message string) {
 
 	data := Answer{message}
 	sp := filepath.Join("public", "html", "signup.html")
@@ -142,7 +142,7 @@ func (a app) signupPage(rw http.ResponseWriter, message string) {
 	}
 }
 
-func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	login := r.FormValue("login")
 	password := r.FormValue("password")
 
@@ -152,7 +152,7 @@ func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	user, err := a.repo.UserRepo.Login(a.ctx, login, hashedPass)
+	user, err := a.Repo.UserRepo.Login(a.Ctx, login, hashedPass)
 	if err != nil {
 		a.loginPage(rw, "Вы ввели неверный логин или пароль!")
 		return
@@ -163,7 +163,7 @@ func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	token := login + password + timeInt
 	hashToken := md5.Sum([]byte(token))
 	hashedToken := hex.EncodeToString(hashToken[:])
-	a.cache[hashedToken] = user
+	a.Cache[hashedToken] = user
 	livingTime := 60 * time.Minute
 	expiration := time.Now().Add(livingTime)
 
@@ -172,7 +172,7 @@ func (a app) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
-func (a app) loginPage(rw http.ResponseWriter, message string) {
+func (a App) loginPage(rw http.ResponseWriter, message string) {
 	lp := filepath.Join("public", "html", "login.html")
 	tmpl, err := template.ParseFiles(lp)
 	if err != nil {
@@ -188,19 +188,19 @@ func (a app) loginPage(rw http.ResponseWriter, message string) {
 	}
 }
 
-func (a app) validateToken(rw http.ResponseWriter, tokenReq string) bool {
+func (a App) validateToken(rw http.ResponseWriter, tokenReq string) bool {
 	tokenReq = strings.TrimSpace(tokenReq)
-	if a.token != tokenReq {
+	if a.Token != tokenReq {
 		return false
 	}
 	return true
 }
 
-func (a app) authorized(next httprouter.Handle) httprouter.Handle {
+func (a App) Authorized(next httprouter.Handle) httprouter.Handle {
 	return func(rw http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		token, err := readCookie("token", r)
 		if err == nil {
-			if user, ok := a.cache[token]; ok {
+			if user, ok := a.Cache[token]; ok {
 				next(rw, r.WithContext(context.WithValue(r.Context(), "userId", user.Id)), ps)
 				return
 			}

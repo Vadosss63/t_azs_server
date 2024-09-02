@@ -1,4 +1,4 @@
-package application
+package ya_controller
 
 import (
 	"context"

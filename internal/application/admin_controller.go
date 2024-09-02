@@ -27,20 +27,20 @@ func deleteUser(users []user.User, login string) []user.User {
 	return users
 }
 
-func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User, id int) {
+func (a App) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User, id int) {
 
-	// a.repo.CreateYaAzsInfoTable(a.ctx)
+	// a.Repo.CreateYaAzsInfoTable(a.Ctx)
 
 	var azs_statses []azs.AzsStatsData
 	var err error
 
 	if id == -2 {
-		azs_statses, err = a.repo.AzsRepo.GetAll(a.ctx)
+		azs_statses, err = a.Repo.AzsRepo.GetAll(a.Ctx)
 	} else {
-		azs_statses, err = a.repo.AzsRepo.GetAzsAllForUser(a.ctx, id)
+		azs_statses, err = a.Repo.AzsRepo.GetAzsAllForUser(a.Ctx, id)
 	}
 
-	users, err := a.repo.UserRepo.GetAll(a.ctx)
+	users, err := a.Repo.UserRepo.GetAll(a.Ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -60,7 +60,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
-		azsStatsDataFull.IsEnabled, err = a.repo.YaAzsRepo.GetEnable(a.ctx, azsStatsDataFull.IdAzs)
+		azsStatsDataFull.IsEnabled, err = a.Repo.YaAzsRepo.GetEnable(a.Ctx, azsStatsDataFull.IdAzs)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -82,9 +82,9 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	}
 }
 
-func (a app) showUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) showUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	users, err := a.repo.UserRepo.GetAll(a.ctx)
+	users, err := a.Repo.UserRepo.GetAll(a.Ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -100,11 +100,11 @@ func (a app) showUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter
 	}
 }
 
-func (a app) addUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id_azs, _ := getIntVal(r.FormValue("id_azs"))
-	id_user, _ := getIntVal(r.FormValue("user"))
+func (a App) addUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id_azs, _ := GetIntVal(r.FormValue("id_azs"))
+	id_user, _ := GetIntVal(r.FormValue("user"))
 
-	err := a.repo.AzsRepo.AddAzsToUser(a.ctx, id_user, id_azs)
+	err := a.Repo.AzsRepo.AddAzsToUser(a.Ctx, id_user, id_azs)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -112,16 +112,16 @@ func (a app) addUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
-func (a app) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	userId, ok := getIntVal(r.FormValue("user"))
+	userId, ok := GetIntVal(r.FormValue("user"))
 
 	if !ok {
 		http.Error(rw, "Error userId", http.StatusBadRequest)
 		return
 	}
 
-	u, err := a.repo.UserRepo.Get(a.ctx, userId)
+	u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

@@ -23,7 +23,7 @@ type UpdatePageTemplate struct {
 	AvailableTags     []string
 }
 
-func (a app) appUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) appUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	pushedBtn := r.FormValue("pushedBtn")
 
 	switch pushedBtn {
@@ -40,10 +40,10 @@ func (a app) appUpdateButton(rw http.ResponseWriter, r *http.Request, p httprout
 	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
-func (a app) deleteAppFile(rw http.ResponseWriter, r *http.Request) {
-	_, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) deleteAppFile(rw http.ResponseWriter, r *http.Request) {
+	_, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
@@ -71,10 +71,10 @@ func (a app) deleteAppFile(rw http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 }
 
-func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
-	idInt, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
+	idInt, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
@@ -85,8 +85,8 @@ func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := "http://t-azs.ru:" + strconv.Itoa(a.port) + "/install/" + version
-	err := a.repo.UpdaterButtonRepo.Update(a.ctx, idInt, url)
+	url := "http://t-azs.ru:" + strconv.Itoa(a.Port) + "/install/" + version
+	err := a.Repo.UpdaterButtonRepo.Update(a.Ctx, idInt, url)
 
 	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
@@ -95,10 +95,10 @@ func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 }
 
-func (a app) downloadVersionHandler(rw http.ResponseWriter, r *http.Request) {
-	_, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) downloadVersionHandler(rw http.ResponseWriter, r *http.Request) {
+	_, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
@@ -128,16 +128,16 @@ func (a app) downloadVersionHandler(rw http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 }
 
-func (a app) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	idInt, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idInt, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
-	updateCommand, err := a.repo.UpdaterButtonRepo.Get(a.ctx, idInt)
+	updateCommand, err := a.Repo.UpdaterButtonRepo.Get(a.Ctx, idInt)
 	if err != nil {
-		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -148,13 +148,13 @@ func (a app) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p htt
 	}
 }
 
-func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := GetIntVal(id)
 
 	if ok {
-		updateCommand, err := a.repo.UpdaterButtonRepo.Get(a.ctx, idInt)
+		updateCommand, err := a.Repo.UpdaterButtonRepo.Get(a.Ctx, idInt)
 		if err == nil {
 			sendJson(rw, http.StatusOK, updateCommand)
 			return
@@ -163,19 +163,19 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
-func (a app) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) resetAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	a.resetAppUpdateAzs(rw, r, p)
 }
 
-func (a app) resetAppUpdateAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
+func (a App) resetAppUpdateAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
 
-	err := a.repo.UpdaterButtonRepo.Update(a.ctx, idInt, "")
+	err := a.Repo.UpdaterButtonRepo.Update(a.Ctx, idInt, "")
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 
@@ -235,9 +235,9 @@ func downloadFromGitHub(owner, repo, tag, destinationDir string) error {
 	return nil
 }
 
-func (a app) showUpdateAppPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) showUpdateAppPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id_azs"))
-	if _, ok := getIntVal(id); !ok {
+	if _, ok := GetIntVal(id); !ok {
 		http.Error(rw, "Invalid ID", http.StatusBadRequest)
 		return
 	}

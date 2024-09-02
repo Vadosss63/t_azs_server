@@ -12,9 +12,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
+	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Invalid ID format", "Error")
 		return
@@ -22,8 +22,8 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 
 	name := strings.TrimSpace(r.FormValue("name"))
 	address := strings.TrimSpace(r.FormValue("address"))
-	countColum, okCountColum := getIntVal(strings.TrimSpace(r.FormValue("count_colum")))
-	isSecondPrice, okIsSecondPrice := getIntVal(strings.TrimSpace(r.FormValue("is_second_price")))
+	countColum, okCountColum := GetIntVal(strings.TrimSpace(r.FormValue("count_colum")))
+	isSecondPrice, okIsSecondPrice := GetIntVal(strings.TrimSpace(r.FormValue("is_second_price")))
 	stats := strings.TrimSpace(r.FormValue("stats"))
 
 	if name == "" || address == "" || stats == "" || !okCountColum || !okIsSecondPrice {
@@ -39,10 +39,10 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	sendJsonResponse(rw, http.StatusOK, "Operation successful", "Ok")
 }
 
-func (a app) manageAzs(idInt, countColum, isSecondPrice int, name, address, stats string) error {
+func (a App) manageAzs(idInt, countColum, isSecondPrice int, name, address, stats string) error {
 	t := time.Now().Format(time.RFC822)
 
-	azs, err := a.repo.AzsRepo.Get(a.ctx, idInt)
+	azs, err := a.Repo.AzsRepo.Get(a.Ctx, idInt)
 	if azs.Id == -1 {
 		return a.createAzs(idInt, countColum, isSecondPrice, name, address, stats, t)
 	}
@@ -57,78 +57,78 @@ func (a app) manageAzs(idInt, countColum, isSecondPrice int, name, address, stat
 	azs.Address = address
 	azs.Stats = stats
 	azs.IsSecondPriceEnable = isSecondPrice
-	return a.repo.AzsRepo.Update(a.ctx, azs)
+	return a.Repo.AzsRepo.Update(a.Ctx, azs)
 }
 
-func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stats, time string) error {
-	if err := a.repo.AzsRepo.Add(a.ctx, idInt, 0, countColum, isSecondPrice, time, name, address, stats); err != nil {
+func (a App) createAzs(idInt, countColum, isSecondPrice int, name, address, stats, time string) error {
+	if err := a.Repo.AzsRepo.Add(a.Ctx, idInt, 0, countColum, isSecondPrice, time, name, address, stats); err != nil {
 		return err
 	}
-	if err := a.repo.AzsButtonRepo.Add(a.ctx, idInt); err != nil {
+	if err := a.Repo.AzsButtonRepo.Add(a.Ctx, idInt); err != nil {
 		return err
 	}
-	if err := a.repo.UpdaterButtonRepo.Add(a.ctx, idInt); err != nil {
+	if err := a.Repo.UpdaterButtonRepo.Add(a.Ctx, idInt); err != nil {
 		return err
 	}
-	if err := a.repo.TrblButtonRepo.Add(a.ctx, idInt); err != nil {
+	if err := a.Repo.TrblButtonRepo.Add(a.Ctx, idInt); err != nil {
 		return err
 	}
-	if err := a.repo.YaAzsRepo.Add(a.ctx, idInt); err != nil {
+	if err := a.Repo.YaAzsRepo.Add(a.Ctx, idInt); err != nil {
 		return err
 	}
-	if err := a.repo.YaPayRepo.Add(a.ctx, idInt); err != nil {
+	if err := a.Repo.YaPayRepo.Add(a.Ctx, idInt); err != nil {
 		return err
 	}
-	return a.repo.ReceiptRepo.CreateReceipt(a.ctx, idInt)
+	return a.Repo.ReceiptRepo.CreateReceipt(a.Ctx, idInt)
 }
 
-func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	idAzs, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idAzs, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs", http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs", http.StatusBadRequest)
 		return
 	}
 
-	if err := a.repo.AzsRepo.Delete(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete AZS: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.AzsRepo.Delete(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete AZS: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.AzsButtonRepo.Delete(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.AzsButtonRepo.Delete(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.TrblButtonRepo.Delete(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete AZS Log button: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.TrblButtonRepo.Delete(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete AZS Log button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.UpdaterButtonRepo.Delete(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete Update Command: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.UpdaterButtonRepo.Delete(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete Update Command: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.YaAzsRepo.Delete(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete Ya Azs Info: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.YaAzsRepo.Delete(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete Ya Azs Info: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.YaPayRepo.Delete(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete YaPay: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.YaPayRepo.Delete(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete YaPay: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := a.repo.ReceiptRepo.DeleteAll(a.ctx, idAzs); err != nil {
-		sendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
+	if err := a.Repo.ReceiptRepo.DeleteAll(a.Ctx, idAzs); err != nil {
+		SendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
-func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
+func (a App) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 	receiptJson := strings.TrimSpace(r.FormValue("receipt"))
 
 	if !ok || receiptJson == "" {
@@ -142,7 +142,7 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
-	err = a.repo.ReceiptRepo.Add(a.ctx, id, receipt)
+	err = a.Repo.ReceiptRepo.Add(a.Ctx, id, receipt)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
@@ -151,16 +151,16 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 }
 
-func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
+	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id or GetAzsButton", "Error")
 		return
 	}
 
-	azsButton, err := a.repo.AzsButtonRepo.Get(a.ctx, idInt)
+	azsButton, err := a.Repo.AzsButtonRepo.Get(a.Ctx, idInt)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
@@ -168,16 +168,16 @@ func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 	sendJson(rw, http.StatusOK, azsButton)
 }
 
-func (a app) resetAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) resetAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	a.resetAzs(rw, r, p)
 }
 
-func (a app) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := GetIntVal(id)
 
 	if ok {
-		err := a.repo.AzsButtonRepo.Update(a.ctx, idInt, 0, 0)
+		err := a.Repo.AzsButtonRepo.Update(a.Ctx, idInt, 0, 0)
 		if err == nil {
 			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
@@ -186,7 +186,7 @@ func (a app) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
-func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	validBtns := map[string]int{
 		"serviceBtn1":       0x01,
 		"serviceBtn2":       0x02,
@@ -204,43 +204,43 @@ func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 		"setLockFuelValue2": 0x41,
 	}
 
-	id_azs, ok := getIntVal(r.FormValue("id_azs"))
+	id_azs, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs value: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs value: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
 	pushedBtn := validBtns[r.FormValue("pushedBtn")]
 	if pushedBtn == 0 {
-		sendError(rw, "Invalid pushedBtn value: "+r.FormValue("pushedBtn"), http.StatusBadRequest)
+		SendError(rw, "Invalid pushedBtn value: "+r.FormValue("pushedBtn"), http.StatusBadRequest)
 		return
 	}
 
-	value, ok := getIntVal(r.FormValue("value"))
+	value, ok := GetIntVal(r.FormValue("value"))
 	if !ok {
-		sendError(rw, "Invalid value value: "+r.FormValue("value"), http.StatusBadRequest)
+		SendError(rw, "Invalid value value: "+r.FormValue("value"), http.StatusBadRequest)
 		return
 	}
 
-	err := a.repo.AzsButtonRepo.Update(a.ctx, id_azs, value, pushedBtn)
+	err := a.Repo.AzsButtonRepo.Update(a.Ctx, id_azs, value, pushedBtn)
 	if err != nil {
-		sendError(rw, "Failed to update button: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Failed to update button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	sendJsonResponse(rw, http.StatusOK, "Ok", "Success")
 }
 
-func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	idAzs, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idAzs, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
-	azsButton, err := a.repo.AzsButtonRepo.Get(a.ctx, idAzs)
+	azsButton, err := a.Repo.AzsButtonRepo.Get(a.Ctx, idAzs)
 	if err != nil {
-		sendError(rw, "Error fetching AZS button: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Error fetching AZS button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -251,23 +251,23 @@ func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 	}
 }
 
-func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id_azs"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := GetIntVal(id)
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+id, http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+id, http.StatusBadRequest)
 		return
 	}
 
-	azsStats, err := a.repo.AzsRepo.Get(a.ctx, idInt)
+	azsStats, err := a.Repo.AzsRepo.Get(a.Ctx, idInt)
 	if err != nil {
-		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	azsStatsDataFull, err := azs.ParseStats(azsStats)
 	if err != nil {
-		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -277,6 +277,6 @@ func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Param
 	))
 
 	if err := azsPageTemplate.ExecuteTemplate(rw, "azsStatsDataFull", azsStatsDataFull); err != nil {
-		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 	}
 }

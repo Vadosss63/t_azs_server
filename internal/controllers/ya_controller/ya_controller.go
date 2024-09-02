@@ -1,4 +1,4 @@
-package application
+package ya_controller
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Vadosss63/t-azs/internal/application"
 	"github.com/Vadosss63/t-azs/internal/repository/azs"
 	"github.com/Vadosss63/t-azs/internal/repository/ya_azs"
 
@@ -55,27 +56,47 @@ func convertTypeFuelToYaFormat(s string) string {
 	}
 }
 
-func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+type YaController struct {
+	app *application.App
+}
+
+func NewYaController(app *application.App) *YaController {
+	return &YaController{app: app}
+}
+
+func (c YaController) Routes(router *httprouter.Router) {
+	router.POST("/update_yandexpay_status", c.app.Authorized(c.UpdateYandexPayStatusHandler))
+
+	router.GET("/tanker/station", c.GetStationsHandler)
+
+	router.GET("/tanker/price", c.GetPriceListHandler)
+
+	router.GET("/tanker/ping", c.PingHandler)
+
+	router.POST("/tanker/order", c.UpdateOrderStatusHandler)
+}
+
+func (c YaController) GetPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/price?apikey=expected_api_key
 	if !checkAPIKey(rw, r) {
 		return
 	}
 
-	azsIds, err := a.repo.YaAzsRepo.GetEnableList(a.ctx)
+	azsIds, err := c.app.Repo.YaAzsRepo.GetEnableList(c.app.Ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
 
 	var samplePrices = []ya_azs.PriceEntry{}
 	for i := 0; i < len(azsIds); i++ {
-		azsStats, err := a.repo.AzsRepo.Get(a.ctx, azsIds[i])
+		azsStats, err := c.app.Repo.AzsRepo.Get(c.app.Ctx, azsIds[i])
 		if err != nil {
-			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			application.SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		azsStatsDataFull, err := azs.ParseStats(azsStats)
 		if err != nil {
-			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			application.SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -103,29 +124,29 @@ func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p http
 	sendJsonData(rw, samplePrices)
 }
 
-func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c YaController) GetStationsHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/station?apikey=expected_api_key
 	if !checkAPIKey(rw, r) {
 		return
 	}
 
-	stations, err := a.repo.YaAzsRepo.GetEnableAll(a.ctx)
+	stations, err := c.app.Repo.YaAzsRepo.GetEnableAll(c.app.Ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
 
 	for i := 0; i < len(stations); i++ {
 
-		idInt, _ := getIntVal(stations[i].Id)
-		azsStats, err := a.repo.AzsRepo.Get(a.ctx, idInt)
+		idInt, _ := application.GetIntVal(stations[i].Id)
+		azsStats, err := c.app.Repo.AzsRepo.Get(c.app.Ctx, idInt)
 		if err != nil {
-			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			application.SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		azsStatsDataFull, err := azs.ParseStats(azsStats)
 		if err != nil {
-			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
+			application.SendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -154,7 +175,7 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 	sendJsonData(rw, stations)
 }
 
-func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/ping?apikey=expected_api_key&stationId=11111111&columnId=0
 	if !checkAPIKey(w, r) {
 		return
@@ -169,7 +190,7 @@ func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	//a.repo.CreateYaPayTable(a.ctx)
+	//c.app.Repo.CreateYaPayTable(c.app.Ctx)
 
 	// columnIDInt, err := strconv.Atoi(columnId)
 	// if err != nil {
@@ -177,7 +198,7 @@ func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 	// 	return
 	// }
 
-	enable, err := a.repo.YaAzsRepo.GetEnable(a.ctx, idInt)
+	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, idInt)
 	if err != nil || !enable {
 		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
 		return
@@ -197,8 +218,7 @@ func (a app) pingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Pa
 	w.WriteHeader(http.StatusOK)
 }
 
-// Функция для обновления статуса заказа
-func (a app) updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	decoder := json.NewDecoder(r.Body)
 	var order ya_azs.Order
 	err := decoder.Decode(&order)
@@ -208,7 +228,7 @@ func (a app) updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p 
 	}
 
 	stationID, _ := strconv.Atoi(order.StationId)
-	enable, err := a.repo.YaAzsRepo.GetEnable(a.ctx, stationID)
+	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, stationID)
 	if err != nil || !enable {
 		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
 		return
@@ -217,7 +237,7 @@ func (a app) updateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p 
 	fmt.Fprintf(w, "Order with ID %s updated to status %s", order.Id, order.Status)
 }
 
-func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c YaController) UpdateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
 		return
@@ -234,7 +254,7 @@ func (a app) updateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = a.repo.YaAzsRepo.UpdateEnable(a.ctx, requestData.IdAzs, requestData.IsEnabled)
+	err = c.app.Repo.YaAzsRepo.UpdateEnable(c.app.Ctx, requestData.IdAzs, requestData.IsEnabled)
 
 	if err != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)

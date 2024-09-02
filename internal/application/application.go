@@ -11,24 +11,24 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type app struct {
-	ctx   context.Context
-	repo  *repository.Repository
-	cache map[string]user.User
-	token string
-	port  int
+type App struct {
+	Ctx   context.Context
+	Repo  *repository.Repository
+	Cache map[string]user.User
+	Token string
+	Port  int
 }
 
-func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int) *app {
-	return &app{ctx, repository.NewRepository(dbpool), make(map[string]user.User), token, port}
+func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int) *App {
+	return &App{ctx, repository.NewRepository(dbpool), make(map[string]user.User), token, port}
 }
 
-func (a app) Routes(router *httprouter.Router) {
+func (a App) Routes(router *httprouter.Router) {
 	router.ServeFiles("/public/*filepath", http.Dir("public"))
 
 	router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
 
-	router.GET("/", a.authorized(a.startPage))
+	router.GET("/", a.Authorized(a.startPage))
 
 	router.GET("/login", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		a.loginPage(rw, "")
@@ -36,7 +36,7 @@ func (a app) Routes(router *httprouter.Router) {
 
 	router.POST("/login", a.login)
 
-	router.GET("/azs/control", a.authorized(a.azsPage))
+	router.GET("/azs/control", a.Authorized(a.azsPage))
 
 	router.GET("/logout", a.logout)
 
@@ -44,7 +44,7 @@ func (a app) Routes(router *httprouter.Router) {
 		a.signupPage(rw, "")
 	})
 
-	router.GET("/azs_receipt/history", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	router.GET("/azs_receipt/history", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		now := time.Now()
 		loc := now.Location()
 		paymentType := ""
@@ -55,54 +55,53 @@ func (a app) Routes(router *httprouter.Router) {
 		a.historyReceiptsPage(rw, r, p, fromSearchDateTime, toSearchDateTime, paymentType)
 	}))
 
-	router.POST("/azs_receipt/history", a.authorized(a.showHistoryReceiptsPage))
+	router.POST("/azs_receipt/history", a.Authorized(a.showHistoryReceiptsPage))
 
 	router.POST("/signup", a.signup)
 
-	router.POST("/azs_stats", a.authorized(a.azsStats))
-	router.DELETE("/azs_stats", a.authorized(a.deleteAsz))
+	router.POST("/azs_stats", a.Authorized(a.azsStats))
+	router.DELETE("/azs_stats", a.Authorized(a.deleteAsz))
 
-	router.POST("/azs_receipt", a.authorized(a.azsReceipt))
+	router.POST("/azs_receipt", a.Authorized(a.azsReceipt))
 
-	router.POST("/get_azs_button", a.authorized(a.getAzsButton))
+	router.POST("/get_azs_button", a.Authorized(a.getAzsButton))
 
-	router.POST("/reset_azs_button", a.authorized(a.resetAzsButton))
+	router.POST("/reset_azs_button", a.Authorized(a.resetAzsButton))
 
-	router.GET("/reset_azs_button", a.authorized(a.resetAzs))
-	router.POST("/push_azs_button", a.authorized(a.pushAzsButton))
-	router.GET("/azs_button_ready", a.authorized(a.azsButtonReady))
+	router.GET("/reset_azs_button", a.Authorized(a.resetAzs))
+	router.POST("/push_azs_button", a.Authorized(a.pushAzsButton))
+	router.GET("/azs_button_ready", a.Authorized(a.azsButtonReady))
 
-	router.POST("/get_log_cmd", a.authorized(a.getLogButton))
-	router.POST("/upload_log", a.authorized(a.uploadLogs))
-	router.POST("/reset_log_cmd", a.authorized(a.resetLogButton))
+	router.POST("/get_log_cmd", a.Authorized(a.getLogButton))
+	router.POST("/upload_log", a.Authorized(a.uploadLogs))
+	router.POST("/reset_log_cmd", a.Authorized(a.resetLogButton))
 
-	router.POST("/log_button", a.authorized(a.logButton))
-	router.GET("/log_button_ready", a.authorized(a.logButtonReady))
-	router.GET("/log_button_reset", a.authorized(a.logButtonReset))
+	router.POST("/log_button", a.Authorized(a.logButton))
+	router.GET("/log_button_ready", a.Authorized(a.logButtonReady))
+	router.GET("/log_button_reset", a.Authorized(a.logButtonReset))
 
-	router.GET("/list_logs", a.authorized(a.listLogFiles))
-	router.GET("/download_log", a.authorized(a.downloadLogFile))
+	router.GET("/list_logs", a.Authorized(a.listLogFiles))
+	router.GET("/download_log", a.Authorized(a.downloadLogFile))
 
-	router.POST("/get_app_update_button", a.authorized(a.getAppUpdateButton))
-	router.POST("/reset_app_update_button", a.authorized(a.resetAppUpdateButton))
-	router.POST("/app_update_button", a.authorized(a.appUpdateButton))
-	router.GET("/app_update_button_ready", a.authorized(a.appUpdateButtonReady))
-	router.GET("/app_update_button_reset", a.authorized(a.resetAppUpdateAzs))
-	router.GET("/update_app_page", a.authorized(a.showUpdateAppPage))
+	router.POST("/get_app_update_button", a.Authorized(a.getAppUpdateButton))
+	router.POST("/reset_app_update_button", a.Authorized(a.resetAppUpdateButton))
+	router.POST("/app_update_button", a.Authorized(a.appUpdateButton))
+	router.GET("/app_update_button_ready", a.Authorized(a.appUpdateButtonReady))
+	router.GET("/app_update_button_reset", a.Authorized(a.resetAppUpdateAzs))
+	router.GET("/update_app_page", a.Authorized(a.showUpdateAppPage))
 
-	router.POST("/add_user_to_asz", a.authorized(a.addUserToAsz))
+	router.POST("/add_user_to_asz", a.Authorized(a.addUserToAsz))
 
-	router.GET("/users", a.authorized(a.showUsersPage))
+	router.GET("/users", a.Authorized(a.showUsersPage))
 
-	router.DELETE("/user", a.authorized(a.deleteUser))
+	router.DELETE("/user", a.Authorized(a.deleteUser))
 
-	router.POST("/reset_password", a.authorized(a.resetPasswordUser))
+	router.POST("/reset_password", a.Authorized(a.resetPasswordUser))
 
-	router.GET("/show_for_user", a.authorized(a.showUsersAzsPage))
-	router.POST("/update_yandexpay_status", a.authorized(a.updateYandexPayStatusHandler))
+	router.GET("/show_for_user", a.Authorized(a.showUsersAzsPage))
 
-	router.POST("/show_azs_for", a.authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		id_user, ok_id := getIntVal(r.FormValue("user"))
+	router.POST("/show_azs_for", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		id_user, ok_id := GetIntVal(r.FormValue("user"))
 
 		userId, ok := r.Context().Value("userId").(int)
 
@@ -110,7 +109,7 @@ func (a app) Routes(router *httprouter.Router) {
 			http.Error(rw, "Error user", http.StatusBadRequest)
 			return
 		}
-		u, err := a.repo.UserRepo.Get(a.ctx, userId)
+		u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -119,19 +118,12 @@ func (a app) Routes(router *httprouter.Router) {
 		a.adminPage(rw, r, p, u, id_user)
 	}))
 
-	router.GET("/tanker/station", a.getStationsHandler)
-	router.GET("/tanker/price", a.getPriceListHandler)
-
-	router.GET("/tanker/ping", a.pingHandler)
-
-	router.POST("/tanker/order", a.updateOrderStatusHandler)
-
-	router.POST("/save-point", a.authorized(a.savePointHandler))
-	router.GET("/points", a.authorized(a.pointsHandler))
+	router.POST("/save-point", a.Authorized(a.savePointHandler))
+	router.GET("/points", a.Authorized(a.pointsHandler))
 
 }
 
-func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	userId, ok := r.Context().Value("userId").(int)
 
@@ -139,7 +131,7 @@ func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		http.Error(rw, "Error user", http.StatusBadRequest)
 		return
 	}
-	u, err := a.repo.UserRepo.Get(a.ctx, userId)
+	u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

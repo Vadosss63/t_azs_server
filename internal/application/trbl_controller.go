@@ -67,10 +67,10 @@ func processFileUpload(r *http.Request, maxUploadSize int64) (multipart.File, *m
 	return file, handler, nil
 }
 
-func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	id := strings.TrimSpace(r.FormValue("id"))
-	_, ok := getIntVal(id)
+	_, ok := GetIntVal(id)
 
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
@@ -95,15 +95,15 @@ func (a app) uploadLogs(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	sendJsonResponse(rw, http.StatusOK, "Файл успешно загружен", "Ok")
 }
 
-func (a app) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	idInt, ok := getIntVal(strings.TrimSpace(r.FormValue("id")))
+	idInt, ok := GetIntVal(strings.TrimSpace(r.FormValue("id")))
 
 	if !ok {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
 		return
 	}
-	logButton, err := a.repo.TrblButtonRepo.Get(a.ctx, idInt)
+	logButton, err := a.Repo.TrblButtonRepo.Get(a.Ctx, idInt)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 
@@ -112,11 +112,11 @@ func (a app) getLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 	sendJson(rw, http.StatusOK, logButton)
 }
 
-func (a app) resetLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) resetLogButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	a.logButtonReset(rw, r, p)
 }
 
-func (a app) downloadLogFile(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) downloadLogFile(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fileName := strings.TrimSpace(r.FormValue("file"))
 	id := strings.TrimSpace(r.FormValue("id_azs"))
 	filePath := logsPath + id + "/" + fileName
@@ -131,9 +131,9 @@ func (a app) downloadLogFile(rw http.ResponseWriter, r *http.Request, p httprout
 	http.ServeFile(rw, r, filePath)
 }
 
-func (a app) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id_azs"))
-	if _, ok := getIntVal(id); !ok {
+	if _, ok := GetIntVal(id); !ok {
 		http.Error(rw, "Invalid ID", http.StatusBadRequest)
 		return
 	}
@@ -170,7 +170,7 @@ func (a app) listLogFiles(rw http.ResponseWriter, r *http.Request, p httprouter.
 	}
 }
 
-func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request) {
+func (a App) deleteLogs(rw http.ResponseWriter, r *http.Request) {
 	id := strings.TrimSpace(r.FormValue("id_azs"))
 	if id == "" {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error id", "Error")
@@ -187,7 +187,7 @@ func (a app) deleteLogs(rw http.ResponseWriter, r *http.Request) {
 	http.Redirect(rw, r, "/list_logs?id_azs="+id, http.StatusSeeOther)
 }
 
-func (a app) logButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) logButton(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	pushedBtn := r.FormValue("pushedBtn")
 
@@ -203,13 +203,13 @@ func (a app) logButton(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 
 }
 
-func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request) {
+func (a App) setLogCmd(rw http.ResponseWriter, r *http.Request) {
 
 	id := strings.TrimSpace(r.FormValue("id_azs"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := GetIntVal(id)
 
 	if ok {
-		err := a.repo.TrblButtonRepo.Update(a.ctx, idInt, 1)
+		err := a.Repo.TrblButtonRepo.Update(a.Ctx, idInt, 1)
 		if err == nil {
 			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
@@ -218,16 +218,16 @@ func (a app) setLogCmd(rw http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
 }
 
-func (a app) logButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	idInt, ok := getIntVal(r.FormValue("id_azs"))
+func (a App) logButtonReady(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	idInt, ok := GetIntVal(r.FormValue("id_azs"))
 	if !ok {
-		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
+		SendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
 
-	button, err := a.repo.TrblButtonRepo.Get(a.ctx, idInt)
+	button, err := a.Repo.TrblButtonRepo.Get(a.Ctx, idInt)
 	if err != nil {
-		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
+		SendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -238,12 +238,12 @@ func (a app) logButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 	}
 }
 
-func (a app) logButtonReset(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a App) logButtonReset(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := strings.TrimSpace(r.FormValue("id"))
-	idInt, ok := getIntVal(id)
+	idInt, ok := GetIntVal(id)
 
 	if ok {
-		err := a.repo.TrblButtonRepo.Update(a.ctx, idInt, 0)
+		err := a.Repo.TrblButtonRepo.Update(a.Ctx, idInt, 0)
 		if err == nil {
 			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return

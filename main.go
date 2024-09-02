@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/Vadosss63/t-azs/internal/application"
+	"github.com/Vadosss63/t-azs/internal/controllers/ya_controller"
 	"github.com/Vadosss63/t-azs/internal/repository"
 	"github.com/julienschmidt/httprouter"
 )
@@ -55,16 +56,15 @@ func main() {
 
 	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port)
 	r := httprouter.New()
+
+	yaController := ya_controller.NewYaController(a)
+
 	a.Routes(r)
+	yaController.Routes(r)
 
 	fmt.Printf("It's alive! Try http://t-azs.ru:%d/ or http://127.0.0.1:%d\n", settings.Port, settings.Port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), r)
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-	// To use HTTPS uncomment the line below and provide correct paths to cert.pem and key.pem
-	// err = http.ListenAndServeTLS(fmt.Sprintf(":%d", settings.Port), "cert.pem", "key.pem", r)
-	// if err != nil {
-	//     log.Fatalf("Failed to start HTTPS server: %v", err)
-	// }
 }

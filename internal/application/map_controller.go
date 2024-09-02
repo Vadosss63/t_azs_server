@@ -15,7 +15,7 @@ type PointData struct {
 	Lng   float64 `json:"lng"`
 }
 
-func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
+func (a App) savePointHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
 	var p PointData
 
 	err := json.NewDecoder(r.Body).Decode(&p)
@@ -24,7 +24,7 @@ func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httpro
 		return
 	}
 
-	err = a.repo.YaAzsRepo.UpdateLocation(a.ctx, p.IdAzs, ya_azs.Location{Lat: p.Lat, Lon: p.Lng})
+	err = a.Repo.YaAzsRepo.UpdateLocation(a.Ctx, p.IdAzs, ya_azs.Location{Lat: p.Lat, Lon: p.Lng})
 
 	if err != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
@@ -37,17 +37,17 @@ func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httpro
 	})
 }
 
-func (a app) pointsHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
+func (a App) pointsHandler(w http.ResponseWriter, r *http.Request, par httprouter.Params) {
 
 	id := strings.TrimSpace(r.FormValue("id_azs"))
-	id_azs, ok := getIntVal(id)
+	id_azs, ok := GetIntVal(id)
 
 	if !ok {
 		http.Error(w, "Error user", http.StatusBadRequest)
 		return
 	}
 
-	point, err := a.repo.YaAzsRepo.GetLocation(a.ctx, id_azs)
+	point, err := a.Repo.YaAzsRepo.GetLocation(a.Ctx, id_azs)
 
 	w.Header().Set("Content-Type", "application/json")
 
