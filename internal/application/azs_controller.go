@@ -63,10 +63,10 @@ func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stat
 	if err := a.repo.AddAzs(a.ctx, idInt, 0, countColum, isSecondPrice, time, name, address, stats); err != nil {
 		return err
 	}
-	if err := a.repo.AddAzsButton(a.ctx, idInt); err != nil {
+	if err := a.repo.AzsButtonRepo.AddAzsButton(a.ctx, idInt); err != nil {
 		return err
 	}
-	if err := a.repo.AddUpdateCommand(a.ctx, idInt); err != nil {
+	if err := a.repo.UpdaterButtonRepo.AddUpdateCommand(a.ctx, idInt); err != nil {
 		return err
 	}
 	if err := a.repo.TrblButtonRepo.AddLogButton(a.ctx, idInt); err != nil {
@@ -93,7 +93,7 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	if err := a.repo.DeleteAzsButton(a.ctx, idAzs); err != nil {
+	if err := a.repo.AzsButtonRepo.DeleteAzsButton(a.ctx, idAzs); err != nil {
 		sendError(rw, "Failed to delete AZS button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -103,7 +103,7 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	if err := a.repo.DeleteUpdateCommand(a.ctx, idAzs); err != nil {
+	if err := a.repo.UpdaterButtonRepo.DeleteUpdateCommand(a.ctx, idAzs); err != nil {
 		sendError(rw, "Failed to delete Update Command: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -159,7 +159,7 @@ func (a app) getAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter.
 		return
 	}
 
-	azsButton, err := a.repo.GetAzsButton(a.ctx, idInt)
+	azsButton, err := a.repo.AzsButtonRepo.GetAzsButton(a.ctx, idInt)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
@@ -176,7 +176,7 @@ func (a app) resetAzs(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 	idInt, ok := getIntVal(id)
 
 	if ok {
-		err := a.repo.UpdateAzsButton(a.ctx, idInt, 0, 0)
+		err := a.repo.AzsButtonRepo.UpdateAzsButton(a.ctx, idInt, 0, 0)
 		if err == nil {
 			sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 			return
@@ -221,7 +221,7 @@ func (a app) pushAzsButton(rw http.ResponseWriter, r *http.Request, p httprouter
 		return
 	}
 
-	err := a.repo.UpdateAzsButton(a.ctx, id_azs, value, pushedBtn)
+	err := a.repo.AzsButtonRepo.UpdateAzsButton(a.ctx, id_azs, value, pushedBtn)
 	if err != nil {
 		sendError(rw, "Failed to update button: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -237,7 +237,7 @@ func (a app) azsButtonReady(rw http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 
-	azsButton, err := a.repo.GetAzsButton(a.ctx, idAzs)
+	azsButton, err := a.repo.AzsButtonRepo.GetAzsButton(a.ctx, idAzs)
 	if err != nil {
 		sendError(rw, "Error fetching AZS button: "+err.Error(), http.StatusInternalServerError)
 		return

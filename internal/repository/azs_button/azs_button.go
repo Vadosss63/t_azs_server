@@ -1,8 +1,10 @@
-package repository
+package azs_button
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 const (
@@ -12,13 +14,21 @@ const (
 	columnButton = "button"
 )
 
+type AzsButtonRepo struct {
+	pool *pgxpool.Pool
+}
+
+func NewRepository(pool *pgxpool.Pool) *AzsButtonRepo {
+	return &AzsButtonRepo{pool: pool}
+}
+
 type AzsButton struct {
 	IdAzs  int `json:"id_azs" db:"id_azs"`
 	Value  int `json:"value" db:"value"`
 	Button int `json:"button" db:"button"`
 }
 
-func (r *Repository) CreateAzsButtonTable(ctx context.Context) error {
+func (r *AzsButtonRepo) CreateAzsButtonTable(ctx context.Context) error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %s (
     %s  BIGINT,
@@ -32,7 +42,7 @@ CREATE TABLE IF NOT EXISTS %s (
 	return nil
 }
 
-func (r *Repository) DeleteAzsButtonTable(ctx context.Context) error {
+func (r *AzsButtonRepo) DeleteAzsButtonTable(ctx context.Context) error {
 	query := fmt.Sprintf(`DROP TABLE IF EXISTS %s`, tableName)
 	_, err := r.pool.Exec(ctx, query)
 	if err != nil {
@@ -41,7 +51,7 @@ func (r *Repository) DeleteAzsButtonTable(ctx context.Context) error {
 	return nil
 }
 
-func (r *Repository) AddAzsButton(ctx context.Context, idAzs int) error {
+func (r *AzsButtonRepo) AddAzsButton(ctx context.Context, idAzs int) error {
 	query := fmt.Sprintf(`INSERT INTO %s (%s, %s, %s) VALUES ($1, 0, 0)`, tableName, columnID, columnValue, columnButton)
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
@@ -50,7 +60,7 @@ func (r *Repository) AddAzsButton(ctx context.Context, idAzs int) error {
 	return nil
 }
 
-func (r *Repository) UpdateAzsButton(ctx context.Context, idAzs, price, button int) error {
+func (r *AzsButtonRepo) UpdateAzsButton(ctx context.Context, idAzs, price, button int) error {
 	query := fmt.Sprintf(`UPDATE %s SET %s = $2, %s = $3 WHERE %s = $1`, tableName, columnValue, columnButton, columnID)
 	_, err := r.pool.Exec(ctx, query, idAzs, price, button)
 	if err != nil {
@@ -59,7 +69,7 @@ func (r *Repository) UpdateAzsButton(ctx context.Context, idAzs, price, button i
 	return nil
 }
 
-func (r *Repository) DeleteAzsButton(ctx context.Context, idAzs int) error {
+func (r *AzsButtonRepo) DeleteAzsButton(ctx context.Context, idAzs int) error {
 	query := fmt.Sprintf(`DELETE FROM %s WHERE %s = $1`, tableName, columnID)
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
@@ -68,7 +78,7 @@ func (r *Repository) DeleteAzsButton(ctx context.Context, idAzs int) error {
 	return nil
 }
 
-func (r *Repository) GetAzsButton(ctx context.Context, idAzs int) (AzsButton, error) {
+func (r *AzsButtonRepo) GetAzsButton(ctx context.Context, idAzs int) (AzsButton, error) {
 	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s WHERE %s = $1`, columnID, columnValue, columnButton, tableName, columnID)
 	row := r.pool.QueryRow(ctx, query, idAzs)
 
@@ -81,7 +91,7 @@ func (r *Repository) GetAzsButton(ctx context.Context, idAzs int) (AzsButton, er
 	return azsButton, nil
 }
 
-func (r *Repository) GetAzsButtonAll(ctx context.Context) ([]AzsButton, error) {
+func (r *AzsButtonRepo) GetAzsButtonAll(ctx context.Context) ([]AzsButton, error) {
 	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s`, columnID, columnValue, columnButton, tableName)
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -28,13 +28,13 @@ func (a app) appUpdateButton(rw http.ResponseWriter, r *http.Request, p httprout
 
 	switch pushedBtn {
 	case "install":
-		a.setAppUpdateCmd(rw,r)
-		return	
+		a.setAppUpdateCmd(rw, r)
+		return
 	case "download":
-		a.downloadVersionHandler(rw,r)
-		return	
+		a.downloadVersionHandler(rw, r)
+		return
 	case "delete":
-		a.deleteAppFile(rw,r)
+		a.deleteAppFile(rw, r)
 		return
 	}
 	sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
@@ -46,13 +46,13 @@ func (a app) deleteAppFile(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
-	
-    filename := strings.TrimSpace(r.FormValue("value"))
 
-    if filename == "" {
+	filename := strings.TrimSpace(r.FormValue("value"))
+
+	if filename == "" {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
-        return
-	}   
+		return
+	}
 	filePath := filepath.Join(updateAppPath, filename)
 
 	exists, err := checkFileExists(filePath)
@@ -78,20 +78,20 @@ func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    version := strings.TrimSpace(r.FormValue("value"))
+	version := strings.TrimSpace(r.FormValue("value"))
 
-    if version == "" {
+	if version == "" {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
-        return
-	}        
-	
+		return
+	}
+
 	url := "http://t-azs.ru:" + strconv.Itoa(a.port) + "/install/" + version
-    err := a.repo.UpdateUpdateCommand(a.ctx, idInt, url)
-        
-	if err != nil {  
+	err := a.repo.UpdaterButtonRepo.UpdateUpdateCommand(a.ctx, idInt, url)
+
+	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
-        return        
-	}		
+		return
+	}
 	sendJsonResponse(rw, http.StatusOK, "Ok", "Ok")
 }
 
@@ -101,13 +101,13 @@ func (a app) downloadVersionHandler(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, "Invalid id_azs: "+r.FormValue("id_azs"), http.StatusBadRequest)
 		return
 	}
-	
-    version := strings.TrimSpace(r.FormValue("value"))
 
-    if version == "" {
+	version := strings.TrimSpace(r.FormValue("value"))
+
+	if version == "" {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
-        return
-	}   
+		return
+	}
 
 	filename := fmt.Sprintf("%s.tar.gz", version)
 	filePath := filepath.Join(updateAppPath, filename)
@@ -135,13 +135,13 @@ func (a app) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p htt
 		return
 	}
 
-	updateCommand, err := a.repo.GetUpdateCommand(a.ctx, idInt)
+	updateCommand, err := a.repo.UpdaterButtonRepo.GetUpdateCommand(a.ctx, idInt)
 	if err != nil {
 		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if updateCommand.Url == ""{
+	if updateCommand.Url == "" {
 		sendJsonResponse(rw, http.StatusOK, "Ok", "ready")
 	} else {
 		sendJsonResponse(rw, http.StatusOK, "Ok", "not_ready")
@@ -154,7 +154,7 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 	idInt, ok := getIntVal(id)
 
 	if ok {
-		updateCommand, err := a.repo.GetUpdateCommand(a.ctx, idInt)
+		updateCommand, err := a.repo.UpdaterButtonRepo.GetUpdateCommand(a.ctx, idInt)
 		if err == nil {
 			sendJson(rw, http.StatusOK, updateCommand)
 			return
@@ -175,7 +175,7 @@ func (a app) resetAppUpdateAzs(rw http.ResponseWriter, r *http.Request, p httpro
 		return
 	}
 
-	err := a.repo.UpdateUpdateCommand(a.ctx, idInt, "")
+	err := a.repo.UpdaterButtonRepo.UpdateUpdateCommand(a.ctx, idInt, "")
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 
