@@ -1,10 +1,8 @@
-package application
+package user_controller
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -13,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Vadosss63/t-azs/internal/application"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -20,22 +19,37 @@ type Answer struct {
 	Message string
 }
 
-func readCookie(name string, r *http.Request) (value string, err error) {
-	if name == "" {
-		return value, errors.New("you are trying to read empty cookie")
-	}
-	cookie, err := r.Cookie(name)
-	if err != nil {
-		return value, err
-	}
-	str := cookie.Value
-	value, _ = url.QueryUnescape(str)
-	return value, err
+type UserController struct {
+	app *application.App
 }
 
-func (a App) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func NewController(app *application.App) *UserController {
+	return &UserController{app: app}
+}
 
-	id, ok_id := GetIntVal(strings.TrimSpace(r.FormValue("userId")))
+func (c UserController) Routes(router *httprouter.Router) {
+	router.GET("/login", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		c.loginPage(rw, "")
+	})
+
+	router.POST("/login", c.login)
+
+	router.GET("/logout", c.logout)
+
+	router.GET("/signup", func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		c.signupPage(rw, "")
+	})
+	router.POST("/signup", c.signup)
+
+	router.DELETE("/user", c.app.Authorized(c.deleteUser))
+
+	router.POST("/reset_password", c.app.Authorized(c.resetPasswordUser))
+
+}
+
+func (c UserController) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	id, ok_id := application.GetIntVal(strings.TrimSpace(r.FormValue("userId")))
 	password := strings.TrimSpace(r.FormValue("password"))
 	password2 := strings.TrimSpace(r.FormValue("password2"))
 
@@ -52,7 +66,7 @@ func (a App) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httpro
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
 
-	err := a.Repo.UserRepo.UpdateUserPassword(a.Ctx, id, hashedPass)
+	err := c.app.Repo.UserRepo.UpdateUserPassword(c.app.Ctx, id, hashedPass)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -61,16 +75,16 @@ func (a App) resetPasswordUser(rw http.ResponseWriter, r *http.Request, p httpro
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (a App) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c UserController) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	id, ok_id := GetIntVal(strings.TrimSpace(r.FormValue("userId")))
+	id, ok_id := application.GetIntVal(strings.TrimSpace(r.FormValue("userId")))
 
 	if !ok_id {
 		http.Error(rw, "Ошибка удаление пользователя", http.StatusBadRequest)
 		return
 	}
 
-	user, err := a.Repo.UserRepo.Get(a.Ctx, id)
+	user, err := c.app.Repo.UserRepo.Get(c.app.Ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -81,13 +95,13 @@ func (a App) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	err = a.Repo.AzsRepo.RemoveUserFromAzsAll(a.Ctx, id)
+	err = c.app.Repo.AzsRepo.RemoveUserFromAzsAll(c.app.Ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = a.Repo.UserRepo.Delete(a.Ctx, id)
+	err = c.app.Repo.UserRepo.Delete(c.app.Ctx, id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -95,7 +109,7 @@ func (a App) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 	}
 }
 
-func (a App) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c UserController) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	for _, v := range r.Cookies() {
 		c := http.Cookie{
 			Name:   v.Name,
@@ -105,31 +119,31 @@ func (a App) logout(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	http.Redirect(rw, r, "/login", http.StatusSeeOther)
 }
 
-func (a App) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c UserController) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	name := strings.TrimSpace(r.FormValue("name"))
 	surname := strings.TrimSpace(r.FormValue("surname"))
 	login := strings.TrimSpace(r.FormValue("login"))
 	password := strings.TrimSpace(r.FormValue("password"))
 	password2 := strings.TrimSpace(r.FormValue("password2"))
 	if name == "" || surname == "" || login == "" || password == "" {
-		a.signupPage(rw, "Все поля должны быть заполнены!")
+		c.signupPage(rw, "Все поля должны быть заполнены!")
 		return
 	}
 	if password != password2 {
-		a.signupPage(rw, "Пароли не совпадают! Попробуйте еще")
+		c.signupPage(rw, "Пароли не совпадают! Попробуйте еще")
 		return
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	err := a.Repo.UserRepo.Add(a.Ctx, name, surname, login, hashedPass)
+	err := c.app.Repo.UserRepo.Add(c.app.Ctx, name, surname, login, hashedPass)
 	if err != nil {
-		a.signupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
+		c.signupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
 		return
 	}
 	http.Redirect(rw, r, "/users", http.StatusSeeOther)
 }
 
-func (a App) signupPage(rw http.ResponseWriter, message string) {
+func (c UserController) signupPage(rw http.ResponseWriter, message string) {
 
 	data := Answer{message}
 	sp := filepath.Join("public", "html", "signup.html")
@@ -142,19 +156,19 @@ func (a App) signupPage(rw http.ResponseWriter, message string) {
 	}
 }
 
-func (a App) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c UserController) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	login := r.FormValue("login")
 	password := r.FormValue("password")
 
 	if login == "" || password == "" {
-		a.loginPage(rw, "Необходимо указать логин и пароль!")
+		c.loginPage(rw, "Необходимо указать логин и пароль!")
 		return
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	user, err := a.Repo.UserRepo.Login(a.Ctx, login, hashedPass)
+	user, err := c.app.Repo.UserRepo.Login(c.app.Ctx, login, hashedPass)
 	if err != nil {
-		a.loginPage(rw, "Вы ввели неверный логин или пароль!")
+		c.loginPage(rw, "Вы ввели неверный логин или пароль!")
 		return
 	}
 
@@ -163,7 +177,7 @@ func (a App) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	token := login + password + timeInt
 	hashToken := md5.Sum([]byte(token))
 	hashedToken := hex.EncodeToString(hashToken[:])
-	a.Cache[hashedToken] = user
+	c.app.Cache[hashedToken] = user
 	livingTime := 60 * time.Minute
 	expiration := time.Now().Add(livingTime)
 
@@ -172,7 +186,7 @@ func (a App) login(rw http.ResponseWriter, r *http.Request, p httprouter.Params)
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
-func (a App) loginPage(rw http.ResponseWriter, message string) {
+func (c UserController) loginPage(rw http.ResponseWriter, message string) {
 	lp := filepath.Join("public", "html", "login.html")
 	tmpl, err := template.ParseFiles(lp)
 	if err != nil {
@@ -185,37 +199,5 @@ func (a App) loginPage(rw http.ResponseWriter, message string) {
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
-	}
-}
-
-func (a App) validateToken(rw http.ResponseWriter, tokenReq string) bool {
-	tokenReq = strings.TrimSpace(tokenReq)
-	if a.Token != tokenReq {
-		return false
-	}
-	return true
-}
-
-func (a App) Authorized(next httprouter.Handle) httprouter.Handle {
-	return func(rw http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		token, err := readCookie("token", r)
-		if err == nil {
-			if user, ok := a.Cache[token]; ok {
-				next(rw, r.WithContext(context.WithValue(r.Context(), "userId", user.Id)), ps)
-				return
-			}
-		}
-
-		tokenReq := r.FormValue("token")
-		if tokenReq != "" {
-			if a.validateToken(rw, tokenReq) {
-				next(rw, r, ps)
-				return
-			}
-			SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
-			return
-		}
-
-		http.Redirect(rw, r, "/login", http.StatusSeeOther)
 	}
 }
