@@ -176,7 +176,7 @@ func (c CustomerController) historyReceiptsPage(rw http.ResponseWriter, r *http.
 	}
 }
 
-func (c CustomerController) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
+func (c CustomerController) UserPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
 
 	azs_statses, err := c.app.Repo.AzsRepo.GetAzsAllForUser(c.app.Ctx, u.Id)
 
@@ -229,5 +229,5 @@ func (c CustomerController) showUsersAzsPage(rw http.ResponseWriter, r *http.Req
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	c.userPage(rw, r, p, u)
+	c.UserPage(rw, r, p, u)
 }

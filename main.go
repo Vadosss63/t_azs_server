@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/Vadosss63/t-azs/internal/application"
+	"github.com/Vadosss63/t-azs/internal/controllers/admin_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/azs_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/customer_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/map_controller"
@@ -70,6 +71,7 @@ func main() {
 	mapController := map_controller.NewController(a)
 	customerController := customer_controller.NewController(a)
 	azsController := azs_controller.NewController(a)
+	adminController := admin_controller.NewController(a)
 
 	a.Routes(r)
 	yaController.Routes(r)
@@ -79,6 +81,30 @@ func main() {
 	mapController.Routes(r)
 	customerController.Routes(r)
 	azsController.Routes(r)
+	adminController.Routes(r)
+
+	r.GET("/", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+		userId, ok := r.Context().Value("userId").(int)
+
+		if !ok {
+			http.Error(rw, "Error user", http.StatusBadRequest)
+			return
+		}
+		u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
+
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if u.Login == "admin" {
+			adminController.AdminPage(rw, r, p, u, -1)
+			return
+		}
+
+		customerController.UserPage(rw, r, p, u)
+	}))
 
 	fmt.Printf("It's alive! Try http://t-azs.ru:%d/ or http://127.0.0.1:%d\n", settings.Port, settings.Port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", settings.Port), r)

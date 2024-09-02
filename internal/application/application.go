@@ -30,52 +30,6 @@ func (a App) Routes(router *httprouter.Router) {
 
 	router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
 
-	router.GET("/", a.Authorized(a.startPage))
-
-	router.POST("/add_user_to_asz", a.Authorized(a.addUserToAsz))
-
-	router.GET("/users", a.Authorized(a.showUsersPage))
-
-	router.POST("/show_azs_for", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		id_user, ok_id := GetIntVal(r.FormValue("user"))
-
-		userId, ok := r.Context().Value("userId").(int)
-
-		if !ok || !ok_id {
-			http.Error(rw, "Error user", http.StatusBadRequest)
-			return
-		}
-		u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
-
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusBadRequest)
-			return
-		}
-		a.adminPage(rw, r, p, u, id_user)
-	}))
-}
-
-func (a App) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-
-	userId, ok := r.Context().Value("userId").(int)
-
-	if !ok {
-		http.Error(rw, "Error user", http.StatusBadRequest)
-		return
-	}
-	u, err := a.Repo.UserRepo.Get(a.Ctx, userId)
-
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if u.Login == "admin" {
-		a.adminPage(rw, r, p, u, -1)
-		return
-	}
-
-	//a.userPage(rw, r, p, u)
 }
 
 func readCookie(name string, r *http.Request) (value string, err error) {
