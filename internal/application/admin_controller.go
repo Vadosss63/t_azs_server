@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/azs"
 	"github.com/Vadosss63/t-azs/internal/repository/user"
 	"github.com/julienschmidt/httprouter"
 )
@@ -13,7 +13,7 @@ import (
 type AdminPageTemplate struct {
 	User           user.User
 	Users          []user.User
-	Azses          []repository.AzsStatsDataFull
+	Azses          []azs.AzsStatsDataFull
 	SelectedUserId int
 }
 
@@ -31,13 +31,13 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 
 	// a.repo.CreateYaAzsInfoTable(a.ctx)
 
-	var azs_statses []repository.AzsStatsData
+	var azs_statses []azs.AzsStatsData
 	var err error
 
 	if id == -2 {
-		azs_statses, err = a.repo.GetAzsAll(a.ctx)
+		azs_statses, err = a.repo.AzsRepo.GetAzsAll(a.ctx)
 	} else {
-		azs_statses, err = a.repo.GetAzsAllForUser(a.ctx, id)
+		azs_statses, err = a.repo.AzsRepo.GetAzsAllForUser(a.ctx, id)
 	}
 
 	users, err := a.repo.UserRepo.GetUserAll(a.ctx)
@@ -50,12 +50,12 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	adminPageTemplate := AdminPageTemplate{
 		User:           u,
 		Users:          users,
-		Azses:          []repository.AzsStatsDataFull{},
+		Azses:          []azs.AzsStatsDataFull{},
 		SelectedUserId: id,
 	}
 
 	for _, azs_stats := range azs_statses {
-		azsStatsDataFull, err := repository.ParseStats(azs_stats)
+		azsStatsDataFull, err := azs.ParseStats(azs_stats)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
@@ -104,7 +104,7 @@ func (a app) addUserToAsz(rw http.ResponseWriter, r *http.Request, p httprouter.
 	id_azs, _ := getIntVal(r.FormValue("id_azs"))
 	id_user, _ := getIntVal(r.FormValue("user"))
 
-	err := a.repo.AddAzsToUser(a.ctx, id_user, id_azs)
+	err := a.repo.AzsRepo.AddAzsToUser(a.ctx, id_user, id_azs)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

@@ -81,7 +81,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	err = a.repo.RemoveUserFromAzsAll(a.ctx, id)
+	err = a.repo.AzsRepo.RemoveUserFromAzsAll(a.ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

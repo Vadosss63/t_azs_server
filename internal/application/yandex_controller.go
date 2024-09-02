@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/azs"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -67,12 +68,12 @@ func (a app) getPriceListHandler(rw http.ResponseWriter, r *http.Request, p http
 
 	var samplePrices = []repository.PriceEntry{}
 	for i := 0; i < len(azsIds); i++ {
-		azsStats, err := a.repo.GetAzs(a.ctx, azsIds[i])
+		azsStats, err := a.repo.AzsRepo.GetAzs(a.ctx, azsIds[i])
 		if err != nil {
 			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		azsStatsDataFull, err := repository.ParseStats(azsStats)
+		azsStatsDataFull, err := azs.ParseStats(azsStats)
 		if err != nil {
 			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -116,13 +117,13 @@ func (a app) getStationsHandler(rw http.ResponseWriter, r *http.Request, p httpr
 	for i := 0; i < len(stations); i++ {
 
 		idInt, _ := getIntVal(stations[i].Id)
-		azsStats, err := a.repo.GetAzs(a.ctx, idInt)
+		azsStats, err := a.repo.AzsRepo.GetAzs(a.ctx, idInt)
 		if err != nil {
 			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		azsStatsDataFull, err := repository.ParseStats(azsStats)
+		azsStatsDataFull, err := azs.ParseStats(azsStats)
 		if err != nil {
 			sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 			return

@@ -8,23 +8,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/azs"
+	"github.com/Vadosss63/t-azs/internal/repository/receipt"
 	"github.com/Vadosss63/t-azs/internal/repository/user"
 	"github.com/julienschmidt/httprouter"
 )
 
 type AzsStatsTemplate struct {
 	User  user.User
-	Azses []repository.AzsStatsDataFull
+	Azses []azs.AzsStatsDataFull
 }
 
 type AzsReceiptTemplate struct {
-	Azs             repository.AzsStatsData
+	Azs             azs.AzsStatsData
 	FormSearchVal   string
 	ToSearchVal     string
 	FromTimeVal     string
 	ToTimeVal       string
-	Receipts        []repository.Receipt
+	Receipts        []receipt.Receipt
 	Count           int
 	TotalSum        string
 	TotalLiters     string
@@ -87,19 +88,19 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 	fromTime := time.Date(fromSearchTime.Year(), fromSearchTime.Month(), fromSearchTime.Day(), fromSearchTime.Hour(), fromSearchTime.Minute(), 0, 0, loc)
 	toTime := time.Date(toSearchTime.Year(), toSearchTime.Month(), toSearchTime.Day(), toSearchTime.Hour(), toSearchTime.Minute(), 0, 0, loc)
 
-	filterParams := repository.FilterParams{
+	filterParams := receipt.FilterParams{
 		StartTime:   fromTime.Unix(),
 		EndTime:     toTime.Unix(),
 		PaymentType: paymentType,
 	}
 
-	receipts, err := a.repo.GetReceiptsFiltered(a.ctx, id_azs, filterParams)
+	receipts, err := a.repo.ReceiptRepo.GetReceiptsFiltered(a.ctx, id_azs, filterParams)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve filtered receipts: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	azs, err := a.repo.GetAzs(a.ctx, id_azs)
+	azs, err := a.repo.AzsRepo.GetAzs(a.ctx, id_azs)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve AZS data: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -150,7 +151,7 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 
 func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params, u user.User) {
 
-	azs_statses, err := a.repo.GetAzsAllForUser(a.ctx, u.Id)
+	azs_statses, err := a.repo.AzsRepo.GetAzsAllForUser(a.ctx, u.Id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -159,12 +160,12 @@ func (a app) userPage(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 
 	azsStatsTemplate := AzsStatsTemplate{
 		User:  u,
-		Azses: []repository.AzsStatsDataFull{},
+		Azses: []azs.AzsStatsDataFull{},
 	}
 
 	for _, azs_stats := range azs_statses {
 
-		azsStatsDataFull, err := repository.ParseStats(azs_stats)
+		azsStatsDataFull, err := azs.ParseStats(azs_stats)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)

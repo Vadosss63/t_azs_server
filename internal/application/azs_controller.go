@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Vadosss63/t-azs/internal/repository"
+	"github.com/Vadosss63/t-azs/internal/repository/azs"
+	"github.com/Vadosss63/t-azs/internal/repository/receipt"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -41,7 +42,7 @@ func (a app) azsStats(rw http.ResponseWriter, r *http.Request, p httprouter.Para
 func (a app) manageAzs(idInt, countColum, isSecondPrice int, name, address, stats string) error {
 	t := time.Now().Format(time.RFC822)
 
-	azs, err := a.repo.GetAzs(a.ctx, idInt)
+	azs, err := a.repo.AzsRepo.GetAzs(a.ctx, idInt)
 	if azs.Id == -1 {
 		return a.createAzs(idInt, countColum, isSecondPrice, name, address, stats, t)
 	}
@@ -56,11 +57,11 @@ func (a app) manageAzs(idInt, countColum, isSecondPrice int, name, address, stat
 	azs.Address = address
 	azs.Stats = stats
 	azs.IsSecondPriceEnable = isSecondPrice
-	return a.repo.UpdateAzs(a.ctx, azs)
+	return a.repo.AzsRepo.UpdateAzs(a.ctx, azs)
 }
 
 func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stats, time string) error {
-	if err := a.repo.AddAzs(a.ctx, idInt, 0, countColum, isSecondPrice, time, name, address, stats); err != nil {
+	if err := a.repo.AzsRepo.AddAzs(a.ctx, idInt, 0, countColum, isSecondPrice, time, name, address, stats); err != nil {
 		return err
 	}
 	if err := a.repo.AzsButtonRepo.AddAzsButton(a.ctx, idInt); err != nil {
@@ -78,7 +79,7 @@ func (a app) createAzs(idInt, countColum, isSecondPrice int, name, address, stat
 	if err := a.repo.YaPayRepo.AddYaPay(a.ctx, idInt); err != nil {
 		return err
 	}
-	return a.repo.CreateReceipt(a.ctx, idInt)
+	return a.repo.ReceiptRepo.CreateReceipt(a.ctx, idInt)
 }
 
 func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -88,7 +89,7 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	if err := a.repo.DeleteAzs(a.ctx, idAzs); err != nil {
+	if err := a.repo.AzsRepo.DeleteAzs(a.ctx, idAzs); err != nil {
 		sendError(rw, "Failed to delete AZS: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -118,7 +119,7 @@ func (a app) deleteAsz(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		return
 	}
 
-	if err := a.repo.DeleteReceiptAll(a.ctx, idAzs); err != nil {
+	if err := a.repo.ReceiptRepo.DeleteReceiptAll(a.ctx, idAzs); err != nil {
 		sendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -135,13 +136,13 @@ func (a app) azsReceipt(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	receipt, err := repository.ParseReceiptFromJson(receiptJson)
+	receipt, err := receipt.ParseReceiptFromJson(receiptJson)
 
 	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, err.Error(), "Error")
 		return
 	}
-	err = a.repo.AddReceipt(a.ctx, id, receipt)
+	err = a.repo.ReceiptRepo.AddReceipt(a.ctx, id, receipt)
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
@@ -258,13 +259,13 @@ func (a app) azsPage(rw http.ResponseWriter, r *http.Request, p httprouter.Param
 		return
 	}
 
-	azsStats, err := a.repo.GetAzs(a.ctx, idInt)
+	azsStats, err := a.repo.AzsRepo.GetAzs(a.ctx, idInt)
 	if err != nil {
 		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	azsStatsDataFull, err := repository.ParseStats(azsStats)
+	azsStatsDataFull, err := azs.ParseStats(azsStats)
 	if err != nil {
 		sendError(rw, "Server error: "+err.Error(), http.StatusInternalServerError)
 		return
