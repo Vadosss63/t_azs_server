@@ -94,13 +94,13 @@ func (a app) historyReceiptsPage(rw http.ResponseWriter, r *http.Request, p http
 		PaymentType: paymentType,
 	}
 
-	receipts, err := a.repo.ReceiptRepo.GetReceiptsFiltered(a.ctx, id_azs, filterParams)
+	receipts, err := a.repo.ReceiptRepo.GetFilteredReceipts(a.ctx, id_azs, filterParams)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve filtered receipts: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	azs, err := a.repo.AzsRepo.GetAzs(a.ctx, id_azs)
+	azs, err := a.repo.AzsRepo.Get(a.ctx, id_azs)
 	if err != nil {
 		http.Error(rw, "Failed to retrieve AZS data: "+err.Error(), http.StatusInternalServerError)
 		return

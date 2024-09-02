@@ -86,7 +86,7 @@ func (a app) setAppUpdateCmd(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	url := "http://t-azs.ru:" + strconv.Itoa(a.port) + "/install/" + version
-	err := a.repo.UpdaterButtonRepo.UpdateUpdateCommand(a.ctx, idInt, url)
+	err := a.repo.UpdaterButtonRepo.Update(a.ctx, idInt, url)
 
 	if err != nil {
 		sendJsonResponse(rw, http.StatusBadRequest, "Error", "Error")
@@ -135,7 +135,7 @@ func (a app) appUpdateButtonReady(rw http.ResponseWriter, r *http.Request, p htt
 		return
 	}
 
-	updateCommand, err := a.repo.UpdaterButtonRepo.GetUpdateCommand(a.ctx, idInt)
+	updateCommand, err := a.repo.UpdaterButtonRepo.Get(a.ctx, idInt)
 	if err != nil {
 		sendError(rw, "Error fetching update button: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -154,7 +154,7 @@ func (a app) getAppUpdateButton(rw http.ResponseWriter, r *http.Request, p httpr
 	idInt, ok := getIntVal(id)
 
 	if ok {
-		updateCommand, err := a.repo.UpdaterButtonRepo.GetUpdateCommand(a.ctx, idInt)
+		updateCommand, err := a.repo.UpdaterButtonRepo.Get(a.ctx, idInt)
 		if err == nil {
 			sendJson(rw, http.StatusOK, updateCommand)
 			return
@@ -175,7 +175,7 @@ func (a app) resetAppUpdateAzs(rw http.ResponseWriter, r *http.Request, p httpro
 		return
 	}
 
-	err := a.repo.UpdaterButtonRepo.UpdateUpdateCommand(a.ctx, idInt, "")
+	err := a.repo.UpdaterButtonRepo.Update(a.ctx, idInt, "")
 	if err != nil {
 		sendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 

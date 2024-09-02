@@ -23,17 +23,17 @@ func NewRepository(pool *pgxpool.Pool) *UserRepo {
 	return &UserRepo{pool: pool}
 }
 
-func (r *UserRepo) AddNewUser(ctx context.Context, name, surname, login, hashedPassword string) (err error) {
+func (r *UserRepo) Add(ctx context.Context, name, surname, login, hashedPassword string) (err error) {
 	_, err = r.pool.Exec(ctx, `insert into users (name, surname, login, hashed_password) values ($1, $2,$3, $4)`, name, surname, login, hashedPassword)
 	return
 }
 
-func (r *UserRepo) DeleteUser(ctx context.Context, id int) (err error) {
+func (r *UserRepo) Delete(ctx context.Context, id int) (err error) {
 	_, err = r.pool.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
 	return
 }
 
-func (r *UserRepo) GetUser(ctx context.Context, id int) (u User, err error) {
+func (r *UserRepo) Get(ctx context.Context, id int) (u User, err error) {
 	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where id = $1`, id)
 
 	if err != nil {
@@ -43,7 +43,7 @@ func (r *UserRepo) GetUser(ctx context.Context, id int) (u User, err error) {
 	return
 }
 
-func (r *UserRepo) FindUser(ctx context.Context, login string) (u User, err error) {
+func (r *UserRepo) Find(ctx context.Context, login string) (u User, err error) {
 	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where login = $1`, login)
 	if err != nil {
 		return
@@ -52,7 +52,7 @@ func (r *UserRepo) FindUser(ctx context.Context, login string) (u User, err erro
 	return
 }
 
-func (r *UserRepo) UpdateUser(ctx context.Context, user User) (err error) {
+func (r *UserRepo) Update(ctx context.Context, user User) (err error) {
 	_, err = r.pool.Exec(ctx,
 		`UPDATE users SET login = '$2', name = '$3', surname = '$4' WHERE id = $1`,
 		user.Id, user.Login, user.Name, user.Surname)
@@ -66,7 +66,7 @@ func (r *UserRepo) UpdateUserPassword(ctx context.Context, id int, hashedPasswor
 	return
 }
 
-func (r *UserRepo) GetUserAll(ctx context.Context) (users []User, err error) {
+func (r *UserRepo) GetAll(ctx context.Context) (users []User, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM users`)
 	if err != nil {
 		return

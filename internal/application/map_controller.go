@@ -24,7 +24,7 @@ func (a app) savePointHandler(w http.ResponseWriter, r *http.Request, par httpro
 		return
 	}
 
-	err = a.repo.YaAzsRepo.UpdateYaAzsInfoLocation(a.ctx, p.IdAzs, ya_azs.Location{Lat: p.Lat, Lon: p.Lng})
+	err = a.repo.YaAzsRepo.UpdateLocation(a.ctx, p.IdAzs, ya_azs.Location{Lat: p.Lat, Lon: p.Lng})
 
 	if err != nil {
 		http.Error(w, "Ошибка обновления", http.StatusInternalServerError)
@@ -47,7 +47,7 @@ func (a app) pointsHandler(w http.ResponseWriter, r *http.Request, par httproute
 		return
 	}
 
-	point, err := a.repo.YaAzsRepo.GetYaAzsInfoLocation(a.ctx, id_azs)
+	point, err := a.repo.YaAzsRepo.GetLocation(a.ctx, id_azs)
 
 	w.Header().Set("Content-Type", "application/json")
 

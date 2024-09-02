@@ -70,7 +70,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	user, err := a.repo.UserRepo.GetUser(a.ctx, id)
+	user, err := a.repo.UserRepo.Get(a.ctx, id)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -87,7 +87,7 @@ func (a app) deleteUser(rw http.ResponseWriter, r *http.Request, p httprouter.Pa
 		return
 	}
 
-	err = a.repo.UserRepo.DeleteUser(a.ctx, id)
+	err = a.repo.UserRepo.Delete(a.ctx, id)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -121,7 +121,7 @@ func (a app) signup(rw http.ResponseWriter, r *http.Request, p httprouter.Params
 	}
 	hash := md5.Sum([]byte(password))
 	hashedPass := hex.EncodeToString(hash[:])
-	err := a.repo.UserRepo.AddNewUser(a.ctx, name, surname, login, hashedPass)
+	err := a.repo.UserRepo.Add(a.ctx, name, surname, login, hashedPass)
 	if err != nil {
 		a.signupPage(rw, fmt.Sprintf("Ошибка создания пользователя: %v", err))
 		return

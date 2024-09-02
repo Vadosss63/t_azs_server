@@ -14,7 +14,6 @@ import (
 )
 
 type Repository struct {
-	pool              *pgxpool.Pool
 	YaPayRepo         *ya_pay.YaPayRepo
 	UserRepo          *user.UserRepo
 	TrblButtonRepo    *trbl_button.TrblButtonRepo
@@ -27,8 +26,7 @@ type Repository struct {
 
 func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{
-		pool:              pool,
-		YaPayRepo:         ya_pay.NewYaPayRepository(pool),
+		YaPayRepo:         ya_pay.NewRepository(pool),
 		UserRepo:          user.NewRepository(pool),
 		TrblButtonRepo:    trbl_button.NewRepository(pool),
 		AzsButtonRepo:     azs_button.NewRepository(pool),

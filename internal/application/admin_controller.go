@@ -35,12 +35,12 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 	var err error
 
 	if id == -2 {
-		azs_statses, err = a.repo.AzsRepo.GetAzsAll(a.ctx)
+		azs_statses, err = a.repo.AzsRepo.GetAll(a.ctx)
 	} else {
 		azs_statses, err = a.repo.AzsRepo.GetAzsAllForUser(a.ctx, id)
 	}
 
-	users, err := a.repo.UserRepo.GetUserAll(a.ctx)
+	users, err := a.repo.UserRepo.GetAll(a.ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -60,7 +60,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
-		azsStatsDataFull.IsEnabled, err = a.repo.YaAzsRepo.GetYaAzsInfoEnable(a.ctx, azsStatsDataFull.IdAzs)
+		azsStatsDataFull.IsEnabled, err = a.repo.YaAzsRepo.GetEnable(a.ctx, azsStatsDataFull.IdAzs)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -84,7 +84,7 @@ func (a app) adminPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 
 func (a app) showUsersPage(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
-	users, err := a.repo.UserRepo.GetUserAll(a.ctx)
+	users, err := a.repo.UserRepo.GetAll(a.ctx)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -121,7 +121,7 @@ func (a app) showUsersAzsPage(rw http.ResponseWriter, r *http.Request, p httprou
 		return
 	}
 
-	u, err := a.repo.UserRepo.GetUser(a.ctx, userId)
+	u, err := a.repo.UserRepo.Get(a.ctx, userId)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

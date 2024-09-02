@@ -24,11 +24,11 @@ type YaPayRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewYaPayRepository(pool *pgxpool.Pool) *YaPayRepo {
+func NewRepository(pool *pgxpool.Pool) *YaPayRepo {
 	return &YaPayRepo{pool: pool}
 }
 
-func (r *YaPayRepo) CreateYaPayTable(ctx context.Context) error {
+func (r *YaPayRepo) CreateTable(ctx context.Context) error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %s (
     %s  BIGINT,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS %s (
 	return nil
 }
 
-func (r *YaPayRepo) DeleteYaPayTable(ctx context.Context) error {
+func (r *YaPayRepo) DeleteTable(ctx context.Context) error {
 	query := fmt.Sprintf(`DROP TABLE IF EXISTS %s`, yaPayName)
 	_, err := r.pool.Exec(ctx, query)
 	if err != nil {
@@ -51,7 +51,7 @@ func (r *YaPayRepo) DeleteYaPayTable(ctx context.Context) error {
 	return nil
 }
 
-func (r *YaPayRepo) AddYaPay(ctx context.Context, idAzs int) error {
+func (r *YaPayRepo) Add(ctx context.Context, idAzs int) error {
 	query := fmt.Sprintf(`INSERT INTO %s (%s, %s, %s) VALUES ($1, 0, 0)`, yaPayName, yaPayColumnID, yaPayColumnValue, yaPayColumnData)
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
@@ -60,7 +60,7 @@ func (r *YaPayRepo) AddYaPay(ctx context.Context, idAzs int) error {
 	return nil
 }
 
-func (r *YaPayRepo) UpdateYaPay(ctx context.Context, idAzs, value int, data string) error {
+func (r *YaPayRepo) Update(ctx context.Context, idAzs, value int, data string) error {
 	query := fmt.Sprintf(`UPDATE %s SET %s = $2, %s = $3 WHERE %s = $1`, yaPayName, yaPayColumnValue, yaPayColumnData, yaPayColumnID)
 	_, err := r.pool.Exec(ctx, query, idAzs, value, data)
 	if err != nil {
@@ -69,7 +69,7 @@ func (r *YaPayRepo) UpdateYaPay(ctx context.Context, idAzs, value int, data stri
 	return nil
 }
 
-func (r *YaPayRepo) DeleteYaPay(ctx context.Context, idAzs int) error {
+func (r *YaPayRepo) Delete(ctx context.Context, idAzs int) error {
 	query := fmt.Sprintf(`DELETE FROM %s WHERE %s = $1`, yaPayName, yaPayColumnID)
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
@@ -78,7 +78,7 @@ func (r *YaPayRepo) DeleteYaPay(ctx context.Context, idAzs int) error {
 	return nil
 }
 
-func (r *YaPayRepo) GetYaPay(ctx context.Context, idAzs int) (YaPay, error) {
+func (r *YaPayRepo) Get(ctx context.Context, idAzs int) (YaPay, error) {
 	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s WHERE %s = $1`, yaPayColumnID, yaPayColumnValue, yaPayColumnData, yaPayName, yaPayColumnID)
 	row := r.pool.QueryRow(ctx, query, idAzs)
 
@@ -91,7 +91,7 @@ func (r *YaPayRepo) GetYaPay(ctx context.Context, idAzs int) (YaPay, error) {
 	return yaPay, nil
 }
 
-func (r *YaPayRepo) GetYaPayAll(ctx context.Context) ([]YaPay, error) {
+func (r *YaPayRepo) GetAll(ctx context.Context) ([]YaPay, error) {
 	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s`, yaPayColumnID, yaPayColumnValue, yaPayColumnData, yaPayName)
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {

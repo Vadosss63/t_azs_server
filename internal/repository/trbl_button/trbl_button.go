@@ -19,7 +19,7 @@ type LogButton struct {
 	Download int `json:"download" db:"download"`
 }
 
-func (r *TrblButtonRepo) CreateLogButtonTable(ctx context.Context) (err error) {
+func (r *TrblButtonRepo) CreateTable(ctx context.Context) (err error) {
 	_, err = r.pool.Query(ctx,
 		"create table if not exists log_button"+
 			"(id_azs  bigint,"+
@@ -27,27 +27,27 @@ func (r *TrblButtonRepo) CreateLogButtonTable(ctx context.Context) (err error) {
 	return
 }
 
-func (r *TrblButtonRepo) DeleteLogButtonTable(ctx context.Context) (err error) {
+func (r *TrblButtonRepo) DeleteTable(ctx context.Context) (err error) {
 	_, err = r.pool.Exec(ctx, "DROP TABLE log_button")
 	return
 }
 
-func (r *TrblButtonRepo) AddLogButton(ctx context.Context, id_azs int) (err error) {
+func (r *TrblButtonRepo) Add(ctx context.Context, id_azs int) (err error) {
 	_, err = r.pool.Exec(ctx, `insert into log_button (id_azs, download) values ($1, 0)`, id_azs)
 	return
 }
 
-func (r *TrblButtonRepo) UpdateLogButton(ctx context.Context, id_azs, download int) (err error) {
+func (r *TrblButtonRepo) Update(ctx context.Context, id_azs, download int) (err error) {
 	_, err = r.pool.Exec(ctx, `UPDATE log_button SET download = $2 WHERE id_azs = $1`, id_azs, download)
 	return
 }
 
-func (r *TrblButtonRepo) DeleteLogButton(ctx context.Context, id_azs int) (err error) {
+func (r *TrblButtonRepo) Delete(ctx context.Context, id_azs int) (err error) {
 	_, err = r.pool.Exec(ctx, `DELETE FROM log_button WHERE id_azs = $1`, id_azs)
 	return
 }
 
-func (r *TrblButtonRepo) GetLogButton(ctx context.Context, id_azs int) (LogButton LogButton, err error) {
+func (r *TrblButtonRepo) Get(ctx context.Context, id_azs int) (LogButton LogButton, err error) {
 	row := r.pool.QueryRow(ctx, `SELECT * FROM log_button where id_azs = $1`, id_azs)
 	if err != nil {
 		return
@@ -57,7 +57,7 @@ func (r *TrblButtonRepo) GetLogButton(ctx context.Context, id_azs int) (LogButto
 	return
 }
 
-func (r *TrblButtonRepo) GetLogButtonAll(ctx context.Context) (LogButtons []LogButton, err error) {
+func (r *TrblButtonRepo) GetAll(ctx context.Context) (LogButtons []LogButton, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM log_button`)
 	if err != nil {
 		return

@@ -67,26 +67,26 @@ func NewRepository(pool *pgxpool.Pool) *AzsRepo {
 	return &AzsRepo{pool: pool}
 }
 
-func (r *AzsRepo) AddAzs(ctx context.Context, id_azs int, is_authorized, count_colum, is_second_price int, time, name, address, stats string) (err error) {
+func (r *AzsRepo) Add(ctx context.Context, id_azs int, is_authorized, count_colum, is_second_price int, time, name, address, stats string) (err error) {
 	_, err = r.pool.Exec(ctx,
 		`insert into azses (id_azs, id_user, is_authorized, time, name, address, count_colum, stats, is_second_price) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		id_azs, -1, is_authorized, time, name, address, count_colum, stats, is_second_price)
 	return
 }
 
-func (r *AzsRepo) UpdateAzs(ctx context.Context, azs AzsStatsData) (err error) {
+func (r *AzsRepo) Update(ctx context.Context, azs AzsStatsData) (err error) {
 	_, err = r.pool.Exec(ctx,
 		`UPDATE azses SET is_authorized = $2, count_colum = $3, time = $4, name = $5, address = $6, stats = $7, is_second_price = $8 WHERE id_azs = $1`,
 		azs.IdAzs, azs.IsAuthorized, azs.CountColum, azs.Time, azs.Name, azs.Address, azs.Stats, azs.IsSecondPriceEnable)
 	return
 }
 
-func (r *AzsRepo) DeleteAzs(ctx context.Context, id_azs int) (err error) {
+func (r *AzsRepo) Delete(ctx context.Context, id_azs int) (err error) {
 	_, err = r.pool.Exec(ctx, `DELETE FROM azses WHERE id_azs = $1`, id_azs)
 	return
 }
 
-func (r *AzsRepo) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, err error) {
+func (r *AzsRepo) Get(ctx context.Context, id_azs int) (azs AzsStatsData, err error) {
 	row := r.pool.QueryRow(ctx, `SELECT * FROM azses where id_azs = $1`, id_azs)
 	if err != nil {
 		azs.Id = -1
@@ -100,7 +100,7 @@ func (r *AzsRepo) GetAzs(ctx context.Context, id_azs int) (azs AzsStatsData, err
 	return
 }
 
-func (r *AzsRepo) GetAzsAll(ctx context.Context) (azses []AzsStatsData, err error) {
+func (r *AzsRepo) GetAll(ctx context.Context) (azses []AzsStatsData, err error) {
 	rows, err := r.pool.Query(ctx, `SELECT * FROM azses`)
 	if err != nil {
 		return

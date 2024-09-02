@@ -110,7 +110,7 @@ func (a app) Routes(router *httprouter.Router) {
 			http.Error(rw, "Error user", http.StatusBadRequest)
 			return
 		}
-		u, err := a.repo.UserRepo.GetUser(a.ctx, userId)
+		u, err := a.repo.UserRepo.Get(a.ctx, userId)
 
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -139,7 +139,7 @@ func (a app) startPage(rw http.ResponseWriter, r *http.Request, p httprouter.Par
 		http.Error(rw, "Error user", http.StatusBadRequest)
 		return
 	}
-	u, err := a.repo.UserRepo.GetUser(a.ctx, userId)
+	u, err := a.repo.UserRepo.Get(a.ctx, userId)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)

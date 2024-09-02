@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS %s (
 	return nil
 }
 
-func (r *ReceiptRepo) AddReceipt(ctx context.Context, id_azs int, receipt Receipt) error {
+func (r *ReceiptRepo) Add(ctx context.Context, id_azs int, receipt Receipt) error {
 	table := getTableName(id_azs)
 	query := fmt.Sprintf("INSERT INTO %s (time, date, num_azs_node, gas_type, count_litres, cash, cashless, online, sum) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", table)
 	_, err := r.pool.Exec(ctx, query, receipt.Time, receipt.Date, receipt.NumOfAzsNode, receipt.GasType, receipt.CountLitres, receipt.Cash, receipt.Cashless, receipt.Online, receipt.Sum)
@@ -98,7 +98,7 @@ func (r *ReceiptRepo) AddReceipt(ctx context.Context, id_azs int, receipt Receip
 	return nil
 }
 
-func (r *ReceiptRepo) DeleteReceiptAll(ctx context.Context, id_azs int) error {
+func (r *ReceiptRepo) DeleteAll(ctx context.Context, id_azs int) error {
 	table := getTableName(id_azs)
 
 	query := fmt.Sprintf("DROP TABLE IF EXISTS %s", table)
@@ -110,7 +110,7 @@ func (r *ReceiptRepo) DeleteReceiptAll(ctx context.Context, id_azs int) error {
 	return nil
 }
 
-func (r *ReceiptRepo) GetReceiptsFiltered(ctx context.Context, id_azs int, filter FilterParams) ([]Receipt, error) {
+func (r *ReceiptRepo) GetFilteredReceipts(ctx context.Context, id_azs int, filter FilterParams) ([]Receipt, error) {
 	table := getTableName(id_azs)
 	baseQuery := fmt.Sprintf("SELECT id, time, date, num_azs_node, gas_type, count_litres, cash, cashless, online, sum FROM %s", table)
 
