@@ -59,10 +59,6 @@ func (r *TrblButtonRepo) Delete(ctx context.Context, id_azs int) (err error) {
 
 func (r *TrblButtonRepo) Get(ctx context.Context, id_azs int) (LogButton LogButton, err error) {
 	row := r.pool.QueryRow(ctx, `SELECT * FROM log_button where id_azs = $1`, id_azs)
-	if err != nil {
-		return
-	}
-
 	err = row.Scan(&LogButton.IdAzs, &LogButton.Download)
 	return
 }

@@ -99,11 +99,6 @@ func (r *AzsRepo) Delete(ctx context.Context, id_azs int) (err error) {
 
 func (r *AzsRepo) Get(ctx context.Context, id_azs int) (azs AzsStatsData, err error) {
 	row := r.pool.QueryRow(ctx, `SELECT * FROM azses where id_azs = $1`, id_azs)
-	if err != nil {
-		azs.Id = -1
-		return
-	}
-
 	err = row.Scan(&azs.Id, &azs.IdAzs, &azs.IdUser, &azs.IsAuthorized, &azs.CountColum, &azs.IsSecondPriceEnable, &azs.Time, &azs.Name, &azs.Address, &azs.Stats)
 	if err != nil {
 		azs.Id = -1

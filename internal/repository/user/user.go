@@ -46,19 +46,12 @@ func (r *UserRepo) Delete(ctx context.Context, id int) (err error) {
 
 func (r *UserRepo) Get(ctx context.Context, id int) (u User, err error) {
 	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where id = $1`, id)
-
-	if err != nil {
-		return
-	}
 	err = row.Scan(&u.Id, &u.Login, &u.Name, &u.Surname)
 	return
 }
 
 func (r *UserRepo) Find(ctx context.Context, login string) (u User, err error) {
 	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where login = $1`, login)
-	if err != nil {
-		return
-	}
 	err = row.Scan(&u.Id, &u.Login, &u.Name, &u.Surname)
 	return
 }
@@ -99,9 +92,6 @@ func (r *UserRepo) GetAll(ctx context.Context) (users []User, err error) {
 
 func (r *UserRepo) Login(ctx context.Context, login, hashedPassword string) (u User, err error) {
 	row := r.pool.QueryRow(ctx, `select id, login, name, surname from users where login = $1 AND hashed_password = $2`, login, hashedPassword)
-	if err != nil {
-		return
-	}
 	err = row.Scan(&u.Id, &u.Login, &u.Name, &u.Surname)
 	return
 }
