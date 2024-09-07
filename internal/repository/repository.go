@@ -20,7 +20,7 @@ type Repository struct {
 	TrblButtonRepo    trbl_button.TrblButtonRepository
 	UpdaterButtonRepo updater_button.UpdaterButtonRepository
 	UserRepo          user.UserRepository
-	YaAzsRepo         ya_azs.YaPayRepository
+	YaAzsRepo         ya_azs.YaAzsRepository
 	YaPayRepo         ya_pay.YaPayRepository
 }
 

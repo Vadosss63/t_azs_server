@@ -76,7 +76,7 @@ const (
 	enable        = "enable"
 )
 
-type YaPayRepository interface {
+type YaAzsRepository interface {
 	CreateTable(ctx context.Context) error
 	DeleteTable(ctx context.Context) error
 	Add(ctx context.Context, idAzs int) error
