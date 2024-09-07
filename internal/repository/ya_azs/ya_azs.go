@@ -76,6 +76,19 @@ const (
 	enable        = "enable"
 )
 
+type YaPayRepository interface {
+	CreateTable(ctx context.Context) error
+	DeleteTable(ctx context.Context) error
+	Add(ctx context.Context, idAzs int) error
+	UpdateLocation(ctx context.Context, idAzs int, location Location) error
+	UpdateEnable(ctx context.Context, idAzs int, isEnable bool) error
+	Delete(ctx context.Context, idAzs int) error
+	GetLocation(ctx context.Context, idAzs int) (Location, error)
+	GetEnable(ctx context.Context, idAzs int) (bool, error)
+	GetEnableAll(ctx context.Context) ([]Station, error)
+	GetEnableList(ctx context.Context) ([]int, error)
+}
+
 type YaAzsRepo struct {
 	pool *pgxpool.Pool
 }

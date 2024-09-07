@@ -14,6 +14,16 @@ const (
 	columnButton = "button"
 )
 
+type AzsButtonRepository interface {
+	CreateTable(ctx context.Context) error
+	DeleteTable(ctx context.Context) error
+	Add(ctx context.Context, idAzs int) error
+	Update(ctx context.Context, idAzs, price, button int) error
+	Delete(ctx context.Context, idAzs int) error
+	Get(ctx context.Context, idAzs int) (AzsButton, error)
+	GetAll(ctx context.Context) ([]AzsButton, error)
+}
+
 type AzsButtonRepo struct {
 	pool *pgxpool.Pool
 }

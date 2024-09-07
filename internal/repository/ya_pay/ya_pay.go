@@ -20,6 +20,16 @@ type YaPay struct {
 	Data  string `json:"data" db:"data"`
 }
 
+type YaPayRepository interface {
+	CreateTable(ctx context.Context) error
+	DeleteTable(ctx context.Context) error
+	Add(ctx context.Context, idAzs int) error
+	Update(ctx context.Context, idAzs, value int, data string) error
+	Delete(ctx context.Context, idAzs int) error
+	Get(ctx context.Context, idAzs int) (YaPay, error)
+	GetAll(ctx context.Context) ([]YaPay, error)
+}
+
 type YaPayRepo struct {
 	pool *pgxpool.Pool
 }

@@ -11,6 +11,16 @@ type UpdateCommand struct {
 	Url   string `json:"url" db:"url"`
 }
 
+type UpdaterButtonRepository interface {
+	Add(ctx context.Context, id_azs int) (err error)
+	Update(ctx context.Context, id_azs int, url string) (err error)
+	Delete(ctx context.Context, id_azs int) (err error)
+	Get(ctx context.Context, id_azs int) (UpdateCommand UpdateCommand, err error)
+	GetAll(ctx context.Context) (UpdateCommands []UpdateCommand, err error)
+	CreateTable(ctx context.Context) (err error)
+	DeleteTable(ctx context.Context) (err error)
+}
+
 type UpdaterButtonRepo struct {
 	pool *pgxpool.Pool
 }

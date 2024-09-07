@@ -29,6 +29,13 @@ type FilterParams struct {
 	PaymentType string // Type of payment: "cash", "cashless", "online" or an empty string for all
 }
 
+type ReceiptRepository interface {
+	CreateReceipt(ctx context.Context, id_azs int) error
+	Add(ctx context.Context, id_azs int, receipt Receipt) error
+	DeleteAll(ctx context.Context, id_azs int) error
+	GetFilteredReceipts(ctx context.Context, id_azs int, filter FilterParams) ([]Receipt, error)
+}
+
 type ReceiptRepo struct {
 	pool *pgxpool.Pool
 }

@@ -15,6 +15,17 @@ type User struct {
 	Surname        string `json:"surname" db:"surname"`
 }
 
+type UserRepository interface {
+	Add(ctx context.Context, name, surname, login, hashedPassword string) (err error)
+	Delete(ctx context.Context, id int) (err error)
+	Get(ctx context.Context, id int) (u User, err error)
+	Find(ctx context.Context, login string) (u User, err error)
+	Update(ctx context.Context, user User) (err error)
+	UpdateUserPassword(ctx context.Context, id int, hashedPassword string) (err error)
+	GetAll(ctx context.Context) (users []User, err error)
+	Login(ctx context.Context, login, hashedPassword string) (u User, err error)
+}
+
 type UserRepo struct {
 	pool *pgxpool.Pool
 }

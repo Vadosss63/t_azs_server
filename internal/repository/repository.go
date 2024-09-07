@@ -14,25 +14,25 @@ import (
 )
 
 type Repository struct {
-	YaPayRepo         *ya_pay.YaPayRepo
-	UserRepo          *user.UserRepo
-	TrblButtonRepo    *trbl_button.TrblButtonRepo
-	AzsButtonRepo     *azs_button.AzsButtonRepo
-	UpdaterButtonRepo *updater_button.UpdaterButtonRepo
-	AzsRepo           *azs.AzsRepo
-	ReceiptRepo       *receipt.ReceiptRepo
-	YaAzsRepo         *ya_azs.YaAzsRepo
+	AzsRepo           azs.AzsRepository
+	AzsButtonRepo     azs_button.AzsButtonRepository
+	ReceiptRepo       receipt.ReceiptRepository
+	TrblButtonRepo    trbl_button.TrblButtonRepository
+	UpdaterButtonRepo updater_button.UpdaterButtonRepository
+	UserRepo          user.UserRepository
+	YaAzsRepo         ya_azs.YaPayRepository
+	YaPayRepo         ya_pay.YaPayRepository
 }
 
 func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{
-		YaPayRepo:         ya_pay.NewRepository(pool),
-		UserRepo:          user.NewRepository(pool),
-		TrblButtonRepo:    trbl_button.NewRepository(pool),
-		AzsButtonRepo:     azs_button.NewRepository(pool),
-		UpdaterButtonRepo: updater_button.NewRepository(pool),
 		AzsRepo:           azs.NewRepository(pool),
+		AzsButtonRepo:     azs_button.NewRepository(pool),
 		ReceiptRepo:       receipt.NewRepository(pool),
+		TrblButtonRepo:    trbl_button.NewRepository(pool),
+		UpdaterButtonRepo: updater_button.NewRepository(pool),
+		UserRepo:          user.NewRepository(pool),
 		YaAzsRepo:         ya_azs.NewRepository(pool),
+		YaPayRepo:         ya_pay.NewRepository(pool),
 	}
 }

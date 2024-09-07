@@ -6,6 +6,16 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+type TrblButtonRepository interface {
+	Add(ctx context.Context, id_azs int) (err error)
+	Update(ctx context.Context, id_azs, download int) (err error)
+	Delete(ctx context.Context, id_azs int) (err error)
+	Get(ctx context.Context, id_azs int) (LogButton LogButton, err error)
+	GetAll(ctx context.Context) (LogButtons []LogButton, err error)
+	CreateTable(ctx context.Context) (err error)
+	DeleteTable(ctx context.Context) (err error)
+}
+
 type TrblButtonRepo struct {
 	pool *pgxpool.Pool
 }

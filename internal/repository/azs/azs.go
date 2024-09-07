@@ -59,6 +59,17 @@ type AzsStatsDataFull struct {
 	AzsNodes            []AzsNode `json:"azs_nodes"`
 }
 
+type AzsRepository interface {
+	Add(ctx context.Context, id_azs int, is_authorized, count_colum, is_second_price int, time, name, address, stats string) (err error)
+	Update(ctx context.Context, azs AzsStatsData) (err error)
+	Delete(ctx context.Context, id_azs int) (err error)
+	Get(ctx context.Context, id_azs int) (azs AzsStatsData, err error)
+	GetAll(ctx context.Context) (azses []AzsStatsData, err error)
+	AddAzsToUser(ctx context.Context, id_user, id_azs int) (err error)
+	RemoveUserFromAzsAll(ctx context.Context, id_user int) (err error)
+	GetAzsAllForUser(ctx context.Context, id_user int) (azses []AzsStatsData, err error)
+}
+
 type AzsRepo struct {
 	pool *pgxpool.Pool
 }

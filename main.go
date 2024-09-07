@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/Vadosss63/t-azs/internal/application"
 	"github.com/Vadosss63/t-azs/internal/controllers/admin_controller"
@@ -27,7 +27,7 @@ type Settings struct {
 }
 
 func readSettings(filename string) (*Settings, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
