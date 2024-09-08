@@ -6,10 +6,13 @@ class Validator {
 
     validate() {
         const { value, defaultValue } = this.inputElement;
-        if (!this.isValid(value)) {
+        const { isValid, validatedValue } = this.isValid(value);
+
+        if (!isValid) {
             this.inputElement.value = defaultValue;
         } else {
-            this.inputElement.defaultValue = value;
+            this.inputElement.value = validatedValue;
+            this.inputElement.defaultValue = validatedValue;
         }
     }
 
@@ -24,7 +27,31 @@ class Validator {
 
 class PriceValidator extends Validator {
     isValid(value) {
-        return value.match(/^(0|[1-9]\d*)(\.[0-9]{1,2})?$/) && parseFloat(value) <= 200.99;
+        value = String(value).replace(',', '.');
+        value = value.replace(/^0+(?!$)/, '');   // remove leading zeros
+
+        const originalValue = value;
+
+        if (value.trim() === '') {
+            return {
+                isValid: true,
+                validatedValue: ''
+            };
+        }
+
+        const isTested = /^(\d+)(\.[0-9]{0,2})?$/.test(value);
+
+        if (!isTested) {
+            return { isValid: false, validatedValue: null };
+        }
+
+        const floatVal = parseFloat(value);
+        const isValid = floatVal <= 200.99;
+
+        return {
+            isValid,
+            validatedValue: isValid ? originalValue : null
+        };
     }
 
     getValue() {
@@ -32,17 +59,52 @@ class PriceValidator extends Validator {
     }
 
     convertPriceToInt(price) {
-        return Math.round(price * 100);
+        if (price.trim() === '') {
+            return 0;
+        }
+        price = String(price).replace(',', '.');
+        return Math.round(parseFloat(price) * 100);
     }
 }
 
 class IntegerValidator extends Validator {
+
     isValid(value) {
-        if (!value.match(/^(-?(0|[1-9]\d*))$/)) {
-            return false;
+
+        value = value.replace(/^0+(?!$)/, '');   // remove leading zeros
+        const originalValue = value;
+
+        if (value.trim() === '-') {
+            return {
+                isValid: true,
+                validatedValue: '-'
+            };
         }
-        const number = parseInt(value, 10);
-        return number >= -100000 && number <= 100000;
+
+
+        if (value.trim() === '') {
+            return {
+                isValid: true,
+                validatedValue: ''
+            };
+        }
+
+        if (typeof value !== 'string' || !/^(-?\d+)$/.test(value)) {
+            return { isValid: false, validatedValue: null };
+        }
+
+        const number = Number(value);
+        const isValid = number >= -100000 && number <= 100000;
+
+        return { isValid, validatedValue: originalValue };
+    }
+
+    getValue() {
+        const value = this.inputElement.value;
+        if (value.trim() === '' || value.trim() === '-') {
+            return 0;
+        }
+        return parseInt(value, 10);
     }
 }
 

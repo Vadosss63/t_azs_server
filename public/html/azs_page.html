@@ -214,8 +214,7 @@
                     <td>Цена колонка-1, руб</td>
                     <td>
                         {{ with index .AzsNodes 0 }}
-                        <input id="priceCash1Input" type="number" step="0.01" min="0" max="200.99" placeholder="Цена"
-                            value="{{.Price}}" required>
+                        <input id="priceCash1Input" type="text" placeholder="Цена" value="{{.Price}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -227,8 +226,8 @@
                     <td>Цена колонка-1 безналич., руб</td>
                     <td>
                         {{ with index .AzsNodes 0 }}
-                        <input id="priceCashless1Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
-                            value="{{.PriceCashless}}" required>
+                        <input id="priceCashless1Input" type="text" placeholder="Цена" value="{{.PriceCashless}}"
+                            required>
                         {{ end }}
                     </td>
                     <td>
@@ -241,8 +240,7 @@
                     <td>Цена колонка-2, руб</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="priceCash2Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
-                            value="{{.Price}}" required>
+                        <input id="priceCash2Input" type="text" placeholder="Цена" value="{{.Price}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -254,8 +252,8 @@
                     <td>Цена колонка-2 безналич., руб</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="priceCashless2Input" type="number" step="0.01" min="0" max="180" placeholder="Цена"
-                            value="{{.PriceCashless}}" required>
+                        <input id="priceCashless2Input" type="text" placeholder="Цена" value="{{.PriceCashless}}"
+                            required>
                         {{ end }}
                     </td>
                     <td>
@@ -273,8 +271,8 @@
                     <td>Приход топлива-1, л</td>
                     <td>
                         {{ with index .AzsNodes 0 }}
-                        <input id="fuelArrival1Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Приход топлива-1" value="{{.FuelArrival}}" required>
+                        <input id="fuelArrival1Input" type="text" placeholder="Приход топлива-1"
+                            value="{{.FuelArrival}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -285,8 +283,8 @@
                     <td>Заблокировать колонку-1 при объеме топлива менее, л</td>
                     <td>
                         {{ with index .AzsNodes 0 }}
-                        <input id="lockFuelValue1Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Заблокировать колонку-1" value="{{.LockFuelValue}}" required>
+                        <input id="lockFuelValue1Input" type="text" placeholder="Заблокировать колонку-1"
+                            value="{{.LockFuelValue}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -298,8 +296,8 @@
                     <td>Приход топлива-2, л</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="fuelArrival2Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Приход топлива-2" value="{{.FuelArrival}}" required>
+                        <input id="fuelArrival2Input" type="text" placeholder="Приход топлива-2"
+                            value="{{.FuelArrival}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -310,8 +308,8 @@
                     <td>Заблокировать колонку-2 при объеме топлива менее, л</td>
                     <td>
                         {{ with index .AzsNodes 1 }}
-                        <input id="lockFuelValue2Input" type="number" step="1" min="0" max="1000000"
-                            placeholder="Заблокировать колонку-2" value="{{.LockFuelValue}}" required>
+                        <input id="lockFuelValue2Input" type="text" placeholder="Заблокировать колонку-2"
+                            value="{{.LockFuelValue}}" required>
                         {{ end }}
                     </td>
                     <td>
@@ -326,5 +324,6 @@
 </body>
 <script type="module" src="/public/js/azsPageScript.js"></script>
 <script type="module" src="/public/js/yaMap.js"></script>
+
 </html>
 {{end}}
