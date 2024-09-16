@@ -208,3 +208,5 @@ func TestPingHandler(t *testing.T) {
 
 // 	assert.Equal(t, http.StatusOK, rr.Code)
 // }
+
+//{"Id": "9DA356FB-3483-4FD4-B62C-7B85A81D003D", "DateCreate": "2023-08-23T12:26:51+03:00", "OrderType": "Liters", "OrderVolume": 2.0, "StationExtendedId": "190011", "ColumnId": 1, "FuelExtendedId": "a92", "PriceFuel": 50.0, "Sum": 100.0, "SumPaid": 100.0, "Litre": 2.0, "Status": "OrderCreated", "DateEnd": null, "ReasonId": null, "Reason": null, "LitreCompleted": null, "SumPaidCompleted": null}

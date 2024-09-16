@@ -45,12 +45,9 @@ func readCookie(name string, r *http.Request) (value string, err error) {
 	return value, err
 }
 
-func (a App) validateToken(rw http.ResponseWriter, tokenReq string) bool {
+func (a App) ValidateToken(tokenReq string) bool {
 	tokenReq = strings.TrimSpace(tokenReq)
-	if a.Token != tokenReq {
-		return false
-	}
-	return true
+	return a.Token == tokenReq
 }
 
 func (a App) Authorized(next httprouter.Handle) httprouter.Handle {
@@ -65,7 +62,7 @@ func (a App) Authorized(next httprouter.Handle) httprouter.Handle {
 
 		tokenReq := r.FormValue("token")
 		if tokenReq != "" {
-			if a.validateToken(rw, tokenReq) {
+			if a.ValidateToken(tokenReq) {
 				next(rw, r, ps)
 				return
 			}

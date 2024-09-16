@@ -3,7 +3,7 @@ package ya_controller
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -15,6 +15,10 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 )
+
+func getYaPayApiKey() string {
+	return "expected_api_key"
+}
 
 func checkAPIKey(rw http.ResponseWriter, r *http.Request) bool {
 	apiKey := r.URL.Query().Get("apikey")
@@ -74,6 +78,12 @@ func (c YaController) Routes(router *httprouter.Router) {
 	router.GET("/tanker/ping", c.PingHandler)
 
 	router.POST("/tanker/order", c.UpdateOrderStatusHandler)
+	router.POST("/api/azs_order", c.GetOrderHandler)
+	router.POST("/api/azs_cancel_order", c.CanceledHandler)
+	router.POST("/api/azs_accept_order", c.AcceptOrderHandler)
+	router.POST("/api/azs_fueling_order", c.FuelingHandler)
+	router.POST("/api/azs_completed_order", c.CompletedHandler)
+
 }
 
 func (c YaController) GetPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -266,27 +276,24 @@ func (c YaController) UpdateYandexPayStatusHandler(w http.ResponseWriter, r *htt
 	sendJsonData(w, map[string]string{"status": "success"})
 }
 
-const baseURL = "https://app.tanker.yandex.net" // Константа базового URL
+const baseURL = "https://app.tanker.yandex.net"
 
-// Функция отправки статуса заказа с использованием данных формы
 func sendOrderStatus(endpoint string, params url.Values) error {
-	fullURL := baseURL + endpoint // Полный URL для запроса
+	fullURL := baseURL + endpoint
 	resp, err := http.Post(fullURL, "application/x-www-form-urlencoded", strings.NewReader(params.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	// Проверка ответа от Яндекс.Заправки
 	if resp.StatusCode != http.StatusOK {
-		bodyText, _ := ioutil.ReadAll(resp.Body)
+		bodyText, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("received non-OK response: %v, body: %s", resp.Status, string(bodyText))
 	}
 
 	return nil
 }
 
-// Обработчик для статуса Accept
 func handleAccept(apiKey, orderID string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
@@ -295,7 +302,6 @@ func handleAccept(apiKey, orderID string) error {
 	return sendOrderStatus("/api/order/accept", params)
 }
 
-// Обработчик для статуса Fueling
 func handleFueling(apiKey, orderID string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
@@ -304,7 +310,6 @@ func handleFueling(apiKey, orderID string) error {
 	return sendOrderStatus("/api/order/fueling", params)
 }
 
-// Обработчик для статуса Canceled
 func handleCanceled(apiKey, orderID, reason string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
@@ -314,7 +319,6 @@ func handleCanceled(apiKey, orderID, reason string) error {
 	return sendOrderStatus("/api/order/canceled", params)
 }
 
-// Обработчик для статуса Completed
 func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, extendedDate string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
@@ -324,4 +328,152 @@ func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, ext
 	params.Add("extendedDate", extendedDate)
 
 	return sendOrderStatus("/api/order/completed", params)
+}
+
+func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var requestData struct {
+		IdAzs int    `json:"Id"`
+		Token string `json:"Token"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusBadRequest, "Incorrect data", "Error")
+		return
+	}
+
+	if !c.app.ValidateToken(requestData.Token) {
+		application.SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
+		return
+	}
+
+	yaPayData, err := c.app.Repo.YaPayRepo.Get(c.app.Ctx, requestData.IdAzs)
+
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
+	application.SendJsonResponse(rw, http.StatusOK, yaPayData.Data, "Success")
+}
+
+func (c YaController) CanceledHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	var requestData struct {
+		IdAzs   int    `json:"Id"`
+		Token   string `json:"Token"`
+		OrderId string `json:"OrderId"`
+		Reason  string `json:"Reason"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusBadRequest, "Incorrect data", "Error")
+		return
+	}
+
+	if !c.app.ValidateToken(requestData.Token) {
+		application.SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
+		return
+	}
+
+	apiKey := getYaPayApiKey()
+
+	err = handleCanceled(apiKey, requestData.OrderId, requestData.Reason)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		return
+	}
+
+	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
+}
+
+func (c YaController) AcceptOrderHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var requestData struct {
+		IdAzs   int    `json:"Id"`
+		Token   string `json:"Token"`
+		OrderId string `json:"OrderId"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusBadRequest, "Incorrect data", "Error")
+		return
+	}
+
+	if !c.app.ValidateToken(requestData.Token) {
+		application.SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
+		return
+	}
+
+	apiKey := getYaPayApiKey()
+
+	err = handleAccept(apiKey, requestData.OrderId)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		return
+	}
+
+	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
+}
+
+func (c YaController) FuelingHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var requestData struct {
+		IdAzs   int    `json:"Id"`
+		Token   string `json:"Token"`
+		OrderId string `json:"OrderId"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusBadRequest, "Incorrect data", "Error")
+		return
+	}
+
+	if !c.app.ValidateToken(requestData.Token) {
+		application.SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
+		return
+	}
+
+	apiKey := getYaPayApiKey()
+
+	err = handleFueling(apiKey, requestData.OrderId)
+
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		return
+	}
+	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
+}
+
+func (c YaController) CompletedHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var requestData struct {
+		IdAzs           int     `json:"Id"`
+		Token           string  `json:"Token"`
+		OrderId         string  `json:"OrderId"`
+		Litre           float64 `json:"Litre"`
+		ExtendedOrderId string  `json:"ExtendedOrderId"`
+		ExtendedDate    string  `json:"ExtendedDate"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusBadRequest, "Incorrect data", "Error")
+		return
+	}
+
+	if !c.app.ValidateToken(requestData.Token) {
+		application.SendJsonResponse(rw, http.StatusUnauthorized, "Invalid token", "Error")
+		return
+	}
+
+	apiKey := getYaPayApiKey()
+
+	err = handleCompleted(apiKey, requestData.OrderId, requestData.Litre, requestData.ExtendedOrderId, requestData.ExtendedDate)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		return
+	}
+
+	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
 }
