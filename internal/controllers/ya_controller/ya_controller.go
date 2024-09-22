@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,6 +15,15 @@ import (
 	"github.com/Vadosss63/t-azs/internal/repository/ya_azs"
 
 	"github.com/julienschmidt/httprouter"
+)
+
+const (
+	stationFree      = 0
+	stationBusy      = 1
+	stationAccept    = 2
+	stationFueling   = 3
+	stationCompleted = 4
+	stationCanceled  = 5
 )
 
 func getYaPayApiKey() string {
@@ -72,18 +82,20 @@ func (c YaController) Routes(router *httprouter.Router) {
 	router.POST("/update_yandexpay_status", c.app.Authorized(c.UpdateYandexPayStatusHandler))
 
 	router.GET("/tanker/station", c.GetStationsHandler)
-
 	router.GET("/tanker/price", c.GetPriceListHandler)
-
 	router.GET("/tanker/ping", c.PingHandler)
-
 	router.POST("/tanker/order", c.UpdateOrderStatusHandler)
+
 	router.POST("/api/azs_order", c.GetOrderHandler)
 	router.POST("/api/azs_cancel_order", c.CanceledHandler)
 	router.POST("/api/azs_accept_order", c.AcceptOrderHandler)
 	router.POST("/api/azs_fueling_order", c.FuelingHandler)
 	router.POST("/api/azs_completed_order", c.CompletedHandler)
 
+	err := c.app.Repo.YaPayRepo.CreateTable(c.app.Ctx)
+	if err != nil {
+		log.Fatalf("Failed to create ya_pay table: %v", err)
+	}
 }
 
 func (c YaController) GetPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -192,7 +204,7 @@ func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p http
 	}
 
 	stationId := r.URL.Query().Get("stationId")
-	// columnId := r.URL.Query().Get("columnId")
+	columnId := r.URL.Query().Get("columnId")
 
 	idInt, err := strconv.Atoi(stationId)
 	if err != nil {
@@ -200,13 +212,11 @@ func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	//c.app.Repo.CreateYaPayTable(c.app.Ctx)
-
-	// columnIDInt, err := strconv.Atoi(columnId)
-	// if err != nil {
-	// 	http.Error(w, "Bad Request: Invalid column ID", http.StatusBadRequest)
-	// 	return
-	// }
+	columnIDInt, err := strconv.Atoi(columnId)
+	if err != nil {
+		http.Error(w, "Bad Request: Invalid column ID", http.StatusBadRequest)
+		return
+	}
 
 	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, idInt)
 	if err != nil || !enable {
@@ -214,16 +224,17 @@ func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p http
 		return
 	}
 
-	// // Проверка доступности станции
-	// if !station.Active {
-	// 	http.Error(w, "Service Unavailable: Station is not active", http.StatusServiceUnavailable)
-	// 	return
-	// }
+	yaPayData, err := c.app.Repo.YaPayRepo.Get(c.app.Ctx, idInt, columnIDInt)
 
-	// if active, exists := station.Columns[columnIDInt]; !exists || !active {
-	// 	http.Error(w, "Conflict: Column not found or not ready", http.StatusConflict)
-	// 	return
-	// }
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Not Found: Station with columnID %s not found", columnId), http.StatusNotFound)
+		return
+	}
+
+	if yaPayData.Status != 0 {
+		http.Error(w, "Station is busy", http.StatusNotFound)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -332,8 +343,10 @@ func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, ext
 
 func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	var requestData struct {
-		IdAzs int    `json:"Id"`
-		Token string `json:"Token"`
+		IdAzs    int    `json:"Id"`
+		Token    string `json:"Token"`
+		ColumnId int    `json:"columnId"`
+		Status   int    `json:"status"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -347,8 +360,14 @@ func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	yaPayData, err := c.app.Repo.YaPayRepo.Get(c.app.Ctx, requestData.IdAzs)
+	yaPayData, err := c.app.Repo.YaPayRepo.Get(c.app.Ctx, requestData.IdAzs, requestData.ColumnId)
 
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
+	err = c.app.Repo.YaPayRepo.UpdateStatus(c.app.Ctx, requestData.IdAzs, requestData.ColumnId, requestData.Status)
 	if err != nil {
 		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
 		return
@@ -360,10 +379,11 @@ func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p
 func (c YaController) CanceledHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	var requestData struct {
-		IdAzs   int    `json:"Id"`
-		Token   string `json:"Token"`
-		OrderId string `json:"OrderId"`
-		Reason  string `json:"Reason"`
+		IdAzs    int    `json:"Id"`
+		Token    string `json:"Token"`
+		OrderId  string `json:"OrderId"`
+		Reason   string `json:"Reason"`
+		ColumnId int    `json:"columnId"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -385,14 +405,27 @@ func (c YaController) CanceledHandler(rw http.ResponseWriter, r *http.Request, p
 		return
 	}
 
+	err = c.app.Repo.YaPayRepo.UpdateStatus(c.app.Ctx, requestData.IdAzs, requestData.ColumnId, stationCanceled)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
+	err = c.app.Repo.YaPayRepo.ClearData(c.app.Ctx, requestData.IdAzs, requestData.ColumnId)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
 	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
 }
 
 func (c YaController) AcceptOrderHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	var requestData struct {
-		IdAzs   int    `json:"Id"`
-		Token   string `json:"Token"`
-		OrderId string `json:"OrderId"`
+		IdAzs    int    `json:"Id"`
+		Token    string `json:"Token"`
+		OrderId  string `json:"OrderId"`
+		ColumnId int    `json:"columnId"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -414,14 +447,21 @@ func (c YaController) AcceptOrderHandler(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
+	err = c.app.Repo.YaPayRepo.UpdateStatus(c.app.Ctx, requestData.IdAzs, requestData.ColumnId, stationAccept)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
 	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
 }
 
 func (c YaController) FuelingHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	var requestData struct {
-		IdAzs   int    `json:"Id"`
-		Token   string `json:"Token"`
-		OrderId string `json:"OrderId"`
+		IdAzs    int    `json:"Id"`
+		Token    string `json:"Token"`
+		OrderId  string `json:"OrderId"`
+		ColumnId int    `json:"columnId"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -443,6 +483,13 @@ func (c YaController) FuelingHandler(rw http.ResponseWriter, r *http.Request, p 
 		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
 	}
+
+	err = c.app.Repo.YaPayRepo.UpdateStatus(c.app.Ctx, requestData.IdAzs, requestData.ColumnId, stationFueling)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
 	application.SendJsonResponse(rw, http.StatusOK, "Status updated", "Success")
 }
 
@@ -450,6 +497,7 @@ func (c YaController) CompletedHandler(rw http.ResponseWriter, r *http.Request, 
 	var requestData struct {
 		IdAzs           int     `json:"Id"`
 		Token           string  `json:"Token"`
+		ColumnId        int     `json:"columnId"`
 		OrderId         string  `json:"OrderId"`
 		Litre           float64 `json:"Litre"`
 		ExtendedOrderId string  `json:"ExtendedOrderId"`
@@ -472,6 +520,18 @@ func (c YaController) CompletedHandler(rw http.ResponseWriter, r *http.Request, 
 	err = handleCompleted(apiKey, requestData.OrderId, requestData.Litre, requestData.ExtendedOrderId, requestData.ExtendedDate)
 	if err != nil {
 		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
+		return
+	}
+
+	err = c.app.Repo.YaPayRepo.UpdateStatus(c.app.Ctx, requestData.IdAzs, requestData.ColumnId, stationCompleted)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
+		return
+	}
+
+	err = c.app.Repo.YaPayRepo.ClearData(c.app.Ctx, requestData.IdAzs, requestData.ColumnId)
+	if err != nil {
+		application.SendJsonResponse(rw, http.StatusInternalServerError, "Error", "Error")
 		return
 	}
 

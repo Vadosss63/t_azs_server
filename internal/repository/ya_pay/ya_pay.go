@@ -7,26 +7,22 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const (
-	yaPayName        = "ya_pay"
-	yaPayColumnID    = "id_azs"
-	yaPayColumnValue = "value"
-	yaPayColumnData  = "data"
-)
-
 type YaPay struct {
-	IdAzs int    `json:"id_azs" db:"id_azs"`
-	Value int    `json:"value" db:"value"`
-	Data  string `json:"data" db:"data"`
+	IdAzs    int    `json:"id_azs" db:"id_azs"`
+	ColumnId int    `json:"columnId" db:"columnId"`
+	Status   int    `json:"status" db:"status"`
+	Data     string `json:"data" db:"data"`
 }
 
 type YaPayRepository interface {
 	CreateTable(ctx context.Context) error
 	DeleteTable(ctx context.Context) error
 	Add(ctx context.Context, idAzs int) error
-	Update(ctx context.Context, idAzs, value int, data string) error
+	Update(ctx context.Context, idAzs, columnId, status int, data string) error
+	UpdateStatus(ctx context.Context, idAzs, columnId, status int) error
+	ClearData(ctx context.Context, idAzs, columnId int) error
 	Delete(ctx context.Context, idAzs int) error
-	Get(ctx context.Context, idAzs int) (YaPay, error)
+	Get(ctx context.Context, idAzs, columnId int) (YaPay, error)
 	GetAll(ctx context.Context) ([]YaPay, error)
 }
 
@@ -39,87 +35,96 @@ func NewRepository(pool *pgxpool.Pool) *YaPayRepo {
 }
 
 func (r *YaPayRepo) CreateTable(ctx context.Context) error {
-	query := fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (
-    %s  BIGINT,
-    %s  INT,
-    %s  VARCHAR(500)
-);`, yaPayName, yaPayColumnID, yaPayColumnValue, yaPayColumnData)
-	_, err := r.pool.Exec(ctx, query)
+	_, err := r.pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS ya_pay (id_azs  BIGINT, columnId INT, status INT, data VARCHAR(500));`)
+
 	if err != nil {
-		return fmt.Errorf("failed to create %s table: %w", yaPayName, err)
+		return fmt.Errorf("failed to create ya_pay table: %w", err)
 	}
 	return nil
 }
 
 func (r *YaPayRepo) DeleteTable(ctx context.Context) error {
-	query := fmt.Sprintf(`DROP TABLE IF EXISTS %s`, yaPayName)
-	_, err := r.pool.Exec(ctx, query)
+	_, err := r.pool.Exec(ctx, `DROP TABLE IF EXISTS ya_pay`)
 	if err != nil {
-		return fmt.Errorf("failed to drop %s table: %w", yaPayName, err)
+		return fmt.Errorf("failed to drop ya_pay table: %w", err)
 	}
 	return nil
 }
 
 func (r *YaPayRepo) Add(ctx context.Context, idAzs int) error {
-	query := fmt.Sprintf(`INSERT INTO %s (%s, %s, %s) VALUES ($1, 0, 0)`, yaPayName, yaPayColumnID, yaPayColumnValue, yaPayColumnData)
-	_, err := r.pool.Exec(ctx, query, idAzs)
+	_, err := r.pool.Exec(ctx, `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, 0, 0, "")`, idAzs)
 	if err != nil {
-		return fmt.Errorf("failed to add to %s: %w", yaPayName, err)
+		return fmt.Errorf("failed to add to ya_pay: %w", err)
+	}
+	_, err = r.pool.Exec(ctx, `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, 1, 0, "")`, idAzs)
+	if err != nil {
+		return fmt.Errorf("failed to add to ya_pay: %w", err)
 	}
 	return nil
 }
 
-func (r *YaPayRepo) Update(ctx context.Context, idAzs, value int, data string) error {
-	query := fmt.Sprintf(`UPDATE %s SET %s = $2, %s = $3 WHERE %s = $1`, yaPayName, yaPayColumnValue, yaPayColumnData, yaPayColumnID)
-	_, err := r.pool.Exec(ctx, query, idAzs, value, data)
+func (r *YaPayRepo) Update(ctx context.Context, idAzs, columnId, status int, data string) error {
+	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET status = $1, data = $2 WHERE id_azs = $3 and columnId = $4`, status, data, idAzs, columnId)
 	if err != nil {
-		return fmt.Errorf("failed to update %s: %w", yaPayName, err)
+		return fmt.Errorf("failed to update ya_pay: %w", err)
+	}
+	return nil
+}
+
+func (r *YaPayRepo) UpdateStatus(ctx context.Context, idAzs, columnId, status int) error {
+	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET status = $1, WHERE id_azs = $3 and columnId = $4`, status, idAzs, columnId)
+	if err != nil {
+		return fmt.Errorf("failed to update ya_pay: %w", err)
+	}
+	return nil
+}
+
+func (r *YaPayRepo) ClearData(ctx context.Context, idAzs, columnId int) error {
+	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET data = "" WHERE id_azs = $1 and columnId = $2`, idAzs, columnId)
+	if err != nil {
+		return fmt.Errorf("failed to clear data in ya_pay: %w", err)
 	}
 	return nil
 }
 
 func (r *YaPayRepo) Delete(ctx context.Context, idAzs int) error {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE %s = $1`, yaPayName, yaPayColumnID)
-	_, err := r.pool.Exec(ctx, query, idAzs)
+	_, err := r.pool.Exec(ctx, `DELETE FROM ya_pay WHERE id_azs = $1`, idAzs)
 	if err != nil {
-		return fmt.Errorf("failed to delete from %s: %w", yaPayName, err)
+		return fmt.Errorf("failed to delete from ya_pay: %w", err)
 	}
 	return nil
 }
 
-func (r *YaPayRepo) Get(ctx context.Context, idAzs int) (YaPay, error) {
-	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s WHERE %s = $1`, yaPayColumnID, yaPayColumnValue, yaPayColumnData, yaPayName, yaPayColumnID)
-	row := r.pool.QueryRow(ctx, query, idAzs)
+func (r *YaPayRepo) Get(ctx context.Context, idAzs, columnId int) (YaPay, error) {
+	row := r.pool.QueryRow(ctx, `SELECT id_azs, columnId, status, data FROM ya_pay WHERE  id_azs = $1 and columnId = $2`, idAzs, columnId)
 
 	var yaPay YaPay
-	err := row.Scan(&yaPay.IdAzs, &yaPay.Value, &yaPay.Data)
+	err := row.Scan(&yaPay.IdAzs, &yaPay.ColumnId, &yaPay.Status, &yaPay.Data)
 	if err != nil {
-		return yaPay, fmt.Errorf("failed to get from %s: %w", yaPayName, err)
+		return yaPay, fmt.Errorf("failed to get from ya_pay: %w", err)
 	}
 
 	return yaPay, nil
 }
 
 func (r *YaPayRepo) GetAll(ctx context.Context) ([]YaPay, error) {
-	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s`, yaPayColumnID, yaPayColumnValue, yaPayColumnData, yaPayName)
-	rows, err := r.pool.Query(ctx, query)
+	rows, err := r.pool.Query(ctx, `SELECT id_azs, status, data FROM ya_pay`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query %s: %w", yaPayName, err)
+		return nil, fmt.Errorf("failed to query ya_pay: %w", err)
 	}
 	defer rows.Close()
 
 	var yaPays []YaPay
 	for rows.Next() {
 		var yaPay YaPay
-		if err := rows.Scan(&yaPay.IdAzs, &yaPay.Value, &yaPay.Data); err != nil {
-			return nil, fmt.Errorf("failed to scan from %s: %w", yaPayName, err)
+		if err := rows.Scan(&yaPay.IdAzs, &yaPay.ColumnId, &yaPay.Status, &yaPay.Data); err != nil {
+			return nil, fmt.Errorf("failed to scan from ya_pay: %w", err)
 		}
 		yaPays = append(yaPays, yaPay)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error after iterating over %s: %w", yaPayName, err)
+		return nil, fmt.Errorf("error after iterating over ya_pay: %w", err)
 	}
 
 	return yaPays, nil
