@@ -52,14 +52,18 @@ func (r *YaPayRepo) DeleteTable(ctx context.Context) error {
 }
 
 func (r *YaPayRepo) Add(ctx context.Context, idAzs int) error {
-	_, err := r.pool.Exec(ctx, `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, 0, 0, "")`, idAzs)
+	query := `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, $2, $3, $4)`
+
+	_, err := r.pool.Exec(ctx, query, idAzs, 0, 0, "")
 	if err != nil {
 		return fmt.Errorf("failed to add to ya_pay: %w", err)
 	}
-	_, err = r.pool.Exec(ctx, `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, 1, 0, "")`, idAzs)
+
+	_, err = r.pool.Exec(ctx, query, idAzs, 1, 0, "")
 	if err != nil {
 		return fmt.Errorf("failed to add to ya_pay: %w", err)
 	}
+
 	return nil
 }
 
@@ -72,7 +76,7 @@ func (r *YaPayRepo) Update(ctx context.Context, idAzs, columnId, status int, dat
 }
 
 func (r *YaPayRepo) UpdateStatus(ctx context.Context, idAzs, columnId, status int) error {
-	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET status = $1, WHERE id_azs = $3 and columnId = $4`, status, idAzs, columnId)
+	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET status = $1 WHERE id_azs = $2 and columnId = $3`, status, idAzs, columnId)
 	if err != nil {
 		return fmt.Errorf("failed to update ya_pay: %w", err)
 	}
@@ -80,7 +84,7 @@ func (r *YaPayRepo) UpdateStatus(ctx context.Context, idAzs, columnId, status in
 }
 
 func (r *YaPayRepo) ClearData(ctx context.Context, idAzs, columnId int) error {
-	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET data = "" WHERE id_azs = $1 and columnId = $2`, idAzs, columnId)
+	_, err := r.pool.Exec(ctx, `UPDATE ya_pay SET data = '' WHERE id_azs = $1 and columnId = $2`, idAzs, columnId)
 	if err != nil {
 		return fmt.Errorf("failed to clear data in ya_pay: %w", err)
 	}

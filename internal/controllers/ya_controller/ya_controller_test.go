@@ -47,8 +47,7 @@ func TestGetPriceListHandler(t *testing.T) {
 		Repo: &mocRepo,
 	}
 
-	controller := NewController(app) // Используем ваш контроллер
-
+	controller := NewController(app)
 	req, err := http.NewRequest("GET", "/tanker/price?apikey=expected_api_key", nil)
 	assert.NoError(t, err)
 

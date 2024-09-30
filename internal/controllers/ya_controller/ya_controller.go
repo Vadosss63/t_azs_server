@@ -26,10 +26,6 @@ const (
 	stationCanceled  = 5
 )
 
-func getYaPayApiKey() string {
-	return "expected_api_key"
-}
-
 func checkAPIKey(rw http.ResponseWriter, r *http.Request) bool {
 	apiKey := r.URL.Query().Get("apikey")
 
@@ -345,8 +341,8 @@ func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p
 	var requestData struct {
 		IdAzs    int    `json:"Id"`
 		Token    string `json:"Token"`
-		ColumnId int    `json:"columnId"`
-		Status   int    `json:"status"`
+		ColumnId int    `json:"ColumnId"`
+		Status   int    `json:"Status"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -397,7 +393,7 @@ func (c YaController) CanceledHandler(rw http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	apiKey := getYaPayApiKey()
+	apiKey := c.app.GetYaPayApiKey()
 
 	err = handleCanceled(apiKey, requestData.OrderId, requestData.Reason)
 	if err != nil {
@@ -439,7 +435,7 @@ func (c YaController) AcceptOrderHandler(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	apiKey := getYaPayApiKey()
+	apiKey := c.app.GetYaPayApiKey()
 
 	err = handleAccept(apiKey, requestData.OrderId)
 	if err != nil {
@@ -475,7 +471,7 @@ func (c YaController) FuelingHandler(rw http.ResponseWriter, r *http.Request, p 
 		return
 	}
 
-	apiKey := getYaPayApiKey()
+	apiKey := c.app.GetYaPayApiKey()
 
 	err = handleFueling(apiKey, requestData.OrderId)
 
@@ -515,7 +511,7 @@ func (c YaController) CompletedHandler(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	apiKey := getYaPayApiKey()
+	apiKey := c.app.GetYaPayApiKey()
 
 	err = handleCompleted(apiKey, requestData.OrderId, requestData.Litre, requestData.ExtendedOrderId, requestData.ExtendedDate)
 	if err != nil {

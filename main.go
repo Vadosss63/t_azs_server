@@ -42,7 +42,11 @@ func readSettings(filename string) (*Settings, error) {
 }
 
 func main() {
+
+	//TODO: add yaPayApiKey to settings.json
+	api_key := "expected_api_key"
 	settings, err := readSettings("settings.json")
+
 	if err != nil {
 		log.Fatalf("Failed to read settings: %v", err)
 	}
@@ -61,7 +65,7 @@ func main() {
 	}
 	defer dbpool.Close()
 
-	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port)
+	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port, api_key)
 	r := httprouter.New()
 
 	yaController := ya_controller.NewController(a)

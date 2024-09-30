@@ -14,15 +14,16 @@ import (
 )
 
 type App struct {
-	Ctx   context.Context
-	Repo  *repository.Repository
-	Cache map[string]user.User
-	Token string
-	Port  int
+	Ctx         context.Context
+	Repo        *repository.Repository
+	Cache       map[string]user.User
+	Token       string
+	Port        int
+	YaPayApiKey string
 }
 
-func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int) *App {
-	return &App{ctx, repository.NewRepository(dbpool), make(map[string]user.User), token, port}
+func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int, yaPayApiKey string) *App {
+	return &App{ctx, repository.NewRepository(dbpool), make(map[string]user.User), token, port, yaPayApiKey}
 }
 
 func (a App) Routes(router *httprouter.Router) {
@@ -30,6 +31,10 @@ func (a App) Routes(router *httprouter.Router) {
 
 	router.ServeFiles("/install/*filepath", http.Dir("/tmp/t_azs/update"))
 
+}
+
+func (a App) GetYaPayApiKey() string {
+	return a.YaPayApiKey
 }
 
 func readCookie(name string, r *http.Request) (value string, err error) {
