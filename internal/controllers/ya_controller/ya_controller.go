@@ -236,6 +236,12 @@ func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p http
 }
 
 func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	// TODO: Implement API key check
+	// if !c.checkAPIKey(w, r) {
+	// 	return
+	// }
+
 	decoder := json.NewDecoder(r.Body)
 	var order ya_azs.Order
 	err := decoder.Decode(&order)
@@ -244,17 +250,55 @@ func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	stationExtendedId, _ := strconv.Atoi(order.StationExtendedId)
+	stationExtendedId, err := strconv.Atoi(order.StationExtendedId)
+
+	if err != nil {
+		http.Error(w, "Not Found: Station not found", http.StatusBadRequest)
+		return
+	}
+
 	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, stationExtendedId)
 	if err != nil || !enable {
 		http.Error(w, "Not Found: Station not found", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Fprintf(w, "Order with ID %s updated to status %s", order.Id, order.Status)
+	azsStats, err := c.app.Repo.AzsRepo.Get(c.app.Ctx, stationExtendedId)
+	if err != nil {
+		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
+		return
+	}
 
-	// 	FuelId + PriceFuel – в случае если стоимость топлива в интегрируемой систем отличает от
-	// присланной, то система дает ответ 402
+	azsStatsDataFull, err := azs.ParseStats(azsStats)
+	if err != nil {
+		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
+		return
+	}
+
+	if azsStatsDataFull.AzsNodes[order.ColumnId].PriceCashless/100 != float32(order.PriceFuel) {
+		http.Error(w, "Incorrect price fuel", http.StatusPaymentRequired)
+		return
+	}
+
+	if convertTypeFuelToYaFormat(azsStatsDataFull.AzsNodes[order.ColumnId].TypeFuel) != order.FuelExtendedId {
+		http.Error(w, "Incorrect fuel type", http.StatusPaymentRequired)
+		return
+	}
+
+	data, err := json.Marshal(order)
+
+	if err != nil {
+
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(string(data))
+
+	err = c.app.Repo.YaPayRepo.Update(c.app.Ctx, stationExtendedId, order.ColumnId, stationFree, string(data))
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }

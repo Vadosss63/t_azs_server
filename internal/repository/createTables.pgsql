@@ -75,4 +75,4 @@ create table if not exists azs_button
 --     GROUP BY id_azs, columnId, status, data
 -- );
 
--- UPDATE ya_pay SET data = '{"Id": "9DA356FB-3483-4FD4-B62C-7B85A81D003D", "DateCreate": "2023-08-23T12:26:51+03:00", "OrderType": "Liters", "OrderVolume": 2.0, "StationExtendedId": "10111920", "ColumnId": 0, "FuelExtendedId": "a92", "PriceFuel": 50.0, "Sum": 100.0, "SumPaid": 100.0, "Litre": 2.0, "Status": "OrderCreated", "DateEnd": null, "ReasonId": null, "Reason": null, "LitreCompleted": null, "SumPaidCompleted": null}' WHERE id_azs = 10111920 and columnId = 0;
+-- UPDATE ya_pay SET data = '{"Id":"9DA356FB-3483-4FD4-B62C-7B85A81D003D","DateCreate":"2023-08-23T12:26:51+03:00","OrderType":"Liters","OrderVolume":2,"StationExtendedId":"111111","ColumnId":0,"FuelExtendedId":"a92","PriceFuel":50,"Status":"OrderCreated"}' WHERE id_azs = 10111920 and columnId = 0;

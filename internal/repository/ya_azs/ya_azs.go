@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -32,28 +31,15 @@ type Stations struct {
 }
 
 type Order struct {
-	Id                string    `json:"Id"`
-	DateCreate        time.Time `json:"DateCreate"`
-	OrderType         string    `json:"OrderType"`
-	OrderVolume       float64   `json:"OrderVolume"`
-	StationId         string    `json:"StationId"`
-	StationExtendedId string    `json:"StationExtendedId"`
-	ColumnId          int       `json:"ColumnId"`
-	FuelId            string    `json:"FuelId"`
-	FuelMarka         string    `json:"FuelMarka"`
-	PriceId           string    `json:"PriceId"`
-	FuelExtendedId    string    `json:"FuelExtendedId"`
-	PriceFuel         float64   `json:"PriceFuel"`
-	Sum               float64   `json:"Sum"`
-	Litre             float64   `json:"Litre"`
-	SumPaid           float64   `json:"SumPaid"`
-	Status            string    `json:"Status"`
-	DateEnd           time.Time `json:"DateEnd"`
-	ReasonId          string    `json:"ReasonId"`
-	Reason            string    `json:"Reason"`
-	LitreCompleted    float64   `json:"LitreCompleted"`
-	SumPaidCompleted  float64   `json:"SumPaidCompleted"`
-	ContractId        string    `json:"ContractId"`
+	Id                string  `json:"Id"`
+	DateCreate        string  `json:"DateCreate"`
+	OrderType         string  `json:"OrderType"`
+	OrderVolume       float64 `json:"OrderVolume"`
+	StationExtendedId string  `json:"StationExtendedId"`
+	ColumnId          int     `json:"ColumnId"`
+	FuelExtendedId    string  `json:"FuelExtendedId"`
+	PriceFuel         float64 `json:"PriceFuel"`
+	Status            string  `json:"Status"`
 }
 
 type PriceEntry struct {

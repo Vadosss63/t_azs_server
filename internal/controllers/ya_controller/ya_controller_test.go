@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/Vadosss63/t-azs/internal/application"
@@ -199,28 +200,257 @@ func TestUpdateYandexPayStatusHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
-// func TestUpdateOrderStatusHandler(t *testing.T) {
-// 	app := &application.App{}
-// 	controller := NewController(app)
+func TestUpdateOrderStatusHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	order := ya_azs.Order{
-// 		Id:        "123",
-// 		StationId: "11111111",
-// 		Status:    "completed",
-// 	}
-// 	body, err := json.Marshal(order)
-// 	assert.NoError(t, err)
+	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
+	mockAzsRepo := azs.NewMockAzsRepository(ctrl)
+	mockYaPayRepo := ya_pay.NewMockYaPayRepository(ctrl)
 
-// 	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer(body))
-// 	assert.NoError(t, err)
-// 	req.Header.Set("Content-Type", "application/json")
+	stationExtendedId := 111111
+	columnId := 0
 
-// 	rr := httptest.NewRecorder()
-// 	router := httprouter.New()
-// 	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
-// 	router.ServeHTTP(rr, req)
+	order := ya_azs.Order{
+		Id:                "9DA356FB-3483-4FD4-B62C-7B85A81D003D",
+		DateCreate:        "2023-08-23T12:26:51+03:00",
+		OrderType:         "Liters",
+		OrderVolume:       2.0,
+		StationExtendedId: strconv.Itoa(stationExtendedId),
+		ColumnId:          columnId,
+		FuelExtendedId:    "a92",
+		PriceFuel:         50.0,
+		Status:            "OrderCreated",
+	}
 
-// 	assert.Equal(t, http.StatusOK, rr.Code)
-// }
+	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), stationExtendedId).Return(true, nil)
+	mockAzsData := azs.AzsStatsData{
+		IdAzs: stationExtendedId,
+		Stats: `{"azs_nodes":[{"priceCashless":5000,"typeFuel":"АИ-92"},{"priceCashless":5200,"typeFuel":"АИ-95"}]}`,
+	}
+	mockAzsRepo.EXPECT().Get(gomock.Any(), stationExtendedId).Return(mockAzsData, nil)
+	mockYaPayRepo.EXPECT().Update(gomock.Any(), stationExtendedId, columnId, stationFree, gomock.Any()).Return(nil)
 
-//{"Id": "9DA356FB-3483-4FD4-B62C-7B85A81D003D", "DateCreate": "2023-08-23T12:26:51+03:00", "OrderType": "Liters", "OrderVolume": 2.0, "StationExtendedId": "190011", "ColumnId": 1, "FuelExtendedId": "a92", "PriceFuel": 50.0, "Sum": 100.0, "SumPaid": 100.0, "Litre": 2.0, "Status": "OrderCreated", "DateEnd": null, "ReasonId": null, "Reason": null, "LitreCompleted": null, "SumPaidCompleted": null}
+	mocRepo := repository.Repository{
+		YaAzsRepo: mockYaAzsRepo,
+		AzsRepo:   mockAzsRepo,
+		YaPayRepo: mockYaPayRepo,
+	}
+
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	body, err := json.Marshal(order)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestUpdateOrderStatusHandler_InvalidJSON(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mocRepo := repository.Repository{}
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer([]byte("invalid json")))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdateOrderStatusHandler_InvalidStationID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mocRepo := repository.Repository{}
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	order := ya_azs.Order{
+		StationExtendedId: "invalid",
+	}
+
+	body, err := json.Marshal(order)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdateOrderStatusHandler_StationNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
+
+	stationExtendedId := 111111
+
+	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), stationExtendedId).Return(false, nil)
+
+	mocRepo := repository.Repository{
+		YaAzsRepo: mockYaAzsRepo,
+	}
+
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	order := ya_azs.Order{
+		StationExtendedId: strconv.Itoa(stationExtendedId),
+	}
+
+	body, err := json.Marshal(order)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdateOrderStatusHandler_IncorrectPriceFuel(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
+	mockAzsRepo := azs.NewMockAzsRepository(ctrl)
+
+	stationExtendedId := 111111
+	columnId := 1
+
+	order := ya_azs.Order{
+		StationExtendedId: strconv.Itoa(stationExtendedId),
+		ColumnId:          columnId,
+		PriceFuel:         100.0,
+	}
+
+	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), stationExtendedId).Return(true, nil)
+	mockAzsData := azs.AzsStatsData{
+		IdAzs: stationExtendedId,
+		Stats: `{"azs_nodes":[{"priceCashless":5000,"typeFuel":"АИ-92"},{"priceCashless":5200,"typeFuel":"АИ-95"}]}`,
+	}
+	mockAzsRepo.EXPECT().Get(gomock.Any(), stationExtendedId).Return(mockAzsData, nil)
+
+	mocRepo := repository.Repository{
+		YaAzsRepo: mockYaAzsRepo,
+		AzsRepo:   mockAzsRepo,
+	}
+
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	body, err := json.Marshal(order)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusPaymentRequired, rr.Code)
+}
+
+func TestUpdateOrderStatusHandler_IncorrectFuelType(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
+	mockAzsRepo := azs.NewMockAzsRepository(ctrl)
+
+	stationExtendedId := 111111
+	columnId := 0
+
+	order := ya_azs.Order{
+		StationExtendedId: strconv.Itoa(stationExtendedId),
+		ColumnId:          columnId,
+		PriceFuel:         50.0,
+		FuelExtendedId:    "a95",
+	}
+
+	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), stationExtendedId).Return(true, nil)
+	mockAzsData := azs.AzsStatsData{
+		IdAzs: stationExtendedId,
+		Stats: `{"azs_nodes":[{"priceCashless":5000,"typeFuel":"АИ-92"},{"priceCashless":5200,"typeFuel":"АИ-95"}]}`,
+	}
+	mockAzsRepo.EXPECT().Get(gomock.Any(), stationExtendedId).Return(mockAzsData, nil)
+
+	mocRepo := repository.Repository{
+		YaAzsRepo: mockYaAzsRepo,
+		AzsRepo:   mockAzsRepo,
+	}
+
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	body, err := json.Marshal(order)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "/tanker/order", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusPaymentRequired, rr.Code)
+}
