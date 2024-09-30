@@ -21,25 +21,25 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type Settings struct {
+type settings struct {
 	Port     int    `json:"port"`
 	Token    string `json:"token"`
 	YaApiKey string `json:"ya_api_key"`
 }
 
-func readSettings(filename string) (*Settings, error) {
+func readSettings(filename string) (*settings, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	var settings Settings
-	err = json.Unmarshal(data, &settings)
+	var s settings
+	err = json.Unmarshal(data, &s)
 	if err != nil {
 		return nil, err
 	}
 
-	return &settings, nil
+	return &s, nil
 }
 
 func main() {

@@ -9,11 +9,13 @@ import (
 	"github.com/Vadosss63/t-azs/internal/repository"
 	"github.com/Vadosss63/t-azs/internal/repository/azs"
 	"github.com/Vadosss63/t-azs/internal/repository/ya_azs"
+	"github.com/Vadosss63/t-azs/internal/repository/ya_pay"
 	"github.com/golang/mock/gomock"
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
 )
 
+// mockgen -source=internal/repository/ya_pay/ya_pay.go -destination=internal/repository/ya_pay/moc_ya_pay.go -package=ya_pay
 func TestGetPriceListHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -44,7 +46,8 @@ func TestGetPriceListHandler(t *testing.T) {
 	}
 
 	app := &application.App{
-		Repo: &mocRepo,
+		Repo:        &mocRepo,
+		YaPayApiKey: "expected_api_key",
 	}
 
 	controller := NewController(app)
@@ -93,7 +96,8 @@ func TestGetStationsHandler(t *testing.T) {
 	}
 
 	app := &application.App{
-		Repo: &mocRepo,
+		Repo:        &mocRepo,
+		YaPayApiKey: "expected_api_key",
 	}
 
 	controller := NewController(app)
@@ -118,36 +122,28 @@ func TestPingHandler(t *testing.T) {
 
 	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
 	mockAzsRepo := azs.NewMockAzsRepository(ctrl)
+	mockYaPayRepo := ya_pay.NewMockYaPayRepository(ctrl)
 
-	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), 11111111).Return(true, nil)
+	azsId := 11111111
+	colId := 0
 
-	mockAzsData := azs.AzsStatsData{
-		Id:                  1,
-		IdAzs:               1,
-		IdUser:              1,
-		IsAuthorized:        1,
-		CountColum:          2,
-		IsSecondPriceEnable: 1,
-		Time:                "2024-09-07T10:00:00Z",
-		Name:                "AZS Example",
-		Address:             "123 Main St",
-		Stats:               `{"azs_nodes":[{"averageTemperature":"0.00","commonLiters":"0.00","dailyLiters":"0.00","density":"0.00","fuelArrival":0,"fuelVolume":"0","fuelVolumePerc":"0.00","lockFuelValue":60,"price":4927,"priceCashless":5522,"typeFuel":"АИ-92"},{"averageTemperature":"0.00","commonLiters":"0.00","dailyLiters":"0.00","density":"0.00","fuelArrival":0,"fuelVolume":"0","fuelVolumePerc":"0.00","lockFuelValue":100,"price":5101,"priceCashless":5200,"typeFuel":"АИ-95"}],"main_info":{"commonCash":0,"commonCashless":0,"commonOnline":0,"dailyCash":0,"dailyCashless":0,"dailyOnline":0,"isBlock":false,"version":"1.0.2"}}`,
-	}
-
-	mockAzsRepo.EXPECT().Get(gomock.Any(), gomock.Any()).Return(mockAzsData, nil).AnyTimes()
+	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), azsId).Return(true, nil)
+	mockYaPayRepo.EXPECT().Get(gomock.Any(), azsId, colId).Return(ya_pay.YaPay{IdAzs: azsId, ColumnId: colId, Status: 0, Data: ""}, nil)
 
 	mocRepo := repository.Repository{
 		YaAzsRepo: mockYaAzsRepo,
 		AzsRepo:   mockAzsRepo,
+		YaPayRepo: mockYaPayRepo,
 	}
 
 	app := &application.App{
-		Repo: &mocRepo,
+		Repo:        &mocRepo,
+		YaPayApiKey: "expected_api_key",
 	}
 
 	controller := NewController(app)
 
-	req, err := http.NewRequest("GET", "/tanker/ping?apikey=expected_api_key&stationId=11111111", nil)
+	req, err := http.NewRequest("GET", "/tanker/ping?apikey=expected_api_key&stationId=11111111&columnId=0", nil)
 	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()

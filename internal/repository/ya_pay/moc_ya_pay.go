@@ -48,6 +48,20 @@ func (mr *MockYaPayRepositoryMockRecorder) Add(ctx, idAzs interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockYaPayRepository)(nil).Add), ctx, idAzs)
 }
 
+// ClearData mocks base method.
+func (m *MockYaPayRepository) ClearData(ctx context.Context, idAzs, columnId int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearData", ctx, idAzs, columnId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearData indicates an expected call of ClearData.
+func (mr *MockYaPayRepositoryMockRecorder) ClearData(ctx, idAzs, columnId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearData", reflect.TypeOf((*MockYaPayRepository)(nil).ClearData), ctx, idAzs, columnId)
+}
+
 // CreateTable mocks base method.
 func (m *MockYaPayRepository) CreateTable(ctx context.Context) error {
 	m.ctrl.T.Helper()
@@ -91,18 +105,18 @@ func (mr *MockYaPayRepositoryMockRecorder) DeleteTable(ctx interface{}) *gomock.
 }
 
 // Get mocks base method.
-func (m *MockYaPayRepository) Get(ctx context.Context, idAzs int) (YaPay, error) {
+func (m *MockYaPayRepository) Get(ctx context.Context, idAzs, columnId int) (YaPay, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, idAzs)
+	ret := m.ctrl.Call(m, "Get", ctx, idAzs, columnId)
 	ret0, _ := ret[0].(YaPay)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockYaPayRepositoryMockRecorder) Get(ctx, idAzs interface{}) *gomock.Call {
+func (mr *MockYaPayRepositoryMockRecorder) Get(ctx, idAzs, columnId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockYaPayRepository)(nil).Get), ctx, idAzs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockYaPayRepository)(nil).Get), ctx, idAzs, columnId)
 }
 
 // GetAll mocks base method.
@@ -121,15 +135,29 @@ func (mr *MockYaPayRepositoryMockRecorder) GetAll(ctx interface{}) *gomock.Call 
 }
 
 // Update mocks base method.
-func (m *MockYaPayRepository) Update(ctx context.Context, idAzs, value int, data string) error {
+func (m *MockYaPayRepository) Update(ctx context.Context, idAzs, columnId, status int, data string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, idAzs, value, data)
+	ret := m.ctrl.Call(m, "Update", ctx, idAzs, columnId, status, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockYaPayRepositoryMockRecorder) Update(ctx, idAzs, value, data interface{}) *gomock.Call {
+func (mr *MockYaPayRepositoryMockRecorder) Update(ctx, idAzs, columnId, status, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockYaPayRepository)(nil).Update), ctx, idAzs, value, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockYaPayRepository)(nil).Update), ctx, idAzs, columnId, status, data)
+}
+
+// UpdateStatus mocks base method.
+func (m *MockYaPayRepository) UpdateStatus(ctx context.Context, idAzs, columnId, status int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStatus", ctx, idAzs, columnId, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStatus indicates an expected call of UpdateStatus.
+func (mr *MockYaPayRepositoryMockRecorder) UpdateStatus(ctx, idAzs, columnId, status interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockYaPayRepository)(nil).UpdateStatus), ctx, idAzs, columnId, status)
 }
