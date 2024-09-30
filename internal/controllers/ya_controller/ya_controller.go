@@ -244,14 +244,19 @@ func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	stationID, _ := strconv.Atoi(order.StationId)
-	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, stationID)
+	stationExtendedId, _ := strconv.Atoi(order.StationExtendedId)
+	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, stationExtendedId)
 	if err != nil || !enable {
-		http.Error(w, "Not Found: Station not found", http.StatusNotFound)
+		http.Error(w, "Not Found: Station not found", http.StatusBadRequest)
 		return
 	}
 
 	fmt.Fprintf(w, "Order with ID %s updated to status %s", order.Id, order.Status)
+
+	// 	FuelId + PriceFuel – в случае если стоимость топлива в интегрируемой систем отличает от
+	// присланной, то система дает ответ 402
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c YaController) UpdateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {

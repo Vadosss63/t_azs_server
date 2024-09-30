@@ -1,6 +1,8 @@
 package ya_controller
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -154,6 +156,49 @@ func TestPingHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
+func TestUpdateYandexPayStatusHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	azsId := 11111111
+
+	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
+
+	mockYaAzsRepo.EXPECT().UpdateEnable(gomock.Any(), azsId, true).Return(nil)
+
+	mocRepo := repository.Repository{
+		YaAzsRepo: mockYaAzsRepo,
+	}
+
+	app := &application.App{
+		Repo: &mocRepo,
+	}
+
+	controller := NewController(app)
+
+	requestData := struct {
+		IdAzs     int  `json:"idAzs"`
+		IsEnabled bool `json:"isEnabled"`
+	}{
+		IdAzs:     11111111,
+		IsEnabled: true,
+	}
+	body, err := json.Marshal(requestData)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("POST", "/update_yandexpay_status", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+	router := httprouter.New()
+	router.POST("/update_yandexpay_status", controller.UpdateYandexPayStatusHandler)
+	router.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
 // func TestUpdateOrderStatusHandler(t *testing.T) {
 // 	app := &application.App{}
 // 	controller := NewController(app)
@@ -173,32 +218,6 @@ func TestPingHandler(t *testing.T) {
 // 	rr := httptest.NewRecorder()
 // 	router := httprouter.New()
 // 	router.POST("/tanker/order", controller.UpdateOrderStatusHandler)
-// 	router.ServeHTTP(rr, req)
-
-// 	assert.Equal(t, http.StatusOK, rr.Code)
-// }
-
-// func TestUpdateYandexPayStatusHandler(t *testing.T) {
-// 	app := &application.App{}
-// 	controller := NewController(app)
-
-// 	requestData := struct {
-// 		IdAzs     int  `json:"idAzs"`
-// 		IsEnabled bool `json:"isEnabled"`
-// 	}{
-// 		IdAzs:     11111111,
-// 		IsEnabled: true,
-// 	}
-// 	body, err := json.Marshal(requestData)
-// 	assert.NoError(t, err)
-
-// 	req, err := http.NewRequest("POST", "/update_yandexpay_status", bytes.NewBuffer(body))
-// 	assert.NoError(t, err)
-// 	req.Header.Set("Content-Type", "application/json")
-
-// 	rr := httptest.NewRecorder()
-// 	router := httprouter.New()
-// 	router.POST("/update_yandexpay_status", controller.UpdateYandexPayStatusHandler)
 // 	router.ServeHTTP(rr, req)
 
 // 	assert.Equal(t, http.StatusOK, rr.Code)
