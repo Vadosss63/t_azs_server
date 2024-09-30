@@ -26,10 +26,10 @@ const (
 	stationCanceled  = 5
 )
 
-func checkAPIKey(rw http.ResponseWriter, r *http.Request) bool {
+func (c YaController) checkAPIKey(rw http.ResponseWriter, r *http.Request) bool {
 	apiKey := r.URL.Query().Get("apikey")
 
-	if apiKey != "expected_api_key" {
+	if apiKey != c.app.GetYaPayApiKey() {
 		http.Error(rw, "Invalid API key", http.StatusUnauthorized)
 		return false
 	}
@@ -96,7 +96,7 @@ func (c YaController) Routes(router *httprouter.Router) {
 
 func (c YaController) GetPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/price?apikey=expected_api_key
-	if !checkAPIKey(rw, r) {
+	if !c.checkAPIKey(rw, r) {
 		return
 	}
 
@@ -144,7 +144,7 @@ func (c YaController) GetPriceListHandler(rw http.ResponseWriter, r *http.Reques
 
 func (c YaController) GetStationsHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/station?apikey=expected_api_key
-	if !checkAPIKey(rw, r) {
+	if !c.checkAPIKey(rw, r) {
 		return
 	}
 
@@ -195,7 +195,7 @@ func (c YaController) GetStationsHandler(rw http.ResponseWriter, r *http.Request
 
 func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// http://127.0.0.1:8086/tanker/ping?apikey=expected_api_key&stationId=11111111&columnId=0
-	if !checkAPIKey(w, r) {
+	if !c.checkAPIKey(w, r) {
 		return
 	}
 
@@ -255,11 +255,6 @@ func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (c YaController) UpdateYandexPayStatusHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var requestData struct {
 		IdAzs     int  `json:"idAzs"`
 		IsEnabled bool `json:"isEnabled"`

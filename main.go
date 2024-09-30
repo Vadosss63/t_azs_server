@@ -22,8 +22,9 @@ import (
 )
 
 type Settings struct {
-	Port  int    `json:"port"`
-	Token string `json:"token"`
+	Port     int    `json:"port"`
+	Token    string `json:"token"`
+	YaApiKey string `json:"ya_api_key"`
 }
 
 func readSettings(filename string) (*Settings, error) {
@@ -43,8 +44,6 @@ func readSettings(filename string) (*Settings, error) {
 
 func main() {
 
-	//TODO: add yaPayApiKey to settings.json
-	api_key := "expected_api_key"
 	settings, err := readSettings("settings.json")
 
 	if err != nil {
@@ -57,6 +56,7 @@ func main() {
 
 	fmt.Println("Port:", settings.Port)
 	fmt.Println("Token:", settings.Token)
+	fmt.Println("ya_api_key:", settings.YaApiKey)
 
 	ctx := context.Background()
 	dbpool, err := repository.InitDBConn(ctx)
@@ -65,7 +65,7 @@ func main() {
 	}
 	defer dbpool.Close()
 
-	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port, api_key)
+	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port, settings.YaApiKey)
 	r := httprouter.New()
 
 	yaController := ya_controller.NewController(a)
