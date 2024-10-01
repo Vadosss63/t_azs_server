@@ -52,16 +52,31 @@ func (r *YaPayRepo) DeleteTable(ctx context.Context) error {
 }
 
 func (r *YaPayRepo) Add(ctx context.Context, idAzs int) error {
-	query := `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, $2, $3, $4)`
-
-	_, err := r.pool.Exec(ctx, query, idAzs, 0, 0, "")
+	var exists bool
+	queryCheck := `SELECT EXISTS(SELECT 1 FROM ya_pay WHERE id_azs = $1 AND columnId = $2)`
+	err := r.pool.QueryRow(ctx, queryCheck, idAzs, 0).Scan(&exists)
 	if err != nil {
-		return fmt.Errorf("failed to add to ya_pay: %w", err)
+		return fmt.Errorf("failed to check existence (columnId = 0): %w", err)
 	}
 
-	_, err = r.pool.Exec(ctx, query, idAzs, 1, 0, "")
+	queryInsert := `INSERT INTO ya_pay (id_azs, columnId, status, data) VALUES ($1, $2, $3, $4)`
+	if !exists {
+		_, err = r.pool.Exec(ctx, queryInsert, idAzs, 0, 0, "")
+		if err != nil {
+			return fmt.Errorf("failed to add to ya_pay (columnId = 0): %w", err)
+		}
+	}
+
+	err = r.pool.QueryRow(ctx, queryCheck, idAzs, 1).Scan(&exists)
 	if err != nil {
-		return fmt.Errorf("failed to add to ya_pay: %w", err)
+		return fmt.Errorf("failed to check existence (columnId = 1): %w", err)
+	}
+
+	if !exists {
+		_, err = r.pool.Exec(ctx, queryInsert, idAzs, 1, 0, "")
+		if err != nil {
+			return fmt.Errorf("failed to add to ya_pay (columnId = 1): %w", err)
+		}
 	}
 
 	return nil

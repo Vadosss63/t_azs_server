@@ -74,6 +74,40 @@ func NewController(app *application.App) *YaController {
 	return &YaController{app: app}
 }
 
+func (c YaController) CheckDB() error {
+	err := c.app.Repo.YaPayRepo.CreateTable(c.app.Ctx)
+	if err != nil {
+		log.Fatalf("Failed to create ya_pay table: %v", err)
+		return err
+	}
+
+	err = c.app.Repo.YaAzsRepo.CreateTable(c.app.Ctx)
+	if err != nil {
+		log.Fatalf("Failed to create azs repo table: %v", err)
+		return err
+	}
+
+	azses, err := c.app.Repo.AzsRepo.GetAll(c.app.Ctx)
+
+	if err != nil {
+		log.Fatalf("Failed to get azs list: %v", err)
+		return err
+	}
+
+	for i := 0; i < len(azses); i++ {
+
+		if err := c.app.Repo.YaAzsRepo.Add(c.app.Ctx, azses[i].IdAzs); err != nil {
+			return err
+		}
+
+		if err := c.app.Repo.YaPayRepo.Add(c.app.Ctx, azses[i].IdAzs); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c YaController) Routes(router *httprouter.Router) {
 	router.POST("/update_yandexpay_status", c.app.Authorized(c.UpdateYandexPayStatusHandler))
 
@@ -87,11 +121,6 @@ func (c YaController) Routes(router *httprouter.Router) {
 	router.POST("/api/azs_accept_order", c.AcceptOrderHandler)
 	router.POST("/api/azs_fueling_order", c.FuelingHandler)
 	router.POST("/api/azs_completed_order", c.CompletedHandler)
-
-	err := c.app.Repo.YaPayRepo.CreateTable(c.app.Ctx)
-	if err != nil {
-		log.Fatalf("Failed to create ya_pay table: %v", err)
-	}
 }
 
 func (c YaController) GetPriceListHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {

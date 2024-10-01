@@ -54,14 +54,6 @@ type StationStatus struct {
 	Columns map[int]bool
 }
 
-const (
-	yaAzsInfoName = "ya_azs_info"
-	columnAzsId   = "id_azs"
-	columnLat     = "lat"
-	columnLon     = "lon"
-	enable        = "enable"
-)
-
 type YaAzsRepository interface {
 	CreateTable(ctx context.Context) error
 	DeleteTable(ctx context.Context) error
@@ -84,86 +76,96 @@ func NewRepository(pool *pgxpool.Pool) *YaAzsRepo {
 }
 
 func (r *YaAzsRepo) CreateTable(ctx context.Context) error {
-	query := fmt.Sprintf(`
-CREATE TABLE IF NOT EXISTS %s (
-    %s  BIGINT,
-    %s  DOUBLE PRECISION,
-    %s  DOUBLE PRECISION,
-	%s  BOOLEAN
-);`, yaAzsInfoName, columnAzsId, columnLat, columnLon, enable)
+	query := `CREATE TABLE IF NOT EXISTS ya_azs_info (
+    			id_azs  BIGINT,
+    			lat  DOUBLE PRECISION,
+    			lon  DOUBLE PRECISION,
+				enable  BOOLEAN);`
+
 	_, err := r.pool.Exec(ctx, query)
 	if err != nil {
-		return fmt.Errorf("failed to create %s table: %w", yaAzsInfoName, err)
+		return fmt.Errorf("failed to create ya_azs_info table: %w", err)
 	}
 	return nil
 }
 
 func (r *YaAzsRepo) DeleteTable(ctx context.Context) error {
-	query := fmt.Sprintf(`DROP TABLE IF EXISTS %s`, yaAzsInfoName)
+	query := `DROP TABLE IF EXISTS ya_azs_info`
 	_, err := r.pool.Exec(ctx, query)
 	if err != nil {
-		return fmt.Errorf("failed to drop %s table: %w", yaAzsInfoName, err)
+		return fmt.Errorf("failed to drop ya_azs_info table: %w", err)
 	}
 	return nil
 }
 
 func (r *YaAzsRepo) Add(ctx context.Context, idAzs int) error {
-	query := fmt.Sprintf(`INSERT INTO %s (%s, %s, %s, %s ) VALUES ($1, 0, 0, FALSE)`, yaAzsInfoName, columnAzsId, columnLat, columnLon, enable)
-	_, err := r.pool.Exec(ctx, query, idAzs)
+	var exists bool
+	queryCheck := `SELECT EXISTS(SELECT 1 FROM ya_azs_info WHERE id_azs = $1)`
+	err := r.pool.QueryRow(ctx, queryCheck, idAzs).Scan(&exists)
 	if err != nil {
-		return fmt.Errorf("failed to add to %s: %w", yaAzsInfoName, err)
+		return fmt.Errorf("failed to check existence: %w", err)
+	}
+
+	if exists {
+		return nil
+	}
+
+	queryInsert := `INSERT INTO ya_azs_info (id_azs, lat, lon, enable) VALUES ($1, 0, 0, FALSE)`
+	_, err = r.pool.Exec(ctx, queryInsert, idAzs)
+	if err != nil {
+		return fmt.Errorf("failed to add to ya_azs_info: %w", err)
 	}
 	return nil
 }
 
 func (r *YaAzsRepo) UpdateLocation(ctx context.Context, idAzs int, location Location) error {
-	query := fmt.Sprintf(`UPDATE %s SET %s = $2, %s = $3 WHERE %s = $1`, yaAzsInfoName, columnLat, columnLon, columnAzsId)
+	query := `UPDATE ya_azs_info SET lat = $2, lon = $3 WHERE id_azs = $1`
 	_, err := r.pool.Exec(ctx, query, idAzs, location.Lat, location.Lon)
 	if err != nil {
-		return fmt.Errorf("failed to update %s: %w", yaAzsInfoName, err)
+		return fmt.Errorf("failed to update ya_azs_info: %w", err)
 	}
 	return nil
 }
 
 func (r *YaAzsRepo) UpdateEnable(ctx context.Context, idAzs int, isEnable bool) error {
-	query := fmt.Sprintf(`UPDATE %s SET %s = $2 WHERE %s = $1`, yaAzsInfoName, enable, columnAzsId)
+	query := `UPDATE ya_azs_info SET enable = $2 WHERE id_azs = $1`
 	_, err := r.pool.Exec(ctx, query, idAzs, isEnable)
 	if err != nil {
-		return fmt.Errorf("failed to update %s: %w", yaAzsInfoName, err)
+		return fmt.Errorf("failed to update ya_azs_info: %w", err)
 	}
 	return nil
 }
 
 func (r *YaAzsRepo) Delete(ctx context.Context, idAzs int) error {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE %s = $1`, yaAzsInfoName, columnAzsId)
+	query := `DELETE FROM ya_azs_info WHERE id_azs = $1`
 	_, err := r.pool.Exec(ctx, query, idAzs)
 	if err != nil {
-		return fmt.Errorf("failed to delete from %s: %w", yaAzsInfoName, err)
+		return fmt.Errorf("failed to delete from ya_azs_info: %w", err)
 	}
 	return nil
 }
 
 func (r *YaAzsRepo) GetLocation(ctx context.Context, idAzs int) (Location, error) {
-	query := fmt.Sprintf(`SELECT %s, %s FROM %s WHERE %s = $1`, columnLat, columnLon, yaAzsInfoName, columnAzsId)
+	query := `SELECT lat, lon FROM ya_azs_info WHERE id_azs = $1`
 	row := r.pool.QueryRow(ctx, query, idAzs)
 
 	var location Location
 	err := row.Scan(&location.Lat, &location.Lon)
 	if err != nil {
-		return location, fmt.Errorf("failed to get from %s: %w", yaAzsInfoName, err)
+		return location, fmt.Errorf("failed to get from ya_azs_info: %w", err)
 	}
 
 	return location, nil
 }
 
 func (r *YaAzsRepo) GetEnable(ctx context.Context, idAzs int) (bool, error) {
-	query := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = $1`, enable, yaAzsInfoName, columnAzsId)
+	query := `SELECT enable FROM ya_azs_info WHERE id_azs = $1`
 	row := r.pool.QueryRow(ctx, query, idAzs)
 
 	var isEnable bool
 	err := row.Scan(&isEnable)
 	if err != nil {
-		return isEnable, fmt.Errorf("failed to get from %s: %w", yaAzsInfoName, err)
+		return isEnable, fmt.Errorf("failed to get from ya_azs_info: %w", err)
 	}
 
 	return isEnable, nil
@@ -171,11 +173,11 @@ func (r *YaAzsRepo) GetEnable(ctx context.Context, idAzs int) (bool, error) {
 
 func (r *YaAzsRepo) GetEnableAll(ctx context.Context) ([]Station, error) {
 
-	query := fmt.Sprintf(`SELECT %s, %s, %s FROM %s WHERE %s = true`, columnAzsId, columnLat, columnLon, yaAzsInfoName, enable)
+	query := `SELECT id_azs, lat, lon FROM ya_azs_info WHERE enable = true`
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query %s: %w", yaAzsInfoName, err)
+		return nil, fmt.Errorf("failed to query ya_azs_info: %w", err)
 	}
 	defer rows.Close()
 
@@ -184,7 +186,7 @@ func (r *YaAzsRepo) GetEnableAll(ctx context.Context) ([]Station, error) {
 		var station Station
 		var id int
 		if err := rows.Scan(&id, &station.Location.Lat, &station.Location.Lon); err != nil {
-			return nil, fmt.Errorf("failed to scan from %s: %w", yaAzsInfoName, err)
+			return nil, fmt.Errorf("failed to scan from ya_azs_info: %w", err)
 		}
 		station.Enable = true
 		station.Id = strconv.Itoa(id)
@@ -192,7 +194,7 @@ func (r *YaAzsRepo) GetEnableAll(ctx context.Context) ([]Station, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error after iterating over %s: %w", yaAzsInfoName, err)
+		return nil, fmt.Errorf("error after iterating over ya_azs_info: %w", err)
 	}
 
 	return stations, nil
@@ -200,11 +202,11 @@ func (r *YaAzsRepo) GetEnableAll(ctx context.Context) ([]Station, error) {
 
 func (r *YaAzsRepo) GetEnableList(ctx context.Context) ([]int, error) {
 
-	query := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = true`, columnAzsId, yaAzsInfoName, enable)
+	query := `SELECT id_azs FROM ya_azs_info WHERE enable = true`
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query %s: %w", yaAzsInfoName, err)
+		return nil, fmt.Errorf("failed to query ya_azs_info: %w", err)
 	}
 	defer rows.Close()
 
@@ -212,13 +214,13 @@ func (r *YaAzsRepo) GetEnableList(ctx context.Context) ([]int, error) {
 	for rows.Next() {
 		var id int
 		if err := rows.Scan(&id); err != nil {
-			return nil, fmt.Errorf("failed to scan from %s: %w", yaAzsInfoName, err)
+			return nil, fmt.Errorf("failed to scan from ya_azs_info: %w", err)
 		}
 		ids = append(ids, id)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error after iterating over %s: %w", yaAzsInfoName, err)
+		return nil, fmt.Errorf("error after iterating over ya_azs_info: %w", err)
 	}
 
 	return ids, nil

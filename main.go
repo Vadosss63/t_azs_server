@@ -72,6 +72,12 @@ func main() {
 	azsController := azs_controller.NewController(a)
 	adminController := admin_controller.NewController(a)
 
+	err = yaController.CheckDB()
+
+	if err != nil {
+		log.Fatalf("Failed to check DB: %v", err)
+	}
+
 	a.Routes(r)
 	yaController.Routes(r)
 	updateAppController.Routes(r)
