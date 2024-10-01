@@ -49,9 +49,10 @@ func TestGetPriceListHandler(t *testing.T) {
 	}
 
 	app := &application.App{
-		Repo:        &mocRepo,
-		YaPayApiKey: "expected_api_key",
+		Repo: &mocRepo,
 	}
+
+	app.Settings.YaApiKey = "expected_api_key"
 
 	controller := NewController(app)
 	req, err := http.NewRequest("GET", "/tanker/price?apikey=expected_api_key", nil)
@@ -99,9 +100,9 @@ func TestGetStationsHandler(t *testing.T) {
 	}
 
 	app := &application.App{
-		Repo:        &mocRepo,
-		YaPayApiKey: "expected_api_key",
+		Repo: &mocRepo,
 	}
+	app.Settings.YaApiKey = "expected_api_key"
 
 	controller := NewController(app)
 
@@ -140,9 +141,9 @@ func TestPingHandler(t *testing.T) {
 	}
 
 	app := &application.App{
-		Repo:        &mocRepo,
-		YaPayApiKey: "expected_api_key",
+		Repo: &mocRepo,
 	}
+	app.Settings.YaApiKey = "expected_api_key"
 
 	controller := NewController(app)
 
