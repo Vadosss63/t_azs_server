@@ -21,25 +21,20 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type settings struct {
-	Port     int    `json:"port"`
-	Token    string `json:"token"`
-	YaApiKey string `json:"ya_api_key"`
-}
+func readSettings(filename string) (application.Settings, error) {
+	var s application.Settings
 
-func readSettings(filename string) (*settings, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return s, err
 	}
 
-	var s settings
 	err = json.Unmarshal(data, &s)
 	if err != nil {
-		return nil, err
+		return s, err
 	}
 
-	return &s, nil
+	return s, nil
 }
 
 func main() {
@@ -65,7 +60,7 @@ func main() {
 	}
 	defer dbpool.Close()
 
-	a := application.NewApp(ctx, dbpool, settings.Token, settings.Port, settings.YaApiKey)
+	a := application.NewApp(ctx, dbpool, settings)
 	r := httprouter.New()
 
 	yaController := ya_controller.NewController(a)

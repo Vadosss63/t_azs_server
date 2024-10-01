@@ -104,7 +104,7 @@ func (c UpdateAppController) setAppUpdateCmd(rw http.ResponseWriter, r *http.Req
 		return
 	}
 
-	url := "http://t-azs.ru:" + strconv.Itoa(c.app.Port) + "/install/" + version
+	url := "http://t-azs.ru:" + strconv.Itoa(c.app.Settings.Port) + "/install/" + version
 	err := c.app.Repo.UpdaterButtonRepo.Update(c.app.Ctx, idInt, url)
 
 	if err != nil {

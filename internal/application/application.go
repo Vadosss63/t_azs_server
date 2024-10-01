@@ -13,17 +13,22 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type App struct {
-	Ctx         context.Context
-	Repo        *repository.Repository
-	Cache       map[string]user.User
-	Token       string
-	Port        int
-	YaPayApiKey string
+type Settings struct {
+	Port     int    `json:"port"`
+	Token    string `json:"token"`
+	YaApiKey string `json:"ya_api_key"`
+	YaPayUrl string `json:"ya_pay_url"`
 }
 
-func NewApp(ctx context.Context, dbpool *pgxpool.Pool, token string, port int, yaPayApiKey string) *App {
-	return &App{ctx, repository.NewRepository(dbpool), make(map[string]user.User), token, port, yaPayApiKey}
+type App struct {
+	Ctx      context.Context
+	Repo     *repository.Repository
+	Cache    map[string]user.User
+	Settings Settings
+}
+
+func NewApp(ctx context.Context, dbpool *pgxpool.Pool, settings Settings) *App {
+	return &App{ctx, repository.NewRepository(dbpool), make(map[string]user.User), settings}
 }
 
 func (a App) Routes(router *httprouter.Router) {
@@ -34,7 +39,7 @@ func (a App) Routes(router *httprouter.Router) {
 }
 
 func (a App) GetYaPayApiKey() string {
-	return a.YaPayApiKey
+	return a.Settings.YaApiKey
 }
 
 func readCookie(name string, r *http.Request) (value string, err error) {
@@ -52,7 +57,7 @@ func readCookie(name string, r *http.Request) (value string, err error) {
 
 func (a App) ValidateToken(tokenReq string) bool {
 	tokenReq = strings.TrimSpace(tokenReq)
-	return a.Token == tokenReq
+	return a.Settings.Token == tokenReq
 }
 
 func (a App) Authorized(next httprouter.Handle) httprouter.Handle {

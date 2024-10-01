@@ -327,11 +327,8 @@ func (c YaController) UpdateYandexPayStatusHandler(w http.ResponseWriter, r *htt
 	sendJsonData(w, map[string]string{"status": "success"})
 }
 
-const baseURL = "https://app.tanker.yandex.net"
-
-func sendOrderStatus(endpoint string, params url.Values) error {
-	fullURL := baseURL + endpoint
-	resp, err := http.Post(fullURL, "application/x-www-form-urlencoded", strings.NewReader(params.Encode()))
+func sendOrderStatus(url string, params url.Values) error {
+	resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(params.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
 	}
@@ -345,32 +342,32 @@ func sendOrderStatus(endpoint string, params url.Values) error {
 	return nil
 }
 
-func handleAccept(apiKey, orderID string) error {
+func handleAccept(baseUrl, apiKey, orderID string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
 	params.Add("orderId", orderID)
 
-	return sendOrderStatus("/api/order/accept", params)
+	return sendOrderStatus(baseUrl+"/api/order/accept", params)
 }
 
-func handleFueling(apiKey, orderID string) error {
+func handleFueling(baseUrl, apiKey, orderID string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
 	params.Add("orderId", orderID)
 
-	return sendOrderStatus("/api/order/fueling", params)
+	return sendOrderStatus(baseUrl+"/api/order/fueling", params)
 }
 
-func handleCanceled(apiKey, orderID, reason string) error {
+func handleCanceled(baseUrl, apiKey, orderID, reason string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
 	params.Add("orderId", orderID)
 	params.Add("reason", reason)
 
-	return sendOrderStatus("/api/order/canceled", params)
+	return sendOrderStatus(baseUrl+"/api/order/canceled", params)
 }
 
-func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, extendedDate string) error {
+func handleCompleted(baseUrl, apiKey, orderID string, litre float64, extendedOrderID, extendedDate string) error {
 	params := url.Values{}
 	params.Add("apikey", apiKey)
 	params.Add("orderId", orderID)
@@ -378,7 +375,7 @@ func handleCompleted(apiKey, orderID string, litre float64, extendedOrderID, ext
 	params.Add("extendedOrderId", extendedOrderID)
 	params.Add("extendedDate", extendedDate)
 
-	return sendOrderStatus("/api/order/completed", params)
+	return sendOrderStatus(baseUrl+"/api/order/completed", params)
 }
 
 func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -439,7 +436,7 @@ func (c YaController) CanceledHandler(rw http.ResponseWriter, r *http.Request, p
 
 	apiKey := c.app.GetYaPayApiKey()
 
-	err = handleCanceled(apiKey, requestData.OrderId, requestData.Reason)
+	err = handleCanceled(c.app.Settings.YaPayUrl, apiKey, requestData.OrderId, requestData.Reason)
 	if err != nil {
 		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
@@ -481,7 +478,7 @@ func (c YaController) AcceptOrderHandler(rw http.ResponseWriter, r *http.Request
 
 	apiKey := c.app.GetYaPayApiKey()
 
-	err = handleAccept(apiKey, requestData.OrderId)
+	err = handleAccept(c.app.Settings.YaPayUrl, apiKey, requestData.OrderId)
 	if err != nil {
 		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
@@ -517,7 +514,7 @@ func (c YaController) FuelingHandler(rw http.ResponseWriter, r *http.Request, p 
 
 	apiKey := c.app.GetYaPayApiKey()
 
-	err = handleFueling(apiKey, requestData.OrderId)
+	err = handleFueling(c.app.Settings.YaPayUrl, apiKey, requestData.OrderId)
 
 	if err != nil {
 		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
@@ -557,7 +554,7 @@ func (c YaController) CompletedHandler(rw http.ResponseWriter, r *http.Request, 
 
 	apiKey := c.app.GetYaPayApiKey()
 
-	err = handleCompleted(apiKey, requestData.OrderId, requestData.Litre, requestData.ExtendedOrderId, requestData.ExtendedDate)
+	err = handleCompleted(c.app.Settings.YaPayUrl, apiKey, requestData.OrderId, requestData.Litre, requestData.ExtendedOrderId, requestData.ExtendedDate)
 	if err != nil {
 		application.SendJsonResponse(rw, http.StatusInternalServerError, err.Error(), "Error")
 		return
