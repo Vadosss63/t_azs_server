@@ -304,7 +304,7 @@ func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if azsStatsDataFull.AzsNodes[order.ColumnId].PriceCashless/100 != float32(order.PriceFuel) {
+	if azsStatsDataFull.AzsNodes[order.ColumnId].PriceCashless != float32(order.PriceFuel) {
 		http.Error(w, "Incorrect price fuel", http.StatusPaymentRequired)
 		return
 	}
