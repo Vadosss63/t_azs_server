@@ -376,7 +376,7 @@ func handleAccept(baseUrl, apiKey, orderID string) error {
 	params.Add("apikey", apiKey)
 	params.Add("orderId", orderID)
 
-	return sendOrderStatus(baseUrl+"/api/order/accept", params)
+	return sendOrderStatus(baseUrl+"/accept", params)
 }
 
 func handleFueling(baseUrl, apiKey, orderID string) error {
@@ -384,7 +384,7 @@ func handleFueling(baseUrl, apiKey, orderID string) error {
 	params.Add("apikey", apiKey)
 	params.Add("orderId", orderID)
 
-	return sendOrderStatus(baseUrl+"/api/order/fueling", params)
+	return sendOrderStatus(baseUrl+"/fueling", params)
 }
 
 func handleCanceled(baseUrl, apiKey, orderID, reason string) error {
@@ -393,7 +393,7 @@ func handleCanceled(baseUrl, apiKey, orderID, reason string) error {
 	params.Add("orderId", orderID)
 	params.Add("reason", reason)
 
-	return sendOrderStatus(baseUrl+"/api/order/canceled", params)
+	return sendOrderStatus(baseUrl+"/canceled", params)
 }
 
 func handleCompleted(baseUrl, apiKey, orderID string, litre float64, extendedOrderID, extendedDate string) error {
@@ -404,7 +404,7 @@ func handleCompleted(baseUrl, apiKey, orderID string, litre float64, extendedOrd
 	params.Add("extendedOrderId", extendedOrderID)
 	params.Add("extendedDate", extendedDate)
 
-	return sendOrderStatus(baseUrl+"/api/order/completed", params)
+	return sendOrderStatus(baseUrl+"/completed", params)
 }
 
 func (c YaController) GetOrderHandler(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
