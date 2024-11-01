@@ -18,7 +18,7 @@ After=network.target postgresql.service
 Requires=postgresql.service
 
 [Service]
-Type=forking
+Type=simple
 ExecStart=%s/main
 ExecReload=%s/main
 WorkingDirectory=%s/
