@@ -209,13 +209,15 @@ func (c YaController) GetStationsHandler(rw http.ResponseWriter, r *http.Request
 			if typeFuel == "" {
 				continue
 			}
-			column := stations[i].Columns[int32(j)]
+			columnId := int32(j + 1)
+
+			column := stations[i].Columns[columnId]
 
 			if column.Fuels == nil {
 				column.Fuels = []string{}
 			}
 			column.Fuels = append(column.Fuels, typeFuel)
-			stations[i].Columns[int32(j)] = column
+			stations[i].Columns[columnId] = column
 		}
 	}
 
@@ -242,6 +244,7 @@ func (c YaController) PingHandler(w http.ResponseWriter, r *http.Request, p http
 		http.Error(w, "Bad Request: Invalid column ID", http.StatusBadRequest)
 		return
 	}
+	columnIDInt -= 1
 
 	enable, err := c.app.Repo.YaAzsRepo.GetEnable(c.app.Ctx, idInt)
 	if err != nil || !enable {
@@ -278,6 +281,7 @@ func (c YaController) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Re
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	order.ColumnId -= 1
 
 	stationExtendedId, err := strconv.Atoi(order.StationExtendedId)
 

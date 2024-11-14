@@ -76,7 +76,7 @@ func TestGetStationsHandler(t *testing.T) {
 	mockYaAzsRepo := ya_azs.NewMockYaAzsRepository(ctrl)
 	mockAzsRepo := azs.NewMockAzsRepository(ctrl)
 
-	mocStation := ya_azs.Station{Id: "1", Enable: true, Location: ya_azs.Location{Lat: 11, Lon: 12}, Columns: map[int32]ya_azs.Column{1: {Fuels: []string{"a92", "a95"}}}}
+	mocStation := ya_azs.Station{Id: "1", Enable: true, Location: ya_azs.Location{Lat: 11, Lon: 12}}
 	mockYaAzsRepo.EXPECT().GetEnableAll(gomock.Any()).Return([]ya_azs.Station{mocStation}, nil)
 
 	mockAzsData := azs.AzsStatsData{
@@ -116,7 +116,8 @@ func TestGetStationsHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	expectedJSONresponse := `[{"Id":"1","Enable":true,"Name":"AZS Example","Address":"123 Main St","Location":{"Lat":11,"Lon":12},"Columns":{"0":{"Fuels":["a92"]},"1":{"Fuels":["a92","a95","a95"]}}}]`
+	expectedJSONresponse := `[{"Id":"1","Enable":true,"Name":"AZS Example","Address":"123 Main St","Location":{"Lat":11,"Lon":12},"Columns":{"1":{"Fuels":["a92"]},"2":{"Fuels":["a95"]}}}]`
+
 	assert.JSONEq(t, expectedJSONresponse, rr.Body.String())
 }
 
@@ -147,7 +148,7 @@ func TestPingHandler(t *testing.T) {
 
 	controller := NewController(app)
 
-	req, err := http.NewRequest("GET", "/tanker/ping?apikey=expected_api_key&stationId=11111111&columnId=0", nil)
+	req, err := http.NewRequest("GET", "/tanker/ping?apikey=expected_api_key&stationId=11111111&columnId=1", nil)
 	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -210,7 +211,7 @@ func TestUpdateOrderStatusHandler(t *testing.T) {
 	mockYaPayRepo := ya_pay.NewMockYaPayRepository(ctrl)
 
 	stationExtendedId := 111111
-	columnId := 0
+	columnId := 1
 
 	order := ya_azs.Order{
 		Id:                "9DA356FB-3483-4FD4-B62C-7B85A81D003D",
@@ -227,10 +228,10 @@ func TestUpdateOrderStatusHandler(t *testing.T) {
 	mockYaAzsRepo.EXPECT().GetEnable(gomock.Any(), stationExtendedId).Return(true, nil)
 	mockAzsData := azs.AzsStatsData{
 		IdAzs: stationExtendedId,
-		Stats: `{"azs_nodes":[{"priceCashless":5000,"typeFuel":"АИ-92"},{"priceCashless":5200,"typeFuel":"АИ-95"}]}`,
+		Stats: `{"azs_nodes":[{"priceCashless":50.00,"typeFuel":"АИ-92"},{"priceCashless":52.00,"typeFuel":"АИ-95"}]}`,
 	}
 	mockAzsRepo.EXPECT().Get(gomock.Any(), stationExtendedId).Return(mockAzsData, nil)
-	mockYaPayRepo.EXPECT().Update(gomock.Any(), stationExtendedId, columnId, stationFree, gomock.Any()).Return(nil)
+	mockYaPayRepo.EXPECT().Update(gomock.Any(), stationExtendedId, columnId-1, stationFree, gomock.Any()).Return(nil)
 
 	mocRepo := repository.Repository{
 		YaAzsRepo: mockYaAzsRepo,
@@ -413,7 +414,7 @@ func TestUpdateOrderStatusHandler_IncorrectFuelType(t *testing.T) {
 	mockAzsRepo := azs.NewMockAzsRepository(ctrl)
 
 	stationExtendedId := 111111
-	columnId := 0
+	columnId := 1
 
 	order := ya_azs.Order{
 		StationExtendedId: strconv.Itoa(stationExtendedId),
