@@ -26,12 +26,13 @@
                     <input type="time" id="toTime" name="toTime" value="{{.ToTimeVal}}">
                     <button type="submit" name="showBtn">Показать</button>
                 </p>
-                <p>Результат: {{.CountData}}</p>
-                <p>Наличные: {{.TotalCash}} руб, Безналичные: {{.TotalCashless}} руб,</p>
+                <p>Результат: {{.CountData}}
+                <p>Наличные: {{.TotalCash}} руб,</p>
+                <p>Безналичные: {{.TotalCashless}} руб,</p>
                 <p>Онлайн: {{.TotalOnline}} руб,</p>
                 {{if eq .CountColumns 2}}
-                <p>Топливо (Колонка 1): {{.TotalLitersCol1}} л, Топливо (Колонка 2): {{.TotalLitersCol2}} л.</p>
-                <p>Приход (Колонка 1): {{.TotalFuelArrivalCol1}} л, Приход (Колонка 2): {{.TotalFuelArrivalCol2}} л.</p>
+                <p>Топливо (К1): {{.TotalLitersCol1}} л, Топливо (К2): {{.TotalLitersCol2}} л.</p>
+                <p>Приход (К1): {{.TotalFuelArrivalCol1}} л, Приход (К2): {{.TotalFuelArrivalCol2}} л.</p>
                 {{else}}
                 <p>Топливо: {{.TotalLitersCol1}} л.</p>
                 <p>Приход: {{.TotalFuelArrivalCol1}} л.</p>
