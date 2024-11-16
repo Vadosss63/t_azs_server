@@ -26,11 +26,16 @@
                     <input type="time" id="toTime" name="toTime" value="{{.ToTimeVal}}">
                     <button type="submit" name="showBtn">Показать</button>
                 </p>
-                <p>Результат:</p>
+                <p>Результат: {{.CountData}}</p>
                 <p>Наличные: {{.TotalCash}} руб, Безналичные: {{.TotalCashless}} руб,</p>
                 <p>Онлайн: {{.TotalOnline}} руб,</p>
+                {{if eq .CountColumns 2}}
                 <p>Топливо (Колонка 1): {{.TotalLitersCol1}} л, Топливо (Колонка 2): {{.TotalLitersCol2}} л.</p>
                 <p>Приход (Колонка 1): {{.TotalFuelArrivalCol1}} л, Приход (Колонка 2): {{.TotalFuelArrivalCol2}} л.</p>
+                {{else}}
+                <p>Топливо: {{.TotalLitersCol1}} л.</p>
+                <p>Приход: {{.TotalFuelArrivalCol1}} л.</p>
+                {{end}}
             </form>
         </div>
         <table class="centered-table">
@@ -40,13 +45,19 @@
                     <th>Наличные (руб)</th>
                     <th>Безналичные (руб)</th>
                     <th>Онлайн (руб)</th>
+                    {{if eq .CountColumns 2}}
                     <th>Топливо (Колонка 1, л)</th>
                     <th>Топливо (Колонка 2, л)</th>
                     <th>Приход (Колонка 1, л)</th>
                     <th>Приход (Колонка 2, л)</th>
+                    {{else}}
+                    <th>Топливо (л)</th>
+                    <th>Приход (л)</th>
+                    {{end}}
                 </tr>
             </thead>
             <tbody>
+                {{if eq .CountColumns 2}}
                 {{ range .Statistics }}
                 <tr>
                     <td>{{.Date}}</td>
@@ -58,6 +69,18 @@
                     <td>{{.FuelArrivalCol1}}</td>
                     <td>{{.FuelArrivalCol2}}</td>
                 </tr>
+                {{end}}
+                {{else}}
+                {{ range .Statistics }}
+                <tr>
+                    <td>{{.Date}}</td>
+                    <td>{{.DailyCash}}</td>
+                    <td>{{.DailyCashless}}</td>
+                    <td>{{.DailyOnline}}</td>
+                    <td>{{.DailyLitersCol1}}</td>
+                    <td>{{.FuelArrivalCol1}}</td>
+                </tr>
+                {{end}}
                 {{end}}
             </tbody>
         </table>

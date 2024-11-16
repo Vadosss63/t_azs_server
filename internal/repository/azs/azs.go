@@ -68,6 +68,7 @@ type AzsRepository interface {
 	AddAzsToUser(ctx context.Context, id_user, id_azs int) (err error)
 	RemoveUserFromAzsAll(ctx context.Context, id_user int) (err error)
 	GetAzsAllForUser(ctx context.Context, id_user int) (azses []AzsStatsData, err error)
+	GetCountColum(ctx context.Context, id_azs int) (count int, err error)
 }
 
 type AzsRepo struct {
@@ -151,6 +152,12 @@ func (r *AzsRepo) GetAzsAllForUser(ctx context.Context, id_user int) (azses []Az
 		}
 		azses = append(azses, azs)
 	}
+	return
+}
+
+func (r *AzsRepo) GetCountColum(ctx context.Context, id_azs int) (count int, err error) {
+	row := r.pool.QueryRow(ctx, `SELECT count_colum FROM azses where id_azs = $1`, id_azs)
+	err = row.Scan(&count)
 	return
 }
 

@@ -54,6 +54,8 @@ type AzsStatisticsTemplate struct {
 	TotalLitersCol2      string
 	TotalFuelArrivalCol1 string
 	TotalFuelArrivalCol2 string
+	CountColumns         int
+	CountData            int
 }
 
 type AzsStatisticsController struct {
@@ -185,6 +187,12 @@ func (c AzsStatisticsController) azsStatisticsPage(rw http.ResponseWriter, r *ht
 		totalFuelArrivalCol2 += float64(stat.FuelArrivalCol2)
 	}
 
+	azsColumCount, err := c.app.Repo.AzsRepo.GetCountColum(c.app.Ctx, idAzs)
+	if err != nil {
+		http.Error(rw, "Failed to get count colum: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	azsStatisticsData := AzsStatisticsTemplate{
 		IdAzs:                fmt.Sprintf("%d", idAzs),
 		FormSearchVal:        fromSearchTime.Format("2006-01-02"),
@@ -199,6 +207,8 @@ func (c AzsStatisticsController) azsStatisticsPage(rw http.ResponseWriter, r *ht
 		TotalLitersCol2:      formatNumber(totalLitersCol2),
 		TotalFuelArrivalCol1: formatNumber(totalFuelArrivalCol1),
 		TotalFuelArrivalCol2: formatNumber(totalFuelArrivalCol2),
+		CountColumns:         azsColumCount,
+		CountData:            len(statistics),
 	}
 
 	lp := filepath.Join("public", "html", "azs_statistics.html")
