@@ -1,0 +1,68 @@
+{{define "AzsStatisticsTemplate"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/public/image/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/public/image/favicon.ico" type="image/x-icon">
+    <title>Статистика АЗС</title>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <header>Статистика АЗС</header>
+    {{template "user_navi.html" .}}
+    <ul>
+        <div class="statisticsFilter">
+            <form action="/azs/statistics?id_azs={{.IdAzs}}" method="post" id="historySearch" name="searchForm">
+                <p><label for="fromSearch">Выберите период с:</label>
+                    <input type="date" id="fromSearch" name="fromSearch" value="{{.FormSearchVal}}">
+                    <input type="time" id="fromTime" name="fromTime" value="{{.FromTimeVal}}">
+
+                    <label for="toSearch">по:</label>
+                    <input type="date" id="toSearch" name="toSearch" value="{{.ToSearchVal}}">
+                    <input type="time" id="toTime" name="toTime" value="{{.ToTimeVal}}">
+                    <button type="submit" name="showBtn">Показать</button>
+                </p>
+                <p>Результат:</p>
+                <p>Наличные: {{.TotalCash}} руб, Безналичные: {{.TotalCashless}} руб,</p>
+                <p>Онлайн: {{.TotalOnline}} руб,</p>
+                <p>Топливо (Колонка 1): {{.TotalLitersCol1}} л, Топливо (Колонка 2): {{.TotalLitersCol2}} л.</p>
+                <p>Приход (Колонка 1): {{.TotalFuelArrivalCol1}} л, Приход (Колонка 2): {{.TotalFuelArrivalCol2}} л.</p>
+            </form>
+        </div>
+        <table class="centered-table">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Наличные (руб)</th>
+                    <th>Безналичные (руб)</th>
+                    <th>Онлайн (руб)</th>
+                    <th>Топливо (Колонка 1, л)</th>
+                    <th>Топливо (Колонка 2, л)</th>
+                    <th>Приход (Колонка 1, л)</th>
+                    <th>Приход (Колонка 2, л)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .Statistics }}
+                <tr>
+                    <td>{{.Date}}</td>
+                    <td>{{.DailyCash}}</td>
+                    <td>{{.DailyCashless}}</td>
+                    <td>{{.DailyOnline}}</td>
+                    <td>{{.DailyLitersCol1}}</td>
+                    <td>{{.DailyLitersCol2}}</td>
+                    <td>{{.FuelArrivalCol1}}</td>
+                    <td>{{.FuelArrivalCol2}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </ul>
+</body>
+
+</html>
+{{end}}

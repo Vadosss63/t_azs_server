@@ -38,28 +38,37 @@
                 <table>
                     <tr>
                         <td>
+                            <a href="/azs/control?id_azs={{.IdAzs}}">Управление</a>
+                        </td>
+                        <td>
+                            <a href="/azs/statistics?id_azs={{.IdAzs}}">Статистика</a>
+                        </td>
+                        <td>
+                            <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="/update_app_page?id_azs={{.IdAzs}}">Обновление</a>
+                        </td>
+                        <td>
                             <a href="/list_logs?id_azs={{.IdAzs}}">Логи</a>
                         </td>
+                        <td>
+                            <form action="/azs_stats?id_azs={{.IdAzs}}" method="post" class="deleteAzs">
+                                <button type="submit">Удалить АЗС</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
                         <td>
                             <label for="yaPay">YandexPay</label>
                             <input type="checkbox" id="yaPay" data-id="{{.IdAzs}}" {{ if .IsEnabled }} checked {{ end
                                 }}>
                         </td>
                         <td>
-                            <a href="/update_app_page?id_azs={{.IdAzs}}">Обновление</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <a href="/azs_receipt/history?id_azs={{.IdAzs}}">История операций</a>
                         </td>
                         <td>
-                            <a href="/azs/control?id_azs={{.IdAzs}}">Управление</a>
-                        </td>
-                        <td>
-                            <form action="/azs_stats?id_azs={{.IdAzs}}" method="post" class="deleteAzs">
-                                <button type="submit">Удалить АЗС</button>
-                            </form>
                         </td>
                     </tr>
                     <tr>
@@ -129,7 +138,7 @@
     checkboxes.forEach(function (checkbox) {
         checkbox.addEventListener('change', function () {
             var isChecked = this.checked;
-            var idAzs = this.getAttribute('data-id'); 
+            var idAzs = this.getAttribute('data-id');
             var data = {
                 idAzs: parseInt(idAzs, 10),
                 isEnabled: isChecked

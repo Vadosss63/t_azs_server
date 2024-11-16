@@ -38,6 +38,35 @@ table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
+.centered-table {
+    margin: 20px auto;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    border-collapse: collapse;
+    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 5px 5px;
+}
+
+.centered-table td,
+.centered-table th {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.centered-table th {
+    background-color: #1c7ed6;
+    width: 35%;
+    color: #fff;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.centered-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
 .container {
     float: top;
     background-color: #fff;
@@ -168,7 +197,8 @@ nav ul {
     justify-content: center;
 }
 
-.receiptFilter {
+.receiptFilter,
+.statisticsFilter {
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -179,7 +209,8 @@ nav ul {
     display: block;
 }
 
-.receiptFilter p {
+.receiptFilter p,
+.statisticsFilter p {
     font-size: 20px;
     color: #05111b;
     text-align: center;
@@ -188,13 +219,15 @@ nav ul {
     background-color: #fff;
 }
 
-.receiptFilter a {
+.receiptFilter a,
+.statisticsFilter a {
     text-decoration: none;
     display: inline-block;
     padding: 8px 16px;
 }
 
-.receiptFilter a:hover {
+.receiptFilter a:hover,
+.statisticsFilter a:hover {
     background-color: #1c7ed6;
     color: black;
 }

@@ -106,6 +106,9 @@ func (c AzsController) createAzs(idInt, countColum, isSecondPrice int, name, add
 	if err := c.app.Repo.YaPayRepo.Add(c.app.Ctx, idInt); err != nil {
 		return err
 	}
+	if err := c.app.Repo.AzsStatRepo.CreateStatisticsTable(c.app.Ctx, idInt); err != nil {
+		return err
+	}
 	return c.app.Repo.ReceiptRepo.CreateReceipt(c.app.Ctx, idInt)
 }
 
@@ -148,6 +151,10 @@ func (c AzsController) deleteAsz(rw http.ResponseWriter, r *http.Request, p http
 
 	if err := c.app.Repo.ReceiptRepo.DeleteAll(c.app.Ctx, idAzs); err != nil {
 		application.SendError(rw, "Failed to delete all receipts for AZS: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := c.app.Repo.AzsStatRepo.DeleteAllStatistics(c.app.Ctx, idAzs); err != nil {
+		application.SendError(rw, "Failed to delete all statistics for AZS: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

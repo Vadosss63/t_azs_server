@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/Vadosss63/t-azs/internal/repository/azs"
 	"github.com/Vadosss63/t-azs/internal/repository/azs_button"
+	"github.com/Vadosss63/t-azs/internal/repository/azs_statistics"
 	"github.com/Vadosss63/t-azs/internal/repository/receipt"
 	"github.com/Vadosss63/t-azs/internal/repository/trbl_button"
 	"github.com/Vadosss63/t-azs/internal/repository/updater_button"
@@ -17,6 +18,7 @@ type Repository struct {
 	AzsRepo           azs.AzsRepository
 	AzsButtonRepo     azs_button.AzsButtonRepository
 	ReceiptRepo       receipt.ReceiptRepository
+	AzsStatRepo       azs_statistics.StatisticsRepository
 	TrblButtonRepo    trbl_button.TrblButtonRepository
 	UpdaterButtonRepo updater_button.UpdaterButtonRepository
 	UserRepo          user.UserRepository
@@ -29,6 +31,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 		AzsRepo:           azs.NewRepository(pool),
 		AzsButtonRepo:     azs_button.NewRepository(pool),
 		ReceiptRepo:       receipt.NewRepository(pool),
+		AzsStatRepo:       azs_statistics.NewStatisticsRepository(pool),
 		TrblButtonRepo:    trbl_button.NewRepository(pool),
 		UpdaterButtonRepo: updater_button.NewRepository(pool),
 		UserRepo:          user.NewRepository(pool),

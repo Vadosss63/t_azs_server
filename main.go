@@ -11,6 +11,7 @@ import (
 	"github.com/Vadosss63/t-azs/internal/application"
 	"github.com/Vadosss63/t-azs/internal/controllers/admin_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/azs_controller"
+	"github.com/Vadosss63/t-azs/internal/controllers/azs_statistics_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/customer_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/map_controller"
 	"github.com/Vadosss63/t-azs/internal/controllers/trbl_controller"
@@ -71,8 +72,15 @@ func main() {
 	customerController := customer_controller.NewController(a)
 	azsController := azs_controller.NewController(a)
 	adminController := admin_controller.NewController(a)
+	azsStatisticsController := azs_statistics_controller.NewController(a)
 
 	err = yaController.CheckDB()
+
+	if err != nil {
+		log.Fatalf("Failed to check DB: %v", err)
+	}
+
+	err = azsStatisticsController.CheckDB()
 
 	if err != nil {
 		log.Fatalf("Failed to check DB: %v", err)
@@ -87,6 +95,7 @@ func main() {
 	customerController.Routes(r)
 	azsController.Routes(r)
 	adminController.Routes(r)
+	azsStatisticsController.Routes(r)
 
 	r.GET("/", a.Authorized(func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
 

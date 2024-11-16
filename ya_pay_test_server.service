@@ -1,0 +1,15 @@
+[Unit]
+
+Description=ya_pay_test_server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/ya_pay_test_server/main
+ExecReload=/opt/ya_pay_test_server/main
+WorkingDirectory=/opt/ya_pay_test_server/
+TimeoutSec=300
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
