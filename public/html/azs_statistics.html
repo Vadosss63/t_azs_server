@@ -62,27 +62,28 @@
                 {{ range .Statistics }}
                 <tr>
                     <td>{{.Date}}</td>
-                    <td>{{.DailyCash}}</td>
-                    <td>{{.DailyCashless}}</td>
-                    <td>{{.DailyOnline}}</td>
-                    <td>{{.DailyLitersCol1}}</td>
-                    <td>{{.DailyLitersCol2}}</td>
-                    <td>{{.FuelArrivalCol1}}</td>
-                    <td>{{.FuelArrivalCol2}}</td>
+                    <td>{{if eq .DailyCash 0.0}}-{{else}}{{.DailyCash}}{{end}}</td>
+                    <td>{{if eq .DailyCashless 0.0}}-{{else}}{{.DailyCashless}}{{end}}</td>
+                    <td>{{if eq .DailyOnline 0.0}}-{{else}}{{.DailyOnline}}{{end}}</td>
+                    <td>{{if eq .DailyLitersCol1 0.0}}-{{else}}{{.DailyLitersCol1}}{{end}}</td>
+                    <td>{{if eq .DailyLitersCol2 0.0}}-{{else}}{{.DailyLitersCol2}}{{end}}</td>
+                    <td>{{if eq .FuelArrivalCol1 0.0}}-{{else}}{{.FuelArrivalCol1}}{{end}}</td>
+                    <td>{{if eq .FuelArrivalCol2 0.0}}-{{else}}{{.FuelArrivalCol2}}{{end}}</td>
                 </tr>
                 {{end}}
                 {{else}}
                 {{ range .Statistics }}
                 <tr>
                     <td>{{.Date}}</td>
-                    <td>{{.DailyCash}}</td>
-                    <td>{{.DailyCashless}}</td>
-                    <td>{{.DailyOnline}}</td>
-                    <td>{{.DailyLitersCol1}}</td>
-                    <td>{{.FuelArrivalCol1}}</td>
+                    <td>{{if eq .DailyCash 0.0}}-{{else}}{{.DailyCash}}{{end}}</td>
+                    <td>{{if eq .DailyCashless 0.0}}-{{else}}{{.DailyCashless}}{{end}}</td>
+                    <td>{{if eq .DailyOnline 0.0}}-{{else}}{{.DailyOnline}}{{end}}</td>
+                    <td>{{if eq .DailyLitersCol1 0.0}}-{{else}}{{.DailyLitersCol1}}{{end}}</td>
+                    <td>{{if eq .FuelArrivalCol1 0.0}}-{{else}}{{.FuelArrivalCol1}}{{end}}</td>
                 </tr>
                 {{end}}
                 {{end}}
+                
             </tbody>
         </table>
     </ul>
